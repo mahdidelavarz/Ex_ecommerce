@@ -9,15 +9,31 @@ import { JwtPayload } from '../shared/types/common.types';
 import { UserRole } from '../shared/constants/enums';
 import { asyncHandler } from './asyncHandler';
 
+/**
+ * Extract token from cookie OR Authorization header
+ */
+function extractToken(req: Request): string | null {
+  // First try cookie
+  if (req.cookies?.accessToken) {
+    return req.cookies.accessToken;
+  }
+
+  // Then try Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.split(' ')[1];
+  }
+
+  return null;
+}
+
 export const authenticate = asyncHandler(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = extractToken(req);
+
+    if (!token) {
       throw new UnauthorizedError('Authentication required');
     }
-
-    const token = authHeader.split(' ')[1];
 
     try {
       const decoded = jwt.verify(token, env.jwt.accessSecret) as JwtPayload;
@@ -45,13 +61,11 @@ export const authenticate = asyncHandler(
 
 export const optionalAuth = asyncHandler(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = extractToken(req);
+
+    if (!token) {
       return next();
     }
-
-    const token = authHeader.split(' ')[1];
 
     try {
       const decoded = jwt.verify(token, env.jwt.accessSecret) as JwtPayload;

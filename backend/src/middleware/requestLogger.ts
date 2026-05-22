@@ -1,10 +1,10 @@
 // src/middleware/requestLogger.ts
-import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import { logger } from '../shared/utils/logger';
+import { Request, Response, NextFunction } from "express";
+import { v4 as uuidv4 } from "uuid";
+import { logger } from "../shared/utils/logger";
 
 // Extend Request type locally
-declare module 'express' {
+declare module "express" {
   interface Request {
     requestId?: string;
     startTime?: number;
@@ -13,7 +13,11 @@ declare module 'express' {
   }
 }
 
-export const requestLogger = (req: Request, res: Response, next: NextFunction): void => {
+export const requestLogger = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   req.requestId = uuidv4();
   req.startTime = Date.now();
 
@@ -21,14 +25,14 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
     requestId: req.requestId,
     method: req.method,
     path: req.path,
-    query: req.query,
+    query: JSON.stringify(req.query), // ← اضافه کن
     ip: req.ip,
-    userAgent: req.get('user-agent'),
+    userAgent: req.get("user-agent"),
   });
 
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = Date.now() - (req.startTime || 0);
-    
+
     logger.info({
       requestId: req.requestId,
       method: req.method,

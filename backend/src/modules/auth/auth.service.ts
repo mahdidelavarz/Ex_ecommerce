@@ -1,20 +1,20 @@
 // src/modules/auth/auth.service.ts
-import bcrypt from 'bcryptjs';
-import { AppDataSource } from '../../config/database';
-import { User, UserRole } from '../../database/entities/user.entity';
-import { OtpCode } from '../../database/entities/otp-code.entity';
-import { RefreshToken } from '../../database/entities/refresh-token.entity';
-import { LoginLog } from '../../database/entities/login-log.entity';
-import { JWTService } from './auth.jwt';
-import { SMSService } from './sms.service';
-import { env } from '../../config/env';
+import bcrypt from "bcryptjs";
+import { AppDataSource } from "../../config/database";
+import { User, UserRole } from "../../database/entities/user.entity";
+import { OtpCode } from "../../database/entities/otp-code.entity";
+import { RefreshToken } from "../../database/entities/refresh-token.entity";
+import { LoginLog } from "../../database/entities/login-log.entity";
+import { JWTService } from "./auth.jwt";
+import { SMSService } from "./sms.service";
+import { env } from "../../config/env";
 import {
   BadRequestError,
   UnauthorizedError,
   NotFoundError,
   TooManyRequestsError,
-} from '../../shared/utils/errors';
-import { AuthUser, TokenPair } from './auth.types';
+} from "../../shared/utils/errors";
+import { AuthUser, TokenPair } from "./auth.types";
 
 export class AuthService {
   private userRepository = AppDataSource.getRepository(User);
@@ -25,21 +25,27 @@ export class AuthService {
   /**
    * Send OTP to phone number
    */
-  async sendOTP(phoneNumber: string): Promise<{ message: string; otpCode?: string }> {
+  async sendOTP(
+    phoneNumber: string,
+  ): Promise<{ message: string; otpCode?: string }> {
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
     const recentOTP = await this.otpRepository.findOne({
       where: {
         phone_number: phoneNumber,
       },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
 
     if (recentOTP && recentOTP.created_at > oneMinuteAgo) {
-      throw new TooManyRequestsError('لطفا یک دقیقه صبر کنید و دوباره تلاش کنید');
+      throw new TooManyRequestsError(
+        "لطفا یک دقیقه صبر کنید و دوباره تلاش کنید",
+      );
     }
 
     const otpCode = SMSService.generateOTP();
-    const expiresAt = new Date(Date.now() + env.otp.expirationMinutes * 60 * 1000);
+    const expiresAt = new Date(
+      Date.now() + env.otp.expirationMinutes * 60 * 1000,
+    );
     const otpHash = await bcrypt.hash(otpCode, 10);
 
     await this.otpRepository.save({
@@ -52,20 +58,23 @@ export class AuthService {
 
     await SMSService.sendOTP(phoneNumber, otpCode);
 
-    if (env.nodeEnv === 'development') {
+    if (env.nodeEnv === "development") {
       return {
-        message: 'کد تایید با موفقیت ارسال شد',
+        message: "کد تایید با موفقیت ارسال شد",
         otpCode,
       };
     }
 
-    return { message: 'کد تایید با موفقیت ارسال شد' };
+    return { message: "کد تایید با موفقیت ارسال شد" };
   }
 
   /**
    * Verify OTP and login/register user
    */
-  async verifyOTP(phoneNumber: string, otpCode: string): Promise<{
+  async verifyOTP(
+    phoneNumber: string,
+    otpCode: string,
+  ): Promise<{
     user: AuthUser;
     tokens: TokenPair;
     requiresProfileCompletion: boolean;
@@ -75,29 +84,29 @@ export class AuthService {
         phone_number: phoneNumber,
         verified: false,
       },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
 
     if (!otpRecord) {
-      throw new NotFoundError('کد تایید یافت نشد');
+      throw new NotFoundError("کد تایید یافت نشد");
     }
 
     if (new Date() > otpRecord.expires_at) {
-      throw new BadRequestError('کد تایید منقضی شده است');
+      throw new BadRequestError("کد تایید منقضی شده است");
     }
 
     if (otpRecord.attempts >= env.otp.maxAttempts) {
-      throw new TooManyRequestsError('تعداد تلاش‌های مجاز به پایان رسید');
+      throw new TooManyRequestsError("تعداد تلاش‌های مجاز به پایان رسید");
     }
 
     const isValidOTP = await bcrypt.compare(otpCode, otpRecord.otp_hash);
     if (!isValidOTP) {
       otpRecord.attempts += 1;
       await this.otpRepository.save(otpRecord);
-      
+
       const remainingAttempts = env.otp.maxAttempts - otpRecord.attempts;
       throw new BadRequestError(
-        `کد تایید اشتباه است. ${remainingAttempts} تلاش باقی مانده`
+        `کد تایید اشتباه است. ${remainingAttempts} تلاش باقی مانده`,
       );
     }
 
@@ -110,15 +119,16 @@ export class AuthService {
     });
 
     if (!user) {
-      // Create user as a single object, save returns User
+      // Create user with default full_name since it's NOT NULL
       const newUser = this.userRepository.create({
         phone_number: phoneNumber,
+        full_name: "", // ← این رو اضافه کن
         role: UserRole.CUSTOMER,
         profile_completed: false,
         is_active: true,
-      } as Partial<User>);
-      
-      user = await this.userRepository.save(newUser as User);
+      });
+
+      user = await this.userRepository.save(newUser);
     }
 
     // Now TypeScript guarantees user is not null
@@ -143,7 +153,7 @@ export class AuthService {
   async refreshToken(refreshTokenString: string): Promise<TokenPair> {
     const payload = JWTService.verifyRefreshToken(refreshTokenString);
     if (!payload) {
-      throw new UnauthorizedError('Invalid refresh token');
+      throw new UnauthorizedError("Invalid refresh token");
     }
 
     const tokens = await this.refreshTokenRepository.find({
@@ -151,14 +161,17 @@ export class AuthService {
         user_id: payload.userId,
         revoked: false,
       },
-      order: { created_at: 'DESC' },
+      order: { created_at: "DESC" },
     });
 
     let validToken: RefreshToken | null = null;
     for (const token of tokens) {
       if (token.expires_at < new Date()) continue;
-      
-      const isValid = await bcrypt.compare(refreshTokenString, token.token_hash);
+
+      const isValid = await bcrypt.compare(
+        refreshTokenString,
+        token.token_hash,
+      );
       if (isValid) {
         validToken = token;
         break;
@@ -166,7 +179,7 @@ export class AuthService {
     }
 
     if (!validToken) {
-      throw new UnauthorizedError('Refresh token not found or expired');
+      throw new UnauthorizedError("Refresh token not found or expired");
     }
 
     const user = await this.userRepository.findOne({
@@ -174,7 +187,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     const newTokens = await this.generateTokenPair(user);
@@ -195,7 +208,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     return this.sanitizeUser(user);
@@ -207,24 +220,27 @@ export class AuthService {
   async logout(userId: string): Promise<void> {
     await this.refreshTokenRepository.update(
       { user_id: userId, revoked: false },
-      { revoked: true, revoked_at: new Date() }
+      { revoked: true, revoked_at: new Date() },
     );
   }
 
   /**
    * Complete user profile
    */
-  async completeProfile(userId: string, profileData: {
-    full_name: string;
-    email?: string | null;
-    birthday?: string | null;
-  }): Promise<AuthUser> {
+  async completeProfile(
+    userId: string,
+    profileData: {
+      full_name: string;
+      email?: string | null;
+      birthday?: string | null;
+    },
+  ): Promise<AuthUser> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
 
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     if (profileData.email) {
@@ -232,13 +248,15 @@ export class AuthService {
         where: { email: profileData.email },
       });
       if (existingUser && existingUser.id !== userId) {
-        throw new BadRequestError('This email is already in use');
+        throw new BadRequestError("This email is already in use");
       }
     }
 
     user.full_name = profileData.full_name;
     user.email = profileData.email || user.email;
-    user.birthday = profileData.birthday ? new Date(profileData.birthday) : user.birthday;
+    user.birthday = profileData.birthday
+      ? new Date(profileData.birthday)
+      : user.birthday;
     user.profile_completed = true;
 
     await this.userRepository.save(user);
@@ -249,17 +267,20 @@ export class AuthService {
   /**
    * Update user profile
    */
-  async updateProfile(userId: string, profileData: {
-    full_name?: string;
-    email?: string | null;
-    birthday?: string | null;
-  }): Promise<AuthUser> {
+  async updateProfile(
+    userId: string,
+    profileData: {
+      full_name?: string;
+      email?: string | null;
+      birthday?: string | null;
+    },
+  ): Promise<AuthUser> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
 
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError("User not found");
     }
 
     if (profileData.email) {
@@ -267,14 +288,16 @@ export class AuthService {
         where: { email: profileData.email },
       });
       if (existingUser && existingUser.id !== userId) {
-        throw new BadRequestError('This email is already in use');
+        throw new BadRequestError("This email is already in use");
       }
     }
 
     if (profileData.full_name) user.full_name = profileData.full_name;
     if (profileData.email !== undefined) user.email = profileData.email;
     if (profileData.birthday !== undefined) {
-      user.birthday = profileData.birthday ? new Date(profileData.birthday) : null;
+      user.birthday = profileData.birthday
+        ? new Date(profileData.birthday)
+        : null;
     }
 
     await this.userRepository.save(user);
@@ -300,13 +323,13 @@ export class AuthService {
       const newUser = this.userRepository.create({
         email: googleUser.email,
         phone_number: googleUser.phone || null,
-        full_name: googleUser.full_name || '',
+        full_name: googleUser.full_name || "", // ← این باید باشه
         role: UserRole.CUSTOMER,
         profile_completed: !!googleUser.full_name,
         is_active: true,
-      } as Partial<User>);
-      
-      user = await this.userRepository.save(newUser as User);
+      });
+
+      user = await this.userRepository.save(newUser);
     }
 
     const tokens = await this.generateTokenPair(user!);

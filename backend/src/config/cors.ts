@@ -3,8 +3,8 @@ import cors from 'cors';
 import { env } from './env';
 
 export const corsConfig = cors({
-  origin: env.cors.origin,
-  credentials: true,
+  origin: 'http://localhost:3000',  // ← دقیق باشه، نه *
+  credentials: true,  // ← حتماً true
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type',
@@ -13,6 +13,5 @@ export const corsConfig = cors({
     'Accept',
     'Origin',
   ],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 86400, // 24 hours
+  exposedHeaders: ['Set-Cookie'],  // ← اینو اضافه کن
 });

@@ -9,8 +9,11 @@ import { generalLimiter } from './middleware/rateLimiter';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { initializeDatabase } from './config/database';
-import { logger } from './shared/utils/logger';
 import authRoutes from './modules/auth/auth.routes';
+import cookieParser from 'cookie-parser';
+import categoryRoutes from './modules/categories/category.routes';
+
+
 
 // Import routes
 // import authRoutes from './modules/auth/auth.routes';
@@ -30,6 +33,8 @@ app.use(corsConfig);
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser()); // ← اضافه کن قبل از routes
+
 
 // Logging
 if (env.nodeEnv === 'development') {
@@ -55,6 +60,8 @@ const apiPrefix = env.apiPrefix;
 
 // In the routes section:
 app.use(`${apiPrefix}/auth`, authRoutes);
+app.use(`${apiPrefix}/categories`, categoryRoutes);
+
 
 // app.use(`${apiPrefix}/auth`, authRoutes);
 // app.use(`${apiPrefix}/users`, userRoutes);

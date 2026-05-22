@@ -1,10 +1,10 @@
 // src/modules/auth/auth.controller.ts
-import { Request, Response } from 'express';
-import { AuthService } from './auth.service';
-import { asyncHandler } from '../../middleware/asyncHandler';
-import { ApiResponseHelper } from '../../shared/utils/response';
-import { Messages } from '../../shared/constants/messages';
-import { env } from '../../config/env';
+import { Request, Response } from "express";
+import { AuthService } from "./auth.service";
+import { asyncHandler } from "../../middleware/asyncHandler";
+import { ApiResponseHelper } from "../../shared/utils/response";
+import { Messages } from "../../shared/constants/messages";
+import { env } from "../../config/env";
 
 export class AuthController {
   private authService: AuthService;
@@ -21,13 +21,13 @@ export class AuthController {
     const result = await this.authService.sendOTP(phone_number);
 
     // Set cookie for development OTP (auto-fill in frontend)
-    if (env.nodeEnv === 'development' && result.otpCode) {
-      res.cookie('dev_otp', result.otpCode, {
+    if (env.nodeEnv === "development" && result.otpCode) {
+      res.cookie("dev_otp", result.otpCode, {
         httpOnly: false,
         secure: false,
-        sameSite: 'lax',
+        sameSite: "lax",
         maxAge: 2 * 60 * 1000, // 2 minutes
-        path: '/',
+        path: "/",
       });
     }
 
@@ -42,19 +42,23 @@ export class AuthController {
     const result = await this.authService.verifyOTP(phone_number, otp_code);
 
     // Set access token as httpOnly cookie
-    res.cookie('accessToken', result.tokens.accessToken, {
+    res.cookie("accessToken", result.tokens.accessToken, {
       httpOnly: true,
-      secure: env.nodeEnv === 'production',
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000, // 15 minutes
-      path: '/',
+      secure: false ,//env.nodeEnv === "production",
+      sameSite: "lax", // ← strict رو بکن lax
+      maxAge: 15 * 60 * 1000,
+      path: "/",
     });
 
-    ApiResponseHelper.success(res, {
-      user: result.user,
-      refreshToken: result.tokens.refreshToken,
-      requiresProfileCompletion: result.requiresProfileCompletion,
-    }, Messages.AUTH.OTP_VERIFIED);
+    ApiResponseHelper.success(
+      res,
+      {
+        user: result.user,
+        refreshToken: result.tokens.refreshToken,
+        requiresProfileCompletion: result.requiresProfileCompletion,
+      },
+      Messages.AUTH.OTP_VERIFIED,
+    );
   });
 
   /**
@@ -65,17 +69,21 @@ export class AuthController {
     const tokens = await this.authService.refreshToken(refreshToken);
 
     // Set new access token
-    res.cookie('accessToken', tokens.accessToken, {
+    res.cookie("accessToken", tokens.accessToken, {
       httpOnly: true,
-      secure: env.nodeEnv === 'production',
-      sameSite: 'strict',
+      secure: false ,//env.nodeEnv === "production",
+      sameSite: "lax", // ← strict رو بکن lax
       maxAge: 15 * 60 * 1000,
-      path: '/',
+      path: "/",
     });
 
-    ApiResponseHelper.success(res, {
-      refreshToken: tokens.refreshToken,
-    }, Messages.AUTH.TOKEN_REFRESHED);
+    ApiResponseHelper.success(
+      res,
+      {
+        refreshToken: tokens.refreshToken,
+      },
+      Messages.AUTH.TOKEN_REFRESHED,
+    );
   });
 
   /**
@@ -92,12 +100,12 @@ export class AuthController {
   logout = asyncHandler(async (req: Request, res: Response) => {
     await this.authService.logout(req.userId!);
 
-    res.cookie('accessToken', '', {
+    res.cookie("accessToken", "", {
       httpOnly: true,
-      secure: env.nodeEnv === 'production',
-      sameSite: 'strict',
+      secure: env.nodeEnv === "production",
+      sameSite: "strict",
       maxAge: 0,
-      path: '/',
+      path: "/",
     });
 
     ApiResponseHelper.success(res, null, Messages.AUTH.LOGOUT_SUCCESS);
@@ -126,6 +134,6 @@ export class AuthController {
   googleCallback = asyncHandler(async (req: Request, res: Response) => {
     // This would be implemented based on your Google OAuth flow
     // For now, return a placeholder
-    ApiResponseHelper.success(res, null, 'Google callback endpoint');
+    ApiResponseHelper.success(res, null, "Google callback endpoint");
   });
 }
