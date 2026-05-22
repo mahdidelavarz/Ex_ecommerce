@@ -5,6 +5,9 @@ import { Toaster } from "react-hot-toast";
 import localFont from "next/font/local";
 import "./globals.css";
 import AuthInitProvider from "@/modules/auth/components/AuthInitProvider";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import QueryProvider from "@/lib/query-provider";
 
 const vazirmatn = localFont({
   src: [
@@ -52,37 +55,31 @@ export default function RootLayout({
       className={vazirmatn.variable}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background text-text-primary antialiased">
+      <body className="min-h-screen bg-background text-text-primary antialiased flex flex-col">
         <ThemeProvider
           attribute="data-theme"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <AuthInitProvider>{children}</AuthInitProvider>
+          <QueryProvider>
+            <AuthInitProvider>
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </AuthInitProvider>
+          </QueryProvider>
           <Toaster
             position="bottom-left"
             reverseOrder={false}
             toastOptions={{
               duration: 4000,
               style: {
-                background: "var(--color-surface)",
-                color: "var(--color-text-primary)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius-card)",
-                fontFamily: "var(--font-vazirmatn)",
-              },
-              success: {
-                iconTheme: {
-                  primary: "var(--color-success)",
-                  secondary: "white",
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: "var(--color-error)",
-                  secondary: "white",
-                },
+                background: 'var(--color-surface)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-card)',
+                fontFamily: 'var(--font-vazirmatn)',
               },
             }}
           />
