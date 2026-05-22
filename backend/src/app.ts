@@ -10,6 +10,7 @@ import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { initializeDatabase } from './config/database';
 import { logger } from './shared/utils/logger';
+import authRoutes from './modules/auth/auth.routes';
 
 // Import routes
 // import authRoutes from './modules/auth/auth.routes';
@@ -51,6 +52,9 @@ app.get('/health', (req, res) => {
 
 // API routes
 const apiPrefix = env.apiPrefix;
+
+// In the routes section:
+app.use(`${apiPrefix}/auth`, authRoutes);
 
 // app.use(`${apiPrefix}/auth`, authRoutes);
 // app.use(`${apiPrefix}/users`, userRoutes);

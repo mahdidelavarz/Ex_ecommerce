@@ -12,4 +12,5 @@ declare global {
   }
 }
 
+// این خط مهمه - حتماً باشه
 export {};

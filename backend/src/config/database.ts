@@ -17,7 +17,7 @@ export const AppDataSource = new DataSource({
   migrations: [join(__dirname, '../database/migrations/**/*.{ts,js}')],
   subscribers: [],
   extra: {
-    max: 20,
+    max: env.nodeEnv === 'development' ? 5 : 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
   },
@@ -27,10 +27,6 @@ export const initializeDatabase = async (): Promise<void> => {
   try {
     await AppDataSource.initialize();
     console.log('✅ Database connected successfully');
-    
-    if (env.nodeEnv === 'development') {
-      console.log('📊 Database connection established');
-    }
   } catch (error) {
     console.error('❌ Database connection failed:', error);
     process.exit(1);

@@ -1,5 +1,5 @@
 // src/shared/utils/pagination.ts
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, Repository, ObjectLiteral } from 'typeorm';
 
 export interface PaginationOptions {
   page?: number;
@@ -18,7 +18,7 @@ export interface PaginatedResult<T> {
   hasPreviousPage: boolean;
 }
 
-export async function paginate<T>(
+export async function paginate<T extends ObjectLiteral>(
   repository: Repository<T>,
   options: PaginationOptions,
   where?: FindOptionsWhere<T> | FindOptionsWhere<T>[],

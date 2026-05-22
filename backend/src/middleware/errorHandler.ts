@@ -6,11 +6,21 @@ import { ApiResponseHelper } from '../shared/utils/response';
 import { env } from '../config/env';
 import { QueryFailedError } from 'typeorm';
 
+// Extend Request type locally
+declare module 'express' {
+  interface Request {
+    requestId?: string;
+    startTime?: number;
+    user?: any;
+    userId?: string;
+  }
+}
+
 export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   // Log the error
   logger.error({

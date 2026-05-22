@@ -3,12 +3,20 @@ import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../shared/utils/logger';
 
+// Extend Request type locally
+declare module 'express' {
+  interface Request {
+    requestId?: string;
+    startTime?: number;
+    user?: any;
+    userId?: string;
+  }
+}
+
 export const requestLogger = (req: Request, res: Response, next: NextFunction): void => {
-  // Add request ID
   req.requestId = uuidv4();
   req.startTime = Date.now();
 
-  // Log request
   logger.info({
     requestId: req.requestId,
     method: req.method,
@@ -18,7 +26,6 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
     userAgent: req.get('user-agent'),
   });
 
-  // Log response
   res.on('finish', () => {
     const duration = Date.now() - (req.startTime || 0);
     
