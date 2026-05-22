@@ -3,9 +3,12 @@ import axios from 'axios';
 import { logger } from '../../shared/utils/logger';
 import { env } from '../../config/env';
 
-interface SMSResponse {
-  success: boolean;
-  message: string;
+interface KavenegarResponse {
+  return: {
+    status: number;
+    message: string;
+  };
+  entries: unknown[];
 }
 
 export class SMSService {
@@ -14,9 +17,9 @@ export class SMSService {
   private static readonly API_URL = 'https://api.kavenegar.com/v1';
 
   /**
-   * Send OTP via SMS
+   * Send OTP via Kavenegar SMS
    */
-  static async sendOTP(phoneNumber: string, otpCode: string): Promise<SMSResponse> {
+  static async sendOTP(phoneNumber: string, otpCode: string): Promise<{ success: boolean; message: string }> {
     // In development, just log the OTP
     if (env.nodeEnv === 'development') {
       logger.info(`📱 [DEV] OTP for ${phoneNumber}: ${otpCode}`);
@@ -31,7 +34,7 @@ export class SMSService {
       const url = `${this.API_URL}/${this.API_KEY}/sms/send.json`;
       const message = `کد تایید شما: ${otpCode}\nاین کد تا 2 دقیقه معتبر است.`;
 
-      const response = await axios.post(url, null, {
+      const response = await axios.post<KavenegarResponse>(url, null, {
         params: {
           sender: this.SENDER,
           receptor: phoneNumber,
@@ -39,14 +42,29 @@ export class SMSService {
         },
       });
 
-      if (response.data?.return?.status === 200) {
-        return { success: true, message: 'پیامک با موفقیت ارسال شد' };
+      if (response.data.return.status === 200) {
+        logger.info(`✅ SMS sent to ${phoneNumber}`);
+        return {
+          success: true,
+          message: 'پیامک با موفقیت ارسال شد',
+        };
       }
 
-      return { success: false, message: 'خطا در ارسال پیامک' };
-    } catch (error) {
-      logger.error('SMS send failed:', error);
-      return { success: false, message: 'خطا در ارسال پیامک' };
+      logger.error('Kavenegar API error:', response.data.return);
+      return {
+        success: false,
+        message: 'خطا در ارسال پیامک',
+      };
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        logger.error('Kavenegar Error:', (error as any).response?.data);
+      } else {
+        logger.error('Kavenegar Error:', error);
+      }
+      return {
+        success: false,
+        message: 'خطا در ارسال پیامک',
+      };
     }
   }
 

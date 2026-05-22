@@ -4,7 +4,8 @@ export interface AuthUser {
   email: string | null;
   phone_number: string | null;
   full_name: string;
-  role: 'customer' | 'admin' | 'support';
+  role: "customer" | "admin" | "support";
+  birthday: string;
   profile_completed: boolean;
   is_active: boolean;
   created_at: string;
