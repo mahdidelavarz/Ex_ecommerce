@@ -13,6 +13,7 @@ import authRoutes from './modules/auth/auth.routes';
 import cookieParser from 'cookie-parser';
 import categoryRoutes from './modules/categories/category.routes';
 import brandRoutes from './modules/brands/brand.routes';
+import productRoutes from './modules/products/product.routes';
 
 
 
@@ -63,6 +64,7 @@ const apiPrefix = env.apiPrefix;
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/categories`, categoryRoutes);
 app.use(`${apiPrefix}/brands`, brandRoutes);
+app.use(`${apiPrefix}/products`, productRoutes);
 
 // app.use(`${apiPrefix}/auth`, authRoutes);
 // app.use(`${apiPrefix}/users`, userRoutes);
