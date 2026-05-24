@@ -1,9 +1,15 @@
 // src/app/page.tsx
-'use client';
+"use client";
 
-import { Icon } from '@iconify/react';
-import Link from 'next/link';
-import { useCategories } from '@/modules/categories/hooks/useCategories';
+import Link from "next/link";
+import { useCategories } from "@/modules/categories/hooks/useCategories";
+import {
+  HugeiconsCustomerSupport,
+  MdiShieldCheck,
+  MdiTruckFast,
+  SolarArrowLeftLineDuotone,
+  SolarFolderWithFilesBold,
+} from "@/components/icons/Icons";
 
 export default function HomePage() {
   const { data: categoriesData } = useCategories({ parent_id: null });
@@ -24,7 +30,7 @@ export default function HomePage() {
             className="inline-flex items-center gap-2 bg-white text-primary px-8 py-4 rounded-button text-lg font-bold hover:bg-primary-light transition-colors"
           >
             مشاهده محصولات
-            <Icon icon="mdi:arrow-left" className="w-6 h-6" />
+            <SolarArrowLeftLineDuotone className="w-6 h-6" />
           </Link>
         </div>
       </section>
@@ -45,14 +51,17 @@ export default function HomePage() {
               >
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: category.color || 'var(--color-primary-light)' }}
+                  style={{
+                    backgroundColor:
+                      category.color || "var(--color-primary-light)",
+                  }}
                 >
-                  <Icon
-                    icon={category.icon || 'mdi:folder'}
-                    className="w-8 h-8 text-white"
-                  />
+                  <SolarFolderWithFilesBold className="w-8 h-8 text-white" /> 
+                  {/* dynamic icon must add */}
                 </div>
-                <h3 className="font-medium text-text-primary">{category.name}</h3>
+                <h3 className="font-medium text-text-primary">
+                  {category.name}
+                </h3>
                 <p className="text-sm text-text-muted mt-1">
                   {category.products_count} محصول
                 </p>
@@ -69,10 +78,14 @@ export default function HomePage() {
             {features.map((feature) => (
               <div key={feature.title} className="text-center p-6">
                 <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Icon icon={feature.icon} className="w-8 h-8 text-primary" />
+                  <feature.icon className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="font-bold text-text-primary mb-2">{feature.title}</h3>
-                <p className="text-text-secondary text-sm">{feature.description}</p>
+                <h3 className="font-bold text-text-primary mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-text-secondary text-sm">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -84,18 +97,18 @@ export default function HomePage() {
 
 const features = [
   {
-    icon: 'mdi:truck-fast',
-    title: 'ارسال سریع',
-    description: 'تحویل در کمترین زمان ممکن به سراسر کشور',
+    icon: MdiTruckFast,
+    title: "ارسال سریع",
+    description: "تحویل در کمترین زمان ممکن به سراسر کشور",
   },
   {
-    icon: 'mdi:shield-check',
-    title: 'تضمین کیفیت',
-    description: 'ضمانت اصالت و کیفیت تمامی محصولات',
+    icon: MdiShieldCheck,
+    title: "تضمین کیفیت",
+    description: "ضمانت اصالت و کیفیت تمامی محصولات",
   },
   {
-    icon: 'mdi:headset',
-    title: 'پشتیبانی ۲۴/۷',
-    description: 'پاسخگویی در تمام ساعات شبانه‌روز',
+    icon: HugeiconsCustomerSupport,
+    title: "پشتیبانی ۲۴/۷",
+    description: "پاسخگویی در تمام ساعات شبانه‌روز",
   },
 ];
