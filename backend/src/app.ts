@@ -12,6 +12,7 @@ import { initializeDatabase } from './config/database';
 import authRoutes from './modules/auth/auth.routes';
 import cookieParser from 'cookie-parser';
 import categoryRoutes from './modules/categories/category.routes';
+import brandRoutes from './modules/brands/brand.routes';
 
 
 
@@ -61,7 +62,7 @@ const apiPrefix = env.apiPrefix;
 // In the routes section:
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/categories`, categoryRoutes);
-
+app.use(`${apiPrefix}/brands`, brandRoutes);
 
 // app.use(`${apiPrefix}/auth`, authRoutes);
 // app.use(`${apiPrefix}/users`, userRoutes);

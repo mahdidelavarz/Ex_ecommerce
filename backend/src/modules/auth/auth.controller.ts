@@ -5,6 +5,9 @@ import { asyncHandler } from "../../middleware/asyncHandler";
 import { ApiResponseHelper } from "../../shared/utils/response";
 import { Messages } from "../../shared/constants/messages";
 import { env } from "../../config/env";
+import { AppDataSource } from '../../config/database';
+import { User, UserRole } from '../../database/entities/user.entity';
+import { NotFoundError } from '../../shared/utils/errors';
 
 export class AuthController {
   private authService: AuthService;
@@ -33,6 +36,28 @@ export class AuthController {
 
     ApiResponseHelper.success(res, result, Messages.AUTH.OTP_SENT);
   });
+
+
+  // src/modules/auth/auth.controller.ts - اضافه کن به کلاس
+
+/**
+ * POST /api/v1/auth/make-admin (TEMP - فقط برای development)
+ */
+makeAdmin = asyncHandler(async (req: Request, res: Response) => {
+  const { phone_number } = req.body;
+  
+  const userRepository = AppDataSource.getRepository(User);
+  const user = await userRepository.findOne({ where: { phone_number } });
+  
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+  
+  user.role = UserRole.ADMIN;
+  await userRepository.save(user);
+  
+  ApiResponseHelper.success(res, { user: this.authService['sanitizeUser'](user) }, 'User promoted to admin');
+});
 
   /**
    * POST /api/v1/auth/verify-otp

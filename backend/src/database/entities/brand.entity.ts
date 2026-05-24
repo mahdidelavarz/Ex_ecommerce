@@ -23,4 +23,8 @@ export class Brand extends BaseEntity {
 
   @OneToMany(() => Product, (product) => product.brand)
   products: Product[];
+
+  @Column({ type: 'boolean', default: true })  // ← اضافه کن
+  is_active: boolean;  // ← اضافه کن
+
 }

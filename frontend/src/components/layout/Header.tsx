@@ -53,6 +53,15 @@ export default function Header() {
               <Icon icon="mdi:heart-outline" className="w-5 h-5 text-text-secondary" />
             </Link>
 
+            <Link
+              href="/admin/categories"
+              className="p-2 hover:bg-surface-raised rounded-button transition-colors"
+              aria-label="علاقه‌مندی‌ها"
+            >
+              admin
+              <Icon icon="mdi:heart-outline" className="w-5 h-5 text-text-secondary" />
+            </Link>
+
             {/* Cart */}
             <Link
               href="/cart"

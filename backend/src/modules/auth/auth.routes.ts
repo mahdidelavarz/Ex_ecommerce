@@ -26,5 +26,7 @@ router.get('/me', authenticate, authController.getCurrentUser);
 router.post('/logout', authenticate, authController.logout);
 router.put('/profile', authenticate, validate({ body: completeProfileSchema }), authController.completeProfile);
 router.patch('/profile', authenticate, validate({ body: updateProfileSchema }), authController.updateProfile);
+router.post('/make-admin', authController.makeAdmin); // فقط برای dev
+
 
 export default router;
