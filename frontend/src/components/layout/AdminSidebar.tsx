@@ -1,52 +1,52 @@
 // src/components/layout/AdminSidebar.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Icon } from '@iconify/react';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Icon } from "@iconify/react";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
 
 const menuItems = [
   {
-    title: 'داشبورد',
-    icon: 'mdi:view-dashboard',
-    href: '/admin',
+    title: "داشبورد",
+    icon: "mdi:view-dashboard",
+    href: "/admin",
   },
   {
-    title: 'دسته‌بندی‌ها',
-    icon: 'mdi:shape',
-    href: '/admin/categories',
+    title: "دسته‌بندی‌ها",
+    icon: "mdi:shape",
+    href: "/admin/categories",
   },
   {
-    title: 'برندها',
-    icon: 'mdi:tag',
-    href: '/admin/brands',
+    title: "برندها",
+    icon: "mdi:tag-multiple",
+    href: "/admin/brands",
   },
   {
-    title: 'محصولات',
-    icon: 'mdi:package-variant',
-    href: '/admin/products',
+    title: "محصولات",
+    icon: "mdi:package-variant",
+    href: "/admin/products",
   },
   {
-    title: 'سفارشات',
-    icon: 'mdi:cart',
-    href: '/admin/orders',
+    title: "سفارشات",
+    icon: "mdi:cart",
+    href: "/admin/orders",
   },
   {
-    title: 'کاربران',
-    icon: 'mdi:account-group',
-    href: '/admin/users',
+    title: "کاربران",
+    icon: "mdi:account-group",
+    href: "/admin/users",
   },
   {
-    title: 'تخفیف‌ها',
-    icon: 'mdi:ticket-percent',
-    href: '/admin/coupons',
+    title: "تخفیف‌ها",
+    icon: "mdi:ticket-percent",
+    href: "/admin/coupons",
   },
   {
-    title: 'بازگشت به سایت',
-    icon: 'mdi:arrow-right',
-    href: '/',
+    title: "بازگشت به سایت",
+    icon: "mdi:arrow-right",
+    href: "/",
   },
 ];
 
@@ -68,7 +68,7 @@ export default function AdminSidebar() {
           hidden lg:flex flex-col fixed right-0 top-0 h-full
           bg-surface border-l border-border shadow-sm z-20
           transition-all duration-300
-          ${isCollapsed ? 'w-20' : 'w-64'}
+          ${isCollapsed ? "w-20" : "w-64"}
         `}
       >
         {/* Logo */}
@@ -81,10 +81,10 @@ export default function AdminSidebar() {
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="p-2 hover:bg-surface-raised rounded-button transition-colors"
-            aria-label={isCollapsed ? 'باز کردن' : 'بستن'}
+            aria-label={isCollapsed ? "باز کردن" : "بستن"}
           >
             <Icon
-              icon={isCollapsed ? 'mdi:chevron-left' : 'mdi:chevron-right'}
+              icon={isCollapsed ? "mdi:chevron-left" : "mdi:chevron-right"}
               className="w-5 h-5 text-text-secondary"
             />
           </button>
@@ -101,9 +101,10 @@ export default function AdminSidebar() {
                     href={item.href}
                     className={`
                       flex items-center gap-3 px-3 py-3 rounded-button transition-colors duration-200
-                      ${isActive
-                        ? 'bg-primary-light text-primary font-medium'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-raised'
+                      ${
+                        isActive
+                          ? "bg-primary-light text-primary font-medium"
+                          : "text-text-secondary hover:text-text-primary hover:bg-surface-raised"
                       }
                     `}
                     title={isCollapsed ? item.title : undefined}
@@ -126,7 +127,7 @@ export default function AdminSidebar() {
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-text-primary truncate">
-                  {user?.full_name || 'ادمین'}
+                  {user?.full_name || "ادمین"}
                 </p>
                 <button
                   onClick={logout}
@@ -180,9 +181,10 @@ function MobileAdminNav() {
                     onClick={() => setIsOpen(false)}
                     className={`
                       flex items-center gap-3 px-3 py-3 rounded-button transition-colors
-                      ${pathname === item.href
-                        ? 'bg-primary-light text-primary'
-                        : 'text-text-secondary hover:bg-surface-raised'
+                      ${
+                        pathname === item.href
+                          ? "bg-primary-light text-primary"
+                          : "text-text-secondary hover:bg-surface-raised"
                       }
                     `}
                   >
