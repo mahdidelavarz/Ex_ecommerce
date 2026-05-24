@@ -65,8 +65,6 @@ export const categoryQuerySchema = z.object({
     .optional(),
   limit: z
     .string()
-    .transform(Number)
-    .pipe(z.number().int().min(1).max(100))
     .optional(),
   sort_by: z.enum(['name', 'sort_order', 'created_at']).optional(),
   sort_order: z.enum(['ASC', 'DESC']).optional(),
