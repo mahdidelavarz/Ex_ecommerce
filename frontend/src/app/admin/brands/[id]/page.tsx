@@ -6,12 +6,12 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import { brandService } from "@/modules/brands/services/brand.service";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import Button from "@/components/ui/Button";
+import { MdiArrowRight, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
 const brandFormSchema = z.object({
   name: z.string().min(2, "نام برند الزامی است").max(100),
@@ -89,8 +89,7 @@ export default function AdminBrandFormPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon
-          icon="mdi:loading"
+        <SvgSpinnersRingResize
           className="animate-spin text-primary"
           width={48}
         />
@@ -110,10 +109,7 @@ export default function AdminBrandFormPage() {
               onClick={() => router.back()}
               className="p-2 hover:bg-surface-raised rounded-button transition-colors"
             >
-              <Icon
-                icon="mdi:arrow-right"
-                className="w-5 h-5 text-text-secondary"
-              />
+              <MdiArrowRight className="w-5 h-5 text-text-secondary" />
             </button>
             <h1 className="text-2xl font-bold text-text-primary">
               {isEdit ? "ویرایش برند" : "برند جدید"}

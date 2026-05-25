@@ -1,22 +1,33 @@
 // src/app/(admin)/admin/brands/page.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Icon } from '@iconify/react';
-import toast from 'react-hot-toast';
-import { useBrands } from '@/modules/brands/hooks/useBrands';
-import { brandService } from '@/modules/brands/services/brand.service';
-import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
-import type { Brand } from '@/modules/brands/types/brand.types';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useBrands } from "@/modules/brands/hooks/useBrands";
+import { brandService } from "@/modules/brands/services/brand.service";
+import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
+import AdminSidebar from "@/components/layout/AdminSidebar";
+import Button from "@/components/ui/Button";
+import type { Brand } from "@/modules/brands/types/brand.types";
+import {
+  LucidePencil,
+  LucidePlus,
+  LucideSearch,
+  MdiCheckCircle,
+  MdiChevronLeft,
+  MdiChevronRight,
+  MdiCloseCircle,
+  MdiTagOff,
+  MdiTrashCan,
+  SvgSpinnersRingResize,
+} from "@/components/icons/Icons";
 
 export default function AdminBrandsPage() {
   const router = useRouter();
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const { data, isLoading, refetch } = useBrands({
     page,
@@ -25,21 +36,22 @@ export default function AdminBrandsPage() {
   });
 
   const handleDelete = async (brand: Brand) => {
-    if (!window.confirm(`آیا از حذف برند "${brand.name}" اطمینان دارید؟`)) return;
+    if (!window.confirm(`آیا از حذف برند "${brand.name}" اطمینان دارید؟`))
+      return;
 
     try {
       await brandService.delete(brand.id);
-      toast.success('برند با موفقیت حذف شد');
+      toast.success("برند با موفقیت حذف شد");
       refetch();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'خطا در حذف برند');
+      toast.error(error.response?.data?.message || "خطا در حذف برند");
     }
   };
 
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className=" text-primary" width={48} />
       </div>
     );
   }
@@ -56,7 +68,10 @@ export default function AdminBrandsPage() {
               <h1 className="text-2xl font-bold text-text-primary">برندها</h1>
               <p className="text-text-secondary mt-1">مدیریت برندهای فروشگاه</p>
             </div>
-            <Button onClick={() => router.push('/admin/brands/new')} icon="mdi:plus">
+            <Button
+              onClick={() => router.push("/admin/brands/new")}
+              icon={LucidePlus}
+            >
               برند جدید
             </Button>
           </div>
@@ -64,8 +79,7 @@ export default function AdminBrandsPage() {
           {/* Search */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
             <div className="relative">
-              <Icon
-                icon="mdi:search"
+              <LucideSearch
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted"
                 width={20}
               />
@@ -86,7 +100,10 @@ export default function AdminBrandsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {isLoading ? (
               [...Array(6)].map((_, i) => (
-                <div key={i} className="bg-surface rounded-card shadow-card p-6 animate-pulse-soft">
+                <div
+                  key={i}
+                  className="bg-surface rounded-card shadow-card p-6 animate-pulse-soft"
+                >
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-surface-raised rounded-xl" />
                     <div className="flex-1 space-y-2">
@@ -98,7 +115,10 @@ export default function AdminBrandsPage() {
               ))
             ) : data?.data?.length === 0 ? (
               <div className="col-span-full text-center py-12">
-                <Icon icon="mdi:tag-off" className="text-text-muted mx-auto mb-3" width={48} />
+                <MdiTagOff
+                  className="text-text-muted mx-auto mb-3"
+                  width={48}
+                />
                 <p className="text-text-secondary">برندی یافت نشد</p>
               </div>
             ) : (
@@ -125,27 +145,32 @@ export default function AdminBrandsPage() {
                   disabled={page === 1}
                   className="p-2 hover:bg-surface-raised rounded-button transition-colors disabled:opacity-50"
                 >
-                  <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+                  <MdiChevronRight className="w-5 h-5" />
                 </button>
-                {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1).map((p) => (
+                {Array.from(
+                  { length: data.meta.totalPages },
+                  (_, i) => i + 1,
+                ).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPage(p)}
                     className={`w-10 h-10 rounded-button text-sm font-medium transition-colors ${
                       p === page
-                        ? 'bg-primary text-white'
-                        : 'text-text-secondary hover:bg-surface-raised'
+                        ? "bg-primary text-white"
+                        : "text-text-secondary hover:bg-surface-raised"
                     }`}
                   >
                     {p}
                   </button>
                 ))}
                 <button
-                  onClick={() => setPage((p) => Math.min(data.meta.totalPages, p + 1))}
+                  onClick={() =>
+                    setPage((p) => Math.min(data.meta.totalPages, p + 1))
+                  }
                   disabled={page === data.meta.totalPages}
                   className="p-2 hover:bg-surface-raised rounded-button transition-colors disabled:opacity-50"
                 >
-                  <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+                  <MdiChevronLeft className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -195,19 +220,21 @@ function BrandCard({
             className="p-2 hover:bg-primary-light rounded-button transition-colors text-primary"
             title="ویرایش"
           >
-            <Icon icon="mdi:pencil" className="w-4 h-4" />
+            <LucidePencil className="w-4 h-4" />
           </button>
           <button
             onClick={onDelete}
             className="p-2 hover:bg-error-light rounded-button transition-colors text-error"
             title="حذف"
           >
-            <Icon icon="mdi:delete" className="w-4 h-4" />
+            <MdiTrashCan className="w-4 h-4" />
           </button>
         </div>
       </div>
       {brand.description && (
-        <p className="text-sm text-text-secondary line-clamp-2">{brand.description}</p>
+        <p className="text-sm text-text-secondary line-clamp-2">
+          {brand.description}
+        </p>
       )}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
         <span className="text-xs text-text-muted">
@@ -216,15 +243,17 @@ function BrandCard({
         <span
           className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
             brand.is_active
-              ? 'bg-success-light text-success'
-              : 'bg-error-light text-error'
+              ? "bg-success-light text-success"
+              : "bg-error-light text-error"
           }`}
         >
-          <Icon
-            icon={brand.is_active ? 'mdi:check-circle' : 'mdi:close-circle'}
-            className="w-3 h-3"
-          />
-          {brand.is_active ? 'فعال' : 'غیرفعال'}
+          {brand.is_active ? (
+            <MdiCheckCircle className="w-3 h-3" />
+          ) : (
+            <MdiCloseCircle className="w-3 h-3" />
+          )}
+
+          {brand.is_active ? "فعال" : "غیرفعال"}
         </span>
       </div>
     </div>

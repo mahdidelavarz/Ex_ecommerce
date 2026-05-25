@@ -3,12 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import OtpInput from '@/components/ui/OtpInput';
 import Button from '@/components/ui/Button';
 import { authService } from '../services/auth.service';
 import { useAuthStore } from '../store/auth.store';
+import { MdiArrowRight, MdiShieldCheck } from '@/components/icons/Icons';
 
 interface VerifyOTPFormProps {
   phoneNumber: string;
@@ -83,13 +83,13 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
         disabled={isLoading}
         className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors mb-6"
       >
-        <Icon icon="mdi:arrow-right" className="w-5 h-5" />
+        <MdiArrowRight className="w-5 h-5" />
         بازگشت
       </button>
 
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icon icon="mdi:shield-check" className="w-8 h-8 text-primary" />
+          <MdiShieldCheck className="w-8 h-8 text-primary" />
         </div>
         <h1 className="text-2xl font-bold text-text-primary mb-2">
           کد تایید

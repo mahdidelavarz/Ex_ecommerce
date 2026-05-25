@@ -3,10 +3,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import MegaMenu from './MegaMenu';
 import MobileCategoryMenu from './MobileCategoryMenu';
+import { LucideLogIn, LucideSearch, MdiAccountCircle, MdiCartOutline, MdiHeartOutline, MdiMenu } from '../icons/Icons';
 
 export default function Header() {
   const { user, isAuthenticated } = useAuth();
@@ -23,7 +23,7 @@ export default function Header() {
               className="lg:hidden p-2 hover:bg-surface-raised rounded-button transition-colors"
               aria-label="منو"
             >
-              <Icon icon="mdi:menu" className="w-6 h-6 text-text-primary" />
+              <MdiMenu className="w-6 h-6 text-text-primary" />
             </button>
             <Link href="/" className="text-xl font-bold text-primary">
               نازی شاپ
@@ -41,7 +41,7 @@ export default function Header() {
               className="p-2 hover:bg-surface-raised rounded-button transition-colors"
               aria-label="جستجو"
             >
-              <Icon icon="mdi:search" className="w-5 h-5 text-text-secondary" />
+              <LucideSearch className="w-5 h-5 text-text-secondary" />
             </Link>
 
             {/* Wishlist */}
@@ -50,7 +50,7 @@ export default function Header() {
               className="p-2 hover:bg-surface-raised rounded-button transition-colors"
               aria-label="علاقه‌مندی‌ها"
             >
-              <Icon icon="mdi:heart-outline" className="w-5 h-5 text-text-secondary" />
+              <MdiHeartOutline className="w-5 h-5 text-text-secondary" />
             </Link>
 
             <Link
@@ -59,7 +59,7 @@ export default function Header() {
               aria-label="علاقه‌مندی‌ها"
             >
               admin
-              <Icon icon="mdi:heart-outline" className="w-5 h-5 text-text-secondary" />
+              <MdiHeartOutline className="w-5 h-5 text-text-secondary" />
             </Link>
 
             {/* Cart */}
@@ -68,7 +68,7 @@ export default function Header() {
               className="p-2 hover:bg-surface-raised rounded-button transition-colors relative"
               aria-label="سبد خرید"
             >
-              <Icon icon="mdi:cart-outline" className="w-5 h-5 text-text-secondary" />
+              <MdiCartOutline className="w-5 h-5 text-text-secondary" />
             </Link>
 
             {/* User */}
@@ -77,7 +77,7 @@ export default function Header() {
                 href="/profile"
                 className="flex items-center gap-2 px-3 py-2 hover:bg-surface-raised rounded-button transition-colors"
               >
-                <Icon icon="mdi:account-circle" className="w-5 h-5 text-text-secondary" />
+                <MdiAccountCircle className="w-5 h-5 text-text-secondary" />
                 <span className="text-sm text-text-secondary hidden md:inline">
                   {user?.full_name?.split(' ')[0]}
                 </span>
@@ -87,7 +87,7 @@ export default function Header() {
                 href="/login"
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-button hover:bg-primary-hover transition-colors text-sm font-medium"
               >
-                <Icon icon="mdi:login" className="w-5 h-5" />
+                <LucideLogIn className="w-5 h-5" />
                 <span className="hidden md:inline">ورود</span>
               </Link>
             )}

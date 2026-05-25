@@ -3,12 +3,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Icon } from "@iconify/react";
 import { useCategoryTree } from "@/modules/categories/hooks/useCategories";
 import type {
   Category,
   CategoryTreeNode,
 } from "@/modules/categories/types/category.types";
+import { MdiChevronDown } from "../icons/Icons";
+import { Icon } from "@iconify/react";
 
 export default function MegaMenu() {
   const { data: categories, isLoading } = useCategoryTree();
@@ -50,13 +51,13 @@ export default function MegaMenu() {
                 }
               `}
             >
+               {/* dynamic icon must add */}
               {category.icon && (
                 <Icon icon={category.icon} className="w-4 h-4" />
               )}
               {category.name}
               {category.children.length > 0 && (
-                <Icon
-                  icon="mdi:chevron-down"
+                <MdiChevronDown
                   className={`w-4 h-4 transition-transform duration-200 ${
                     activeCategory === category.id ? "rotate-180" : ""
                   }`}
@@ -92,6 +93,7 @@ function CategoryColumn({ category }: { category: CategoryTreeNode }) {
         href={`/categories/${category.slug}`}
         className="block font-bold text-text-primary hover:text-primary transition-colors mb-3 pb-2 border-b border-border"
       >
+         {/* dynamic icon must add */}
         {category.icon && (
           <Icon icon={category.icon} className="inline-block w-4 h-4 ms-1" />
         )}

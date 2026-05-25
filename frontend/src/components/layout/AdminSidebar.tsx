@@ -4,48 +4,62 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Icon } from "@iconify/react";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import {
+  MdiAccount,
+  MdiAccountGroup,
+  MdiArrowRight,
+  MdiCart,
+  MdiChevronLeft,
+  MdiChevronRight,
+  MdiClose,
+  MdiMenu,
+  MdiPackageVariant,
+  MdiShape,
+  MdiTagMultiple,
+  MdiTicketPercent,
+  MdiViewDashboard,
+} from "../icons/Icons";
 
 const menuItems = [
   {
     title: "داشبورد",
-    icon: "mdi:view-dashboard",
+    icon: MdiViewDashboard,
     href: "/admin",
   },
   {
     title: "دسته‌بندی‌ها",
-    icon: "mdi:shape",
+    icon: MdiShape,
     href: "/admin/categories",
   },
   {
     title: "برندها",
-    icon: "mdi:tag-multiple",
+    icon: MdiTagMultiple,
     href: "/admin/brands",
   },
   {
     title: "محصولات",
-    icon: "mdi:package-variant",
+    icon: MdiPackageVariant,
     href: "/admin/products",
   },
   {
     title: "سفارشات",
-    icon: "mdi:cart",
+    icon: MdiCart,
     href: "/admin/orders",
   },
   {
     title: "کاربران",
-    icon: "mdi:account-group",
+    icon: MdiAccountGroup,
     href: "/admin/users",
   },
   {
     title: "تخفیف‌ها",
-    icon: "mdi:ticket-percent",
+    icon: MdiTicketPercent,
     href: "/admin/coupons",
   },
   {
     title: "بازگشت به سایت",
-    icon: "mdi:arrow-right",
+    icon: MdiArrowRight,
     href: "/",
   },
 ];
@@ -83,10 +97,11 @@ export default function AdminSidebar() {
             className="p-2 hover:bg-surface-raised rounded-button transition-colors"
             aria-label={isCollapsed ? "باز کردن" : "بستن"}
           >
-            <Icon
-              icon={isCollapsed ? "mdi:chevron-left" : "mdi:chevron-right"}
-              className="w-5 h-5 text-text-secondary"
-            />
+            {isCollapsed ? (
+              <MdiChevronLeft className="w-5 h-5 text-text-secondary" />
+            ) : (
+              <MdiChevronRight className="w-5 h-5 text-text-secondary" />
+            )}
           </button>
         </div>
 
@@ -109,7 +124,7 @@ export default function AdminSidebar() {
                     `}
                     title={isCollapsed ? item.title : undefined}
                   >
-                    <Icon icon={item.icon} className="w-5 h-5 flex-shrink-0" />
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
                     {!isCollapsed && <span>{item.title}</span>}
                   </Link>
                 </li>
@@ -122,7 +137,7 @@ export default function AdminSidebar() {
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center flex-shrink-0">
-              <Icon icon="mdi:account" className="w-5 h-5 text-primary" />
+              <MdiAccount className="w-5 h-5 text-primary" />
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
@@ -155,7 +170,7 @@ function MobileAdminNav() {
         className="fixed top-4 right-4 z-30 p-2 bg-surface rounded-button shadow-card lg:hidden"
         aria-label="منوی ادمین"
       >
-        <Icon icon="mdi:menu" className="w-6 h-6 text-text-primary" />
+        <MdiMenu className="w-6 h-6 text-text-primary" />
       </button>
 
       {isOpen && (
@@ -170,7 +185,7 @@ function MobileAdminNav() {
               className="absolute top-4 left-4 p-2 hover:bg-surface-raised rounded-button"
               aria-label="بستن"
             >
-              <Icon icon="mdi:close" className="w-5 h-5" />
+              <MdiClose className="w-5 h-5" />
             </button>
 
             <ul className="mt-12 space-y-1">
@@ -188,7 +203,7 @@ function MobileAdminNav() {
                       }
                     `}
                   >
-                    <Icon icon={item.icon} className="w-5 h-5" />
+                    <item.icon className="w-5 h-5" />
                     <span>{item.title}</span>
                   </Link>
                 </li>

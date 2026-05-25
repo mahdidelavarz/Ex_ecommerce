@@ -1,40 +1,48 @@
 // src/components/ui/Button.tsx
-import { ButtonHTMLAttributes, forwardRef } from 'react';
-import { Icon } from '@iconify/react';
+import {
+  ButtonHTMLAttributes,
+  ComponentType,
+  forwardRef,
+  SVGProps,
+} from "react";
+import { SvgSpinnersRingResize } from "../icons/Icons";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: "primary" | "secondary" | "outline" | "ghost";
+  size?: "sm" | "md" | "lg";
   loading?: boolean;
-  icon?: string;
+  icon?: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
 const variants = {
-  primary: 'bg-primary text-white hover:bg-primary-hover active:bg-primary-hover',
-  secondary: 'bg-secondary text-white hover:bg-secondary-hover active:bg-secondary-hover',
-  outline: 'border-2 border-primary text-primary hover:bg-primary-light active:bg-primary-light',
-  ghost: 'text-primary hover:bg-primary-light active:bg-primary-light',
+  primary:
+    "bg-primary text-white hover:bg-primary-hover active:bg-primary-hover",
+  secondary:
+    "bg-secondary text-white hover:bg-secondary-hover active:bg-secondary-hover",
+  outline:
+    "border-2 border-primary text-primary hover:bg-primary-light active:bg-primary-light",
+  ghost: "text-primary hover:bg-primary-light active:bg-primary-light",
 };
 
 const sizes = {
-  sm: 'px-4 py-2 text-sm',
-  md: 'px-6 py-3 text-base',
-  lg: 'px-8 py-4 text-lg',
+  sm: "px-4 py-2 text-sm",
+  md: "px-6 py-3 text-base",
+  lg: "px-8 py-4 text-lg",
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
-      variant = 'primary',
-      size = 'md',
+      variant = "primary",
+      size = "md",
       loading = false,
-      icon,
+      icon: Icon,
       children,
-      className = '',
+      className = "",
       disabled,
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
       <button
@@ -52,16 +60,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? (
-          <Icon icon="mdi:loading" className="w-5 h-5 animate-spin" />
-        ) : icon ? (
-          <Icon icon={icon} className="w-5 h-5" />
+          <SvgSpinnersRingResize className="w-5 h-5" />
+        ) : Icon ? (
+          <Icon className="w-5 h-5" />
         ) : null}
         {children}
       </button>
     );
-  }
+  },
 );
 
-Button.displayName = 'Button';
+Button.displayName = "Button";
 
 export default Button;

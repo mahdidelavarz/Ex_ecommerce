@@ -1,6 +1,7 @@
 // src/modules/products/components/ProductGrid.tsx
 import ProductCard from './ProductCard';
 import type { ProductListResponse } from '../types/product.types';
+import { MdiPackageVariantClosed } from '@/components/icons/Icons';
 
 interface ProductGridProps {
   products: ProductListResponse[];
@@ -29,7 +30,7 @@ export default function ProductGrid({ products, isLoading, emptyMessage }: Produ
   if (products.length === 0) {
     return (
       <div className="text-center py-16">
-        <Icon icon="mdi:package-variant-closed" className="text-text-muted mx-auto mb-4" width={64} />
+        <MdiPackageVariantClosed className="text-text-muted mx-auto mb-4" width={64} />
         <p className="text-text-secondary">{emptyMessage || 'محصولی یافت نشد'}</p>
       </div>
     );
@@ -43,6 +44,3 @@ export default function ProductGrid({ products, isLoading, emptyMessage }: Produ
     </div>
   );
 }
-
-// Need to import Icon
-import { Icon } from '@iconify/react';

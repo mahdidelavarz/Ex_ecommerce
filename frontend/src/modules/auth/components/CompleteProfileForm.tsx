@@ -1,27 +1,28 @@
 // src/modules/auth/components/CompleteProfileForm.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useRouter } from 'next/navigation';
-import { Icon } from '@iconify/react';
-import toast from 'react-hot-toast';
-import Button from '@/components/ui/Button';
-import { authService } from '../services/auth.service';
-import { useAuthStore } from '../store/auth.store';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import Button from "@/components/ui/Button";
+import { authService } from "../services/auth.service";
+import { useAuthStore } from "../store/auth.store";
+import {
+  MdiAccount,
+  MdiAlertCircle,
+  MdiCake,
+  MdiEmail,
+} from "@/components/icons/Icons";
 
 const completeProfileSchema = z.object({
   full_name: z
     .string()
-    .min(2, 'نام کامل باید حداقل ۲ کاراکتر باشد')
-    .max(100, 'نام کامل نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد'),
-  email: z
-    .string()
-    .email('ایمیل نامعتبر است')
-    .optional()
-    .or(z.literal('')),
+    .min(2, "نام کامل باید حداقل ۲ کاراکتر باشد")
+    .max(100, "نام کامل نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد"),
+  email: z.string().email("ایمیل نامعتبر است").optional().or(z.literal("")),
   birthday: z.string().optional(),
 });
 
@@ -50,11 +51,11 @@ export default function CompleteProfileForm() {
       });
 
       updateUser(user);
-      toast.success('پروفایل با موفقیت تکمیل شد');
-      router.push('/');
+      toast.success("پروفایل با موفقیت تکمیل شد");
+      router.push("/");
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : 'خطا در تکمیل پروفایل';
+        error instanceof Error ? error.message : "خطا در تکمیل پروفایل";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -73,12 +74,12 @@ export default function CompleteProfileForm() {
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <Icon icon="mdi:account" className="w-5 h-5 text-text-muted" />
+            <MdiAccount className="w-5 h-5 text-text-muted" />
           </div>
           <input
             id="full_name"
             type="text"
-            {...register('full_name')}
+            {...register("full_name")}
             disabled={isLoading}
             placeholder="مثال: علی محمدی"
             className={`
@@ -87,13 +88,13 @@ export default function CompleteProfileForm() {
               transition-colors duration-200
               focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${errors.full_name ? 'border-error' : 'border-border'}
+              ${errors.full_name ? "border-error" : "border-border"}
             `}
           />
         </div>
         {errors.full_name && (
           <p className="text-sm text-error flex items-center gap-1">
-            <Icon icon="mdi:alert-circle" className="w-4 h-4" />
+            <MdiAlertCircle className="w-4 h-4" />
             {errors.full_name.message}
           </p>
         )}
@@ -109,12 +110,12 @@ export default function CompleteProfileForm() {
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <Icon icon="mdi:email" className="w-5 h-5 text-text-muted" />
+            <MdiEmail className="w-5 h-5 text-text-muted" />
           </div>
           <input
             id="email"
             type="email"
-            {...register('email')}
+            {...register("email")}
             disabled={isLoading}
             placeholder="example@email.com"
             dir="ltr"
@@ -124,13 +125,13 @@ export default function CompleteProfileForm() {
               transition-colors duration-200
               focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${errors.email ? 'border-error' : 'border-border'}
+              ${errors.email ? "border-error" : "border-border"}
             `}
           />
         </div>
         {errors.email && (
           <p className="text-sm text-error flex items-center gap-1">
-            <Icon icon="mdi:alert-circle" className="w-4 h-4" />
+            <MdiAlertCircle className="w-4 h-4" />
             {errors.email.message}
           </p>
         )}
@@ -146,12 +147,12 @@ export default function CompleteProfileForm() {
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <Icon icon="mdi:cake" className="w-5 h-5 text-text-muted" />
+            <MdiCake className="w-5 h-5 text-text-muted" />
           </div>
           <input
             id="birthday"
             type="date"
-            {...register('birthday')}
+            {...register("birthday")}
             disabled={isLoading}
             className={`
               w-full pr-10 pl-4 py-3 bg-surface border rounded-input

@@ -3,9 +3,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
 import { useCategoryTree } from '@/modules/categories/hooks/useCategories';
 import type { Category, CategoryTreeNode } from '@/modules/categories/types/category.types';
+import { MdiChevronDown, MdiClose } from '../icons/Icons';
+import { Icon } from '@iconify/react';
 
 interface MobileCategoryMenuProps {
   isOpen: boolean;
@@ -51,7 +52,7 @@ export default function MobileCategoryMenu({ isOpen, onClose }: MobileCategoryMe
             className="p-2 hover:bg-surface-raised rounded-button transition-colors"
             aria-label="بستن منو"
           >
-            <Icon icon="mdi:close" className="w-6 h-6 text-text-primary" />
+            <MdiClose className="w-6 h-6 text-text-primary" />
           </button>
         </div>
 
@@ -64,6 +65,7 @@ export default function MobileCategoryMenu({ isOpen, onClose }: MobileCategoryMe
                   onClick={onClose}
                   className="flex-1 flex items-center gap-3 py-3 hover:text-primary transition-colors"
                 >
+                   {/* dynamic icon must add */}
                   {category.icon && (
                     <Icon icon={category.icon} className="w-5 h-5" />
                   )}
@@ -75,8 +77,7 @@ export default function MobileCategoryMenu({ isOpen, onClose }: MobileCategoryMe
                     className="p-2 hover:bg-surface-raised rounded-button transition-colors"
                     aria-label={expandedCategories.has(category.id) ? 'بستن' : 'باز کردن'}
                   >
-                    <Icon
-                      icon="mdi:chevron-down"
+                    <MdiChevronDown
                       className={`w-5 h-5 text-text-secondary transition-transform duration-200 ${
                         expandedCategories.has(category.id) ? 'rotate-180' : ''
                       }`}

@@ -6,13 +6,14 @@ import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { categoryService } from '@/modules/categories/services/category.service';
 import { useCategories } from '@/modules/categories/hooks/useCategories';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
+import { MdiArrowRight, SolarFolderWithFilesBold, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { Icon } from '@iconify/react';
 
 // Schema - exact match with form values
 const categoryFormSchema = z.object({
@@ -125,7 +126,7 @@ export default function AdminCategoryFormPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className=" text-primary" width={48} />
       </div>
     );
   }
@@ -142,7 +143,7 @@ export default function AdminCategoryFormPage() {
               onClick={() => router.back()}
               className="p-2 hover:bg-surface-raised rounded-button transition-colors"
             >
-              <Icon icon="mdi:arrow-right" className="w-5 h-5 text-text-secondary" />
+              <MdiArrowRight className="w-5 h-5 text-text-secondary" />
             </button>
             <h1 className="text-2xl font-bold text-text-primary">
               {isEdit ? 'ویرایش دسته‌بندی' : 'دسته‌بندی جدید'}
@@ -269,6 +270,7 @@ export default function AdminCategoryFormPage() {
                         placeholder="mdi:folder"
                         className="w-full pl-10 px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                       />
+                       {/* dynamic icon must add */}
                       {selectedIcon && (
                         <Icon
                           icon={selectedIcon}
@@ -314,7 +316,7 @@ export default function AdminCategoryFormPage() {
                         {selectedIcon ? (
                           <Icon icon={selectedIcon} className="w-6 h-6 text-white" />
                         ) : (
-                          <Icon icon="mdi:folder" className="w-6 h-6 text-white" />
+                          <SolarFolderWithFilesBold className="w-6 h-6 text-white" />
                         )}
                       </div>
                       <div>

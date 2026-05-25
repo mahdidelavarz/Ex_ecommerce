@@ -5,12 +5,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import Button from '@/components/ui/Button';
 import { authService } from '../services/auth.service';
 import { useAuthStore } from '../store/auth.store';
 import type { AuthUser } from '../types/auth.type';
+import { MdiAccount, MdiAlertCircle, MdiCake, MdiEmail } from '@/components/icons/Icons';
 
 const editProfileSchema = z.object({
   full_name: z
@@ -89,7 +89,7 @@ export default function EditProfileForm({
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <Icon icon="mdi:account" className="w-5 h-5 text-text-muted" />
+            <MdiAccount className="w-5 h-5 text-text-muted" />
           </div>
           <input
             id="full_name"
@@ -108,7 +108,7 @@ export default function EditProfileForm({
         </div>
         {errors.full_name && (
           <p className="text-sm text-error flex items-center gap-1">
-            <Icon icon="mdi:alert-circle" className="w-4 h-4" />
+            <MdiAlertCircle className="w-4 h-4" />
             {errors.full_name.message}
           </p>
         )}
@@ -124,7 +124,7 @@ export default function EditProfileForm({
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <Icon icon="mdi:email" className="w-5 h-5 text-text-muted" />
+            <MdiEmail className="w-5 h-5 text-text-muted" />
           </div>
           <input
             id="email"
@@ -144,7 +144,7 @@ export default function EditProfileForm({
         </div>
         {errors.email && (
           <p className="text-sm text-error flex items-center gap-1">
-            <Icon icon="mdi:alert-circle" className="w-4 h-4" />
+            <MdiAlertCircle className="w-4 h-4" />
             {errors.email.message}
           </p>
         )}
@@ -160,7 +160,7 @@ export default function EditProfileForm({
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <Icon icon="mdi:cake" className="w-5 h-5 text-text-muted" />
+            <MdiCake className="w-5 h-5 text-text-muted" />
           </div>
           <input
             id="birthday"

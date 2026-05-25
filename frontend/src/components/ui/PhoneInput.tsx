@@ -2,7 +2,7 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { Icon } from '@iconify/react';
+import { LucideSmartphone, MdiAlertCircle } from '../icons/Icons';
 
 interface PhoneInputProps {
   value: string;
@@ -26,8 +26,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <Icon
-              icon="mdi:cellphone"
+            <LucideSmartphone
               className="w-5 h-5 text-text-muted"
             />
           </div>
@@ -53,7 +52,7 @@ const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
         </div>
         {error && (
           <p className="text-sm text-error flex items-center gap-1">
-            <Icon icon="mdi:alert-circle" className="w-4 h-4" />
+            <MdiAlertCircle className="w-4 h-4" />
             {error}
           </p>
         )}

@@ -5,11 +5,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import PhoneInput from '@/components/ui/PhoneInput';
 import Button from '@/components/ui/Button';
 import { authService } from '../services/auth.service';
+import { LucideLogIn } from '@/components/icons/Icons';
 
 const phoneSchema = z.object({
   phone_number: z
@@ -64,7 +64,7 @@ export default function OTPForm({ onSuccess }: OTPFormProps) {
     <div className="bg-surface rounded-2xl shadow-card p-8">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icon icon="mdi:login" className="w-8 h-8 text-primary" />
+          <LucideLogIn className="w-8 h-8 text-primary" />
         </div>
         <h1 className="text-2xl font-bold text-text-primary mb-2">
           ورود | ثبت‌نام

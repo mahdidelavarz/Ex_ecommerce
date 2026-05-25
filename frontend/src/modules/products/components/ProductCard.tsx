@@ -1,8 +1,8 @@
 // src/modules/products/components/ProductCard.tsx
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ProductListResponse } from '../types/product.types';
+import { LucideStar, MdiImageOff } from '@/components/icons/Icons';
 
 interface ProductCardProps {
   product: ProductListResponse;
@@ -27,7 +27,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Icon icon="mdi:image-off" className="w-16 h-16 text-text-muted" />
+              <MdiImageOff className="w-16 h-16 text-text-muted" />
             </div>
           )}
 
@@ -79,7 +79,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Rating & Reviews */}
           {product.avg_rating > 0 && (
             <div className="flex items-center gap-1 mt-2 text-xs text-text-muted">
-              <Icon icon="mdi:star" className="w-4 h-4 text-warning" />
+              <LucideStar className="w-4 h-4 text-warning" />
               <span>{product.avg_rating.toFixed(1)}</span>
               <span>({product.reviews_count})</span>
             </div>
