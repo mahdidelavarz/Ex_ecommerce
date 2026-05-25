@@ -12,6 +12,7 @@ const controller = new ProductController();
 // Public routes
 router.get('/', validate({ query: productQuerySchema }), controller.list);
 router.get('/filters', controller.getFilters);
+router.get('/id/:id', controller.getById);
 router.get('/:slug', controller.getBySlug);
 router.get('/:slug/related', controller.getRelated);
 

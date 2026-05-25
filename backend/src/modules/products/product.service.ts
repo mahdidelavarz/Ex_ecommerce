@@ -1,6 +1,11 @@
 // src/modules/products/product.service.ts
-import { ProductRepository } from './product.repository';
-import { CreateProductDto, UpdateProductDto, ProductQueryParams } from './product.types';
+import { NotFoundError } from "@/shared/utils/errors";
+import { ProductRepository } from "./product.repository";
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  ProductQueryParams,
+} from "./product.types";
 
 export class ProductService {
   private repo = new ProductRepository();
@@ -13,9 +18,13 @@ export class ProductService {
         page: options.page || 1,
         limit: Math.min(options.limit || 20, 50),
         total,
-        totalPages: Math.ceil(total / (Math.min(options.limit || 20, 50))),
+        totalPages: Math.ceil(total / Math.min(options.limit || 20, 50)),
       },
     };
+  }
+
+  async getById(id: string) {
+    return this.repo.findById(id);
   }
 
   async getBySlug(slug: string) {

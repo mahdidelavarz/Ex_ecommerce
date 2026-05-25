@@ -1,52 +1,79 @@
 // src/modules/variants/variant.repository.ts
-import { AppDataSource } from '../../config/database';
-import { ProductVariant } from '../../database/entities/product-variant.entity';
-import { Product } from '../../database/entities/product.entity';
-import { VariantAttributeValue } from '../../database/entities/variant-attribute-value.entity';
-import { VariantImage } from '../../database/entities/variant-image.entity';
-import { AttributeValue } from '../../database/entities/attribute-value.entity';
-import { OrderItem } from '../../database/entities/order-item.entity';
-import { NotFoundError, ConflictError, BadRequestError } from '../../shared/utils/errors';
-import { CreateVariantDto, UpdateVariantDto } from './variant.types';
-import { In } from 'typeorm';
+import { AppDataSource } from "../../config/database";
+import { ProductVariant } from "../../database/entities/product-variant.entity";
+import { Product } from "../../database/entities/product.entity";
+import { VariantAttributeValue } from "../../database/entities/variant-attribute-value.entity";
+import { VariantImage } from "../../database/entities/variant-image.entity";
+import { AttributeValue } from "../../database/entities/attribute-value.entity";
+import { OrderItem } from "../../database/entities/order-item.entity";
+import {
+  NotFoundError,
+  ConflictError,
+  BadRequestError,
+} from "../../shared/utils/errors";
+import { CreateVariantDto, UpdateVariantDto } from "./variant.types";
+import { In } from "typeorm";
 
 export class VariantRepository {
   private repo = AppDataSource.getRepository(ProductVariant);
   private productRepo = AppDataSource.getRepository(Product);
-  private variantAttributeRepo = AppDataSource.getRepository(VariantAttributeValue);
+  private variantAttributeRepo = AppDataSource.getRepository(
+    VariantAttributeValue,
+  );
   private variantImageRepo = AppDataSource.getRepository(VariantImage);
   private attributeValueRepo = AppDataSource.getRepository(AttributeValue);
   private orderItemRepo = AppDataSource.getRepository(OrderItem);
 
   async findByProduct(productId: string) {
-    const product = await this.productRepo.findOne({ where: { id: productId } });
-    if (!product) throw new NotFoundError('محصول یافت نشد');
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+    });
+    if (!product) throw new NotFoundError("محصول یافت نشد");
 
     return this.repo.find({
       where: { product_id: productId },
-      relations: ['variant_attribute_values', 'variant_attribute_values.attribute_value', 'variant_attribute_values.attribute_value.attribute', 'images'],
-      order: { created_at: 'ASC' },
+      relations: [
+        "variant_attribute_values",
+        "variant_attribute_values.attribute_value",
+        "variant_attribute_values.attribute_value.attribute",
+        "images",
+      ],
+      order: { created_at: "ASC" },
     });
   }
 
   async findById(id: string) {
     const variant = await this.repo.findOne({
       where: { id },
-      relations: ['variant_attribute_values', 'variant_attribute_values.attribute_value', 'variant_attribute_values.attribute_value.attribute', 'images'],
+      relations: [
+        "variant_attribute_values",
+        "variant_attribute_values.attribute_value",
+        "variant_attribute_values.attribute_value.attribute",
+        "images",
+      ],
     });
 
-    if (!variant) throw new NotFoundError('واریانت یافت نشد');
+    if (!variant) throw new NotFoundError("واریانت یافت نشد");
     return variant;
   }
 
   async create(productId: string, dto: CreateVariantDto) {
-    const product = await this.productRepo.findOne({ where: { id: productId } });
-    if (!product) throw new NotFoundError('محصول یافت نشد');
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        productId,
+      )
+    ) {
+      throw new BadRequestError("شناسه محصول نامعتبر است");
+    }
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+    });
+    if (!product) throw new NotFoundError("محصول یافت نشد");
 
     // Check duplicate SKU
     if (dto.sku) {
       const existing = await this.repo.findOne({ where: { sku: dto.sku } });
-      if (existing) throw new ConflictError('کد محصول تکراری است');
+      if (existing) throw new ConflictError("کد محصول تکراری است");
     }
 
     // Validate attribute values
@@ -80,7 +107,7 @@ export class VariantRepository {
           this.variantAttributeRepo.create({
             variant_id: saved.id,
             attribute_value_id: avid,
-          })
+          }),
         );
         await queryRunner.manager.save(values);
       }
@@ -92,7 +119,7 @@ export class VariantRepository {
             variant_id: saved.id,
             image_url: img.image_url,
             sort_order: img.sort_order ?? idx,
-          })
+          }),
         );
         await queryRunner.manager.save(images);
       }
@@ -109,20 +136,26 @@ export class VariantRepository {
 
   async update(id: string, dto: UpdateVariantDto) {
     const variant = await this.repo.findOne({ where: { id } });
-    if (!variant) throw new NotFoundError('واریانت یافت نشد');
+    if (!variant) throw new NotFoundError("واریانت یافت نشد");
 
     if (dto.sku && dto.sku !== variant.sku) {
       const existing = await this.repo.findOne({ where: { sku: dto.sku } });
-      if (existing) throw new ConflictError('کد محصول تکراری است');
+      if (existing) throw new ConflictError("کد محصول تکراری است");
     }
 
     // Update attribute values if provided
     if (dto.attribute_value_ids) {
       await this.variantAttributeRepo.delete({ variant_id: id });
       if (dto.attribute_value_ids.length > 0) {
-        await this.validateAttributes(variant.product_id, dto.attribute_value_ids);
+        await this.validateAttributes(
+          variant.product_id,
+          dto.attribute_value_ids,
+        );
         const values = dto.attribute_value_ids.map((avid) =>
-          this.variantAttributeRepo.create({ variant_id: id, attribute_value_id: avid })
+          this.variantAttributeRepo.create({
+            variant_id: id,
+            attribute_value_id: avid,
+          }),
         );
         await this.variantAttributeRepo.save(values);
       }
@@ -135,12 +168,16 @@ export class VariantRepository {
 
   async delete(id: string) {
     const variant = await this.repo.findOne({ where: { id } });
-    if (!variant) throw new NotFoundError('واریانت یافت نشد');
+    if (!variant) throw new NotFoundError("واریانت یافت نشد");
 
     // Check if used in orders
-    const orderCount = await this.orderItemRepo.count({ where: { variant_id: id } });
+    const orderCount = await this.orderItemRepo.count({
+      where: { variant_id: id },
+    });
     if (orderCount > 0) {
-      throw new BadRequestError('این واریانت در سفارشات استفاده شده و قابل حذف نیست');
+      throw new BadRequestError(
+        "این واریانت در سفارشات استفاده شده و قابل حذف نیست",
+      );
     }
 
     // Delete related records
@@ -169,9 +206,12 @@ export class VariantRepository {
     }
   }
 
-  async addImage(variantId: string, dto: { image_url: string; sort_order?: number }) {
+  async addImage(
+    variantId: string,
+    dto: { image_url: string; sort_order?: number },
+  ) {
     const variant = await this.repo.findOne({ where: { id: variantId } });
-    if (!variant) throw new NotFoundError('واریانت یافت نشد');
+    if (!variant) throw new NotFoundError("واریانت یافت نشد");
 
     const image = this.variantImageRepo.create({
       variant_id: variantId,
@@ -183,27 +223,32 @@ export class VariantRepository {
   }
 
   async deleteImage(imageId: string) {
-    const image = await this.variantImageRepo.findOne({ where: { id: imageId } });
-    if (!image) throw new NotFoundError('تصویر یافت نشد');
+    const image = await this.variantImageRepo.findOne({
+      where: { id: imageId },
+    });
+    if (!image) throw new NotFoundError("تصویر یافت نشد");
     await this.variantImageRepo.remove(image);
   }
 
-  private async validateAttributes(productId: string, attributeValueIds: string[]) {
+  private async validateAttributes(
+    productId: string,
+    attributeValueIds: string[],
+  ) {
     // Check all values exist
     const values = await this.attributeValueRepo.find({
       where: { id: In(attributeValueIds) },
-      relations: ['attribute'],
+      relations: ["attribute"],
     });
 
     if (values.length !== attributeValueIds.length) {
-      throw new NotFoundError('برخی مقادیر ویژگی یافت نشدند');
+      throw new NotFoundError("برخی مقادیر ویژگی یافت نشدند");
     }
 
     // Check no duplicate attributes (e.g., two colors for same variant)
     const attributeIds = values.map((v) => v.attribute_id);
     const uniqueIds = new Set(attributeIds);
     if (uniqueIds.size !== attributeIds.length) {
-      throw new BadRequestError('نمی‌توان از یک ویژگی چند مقدار انتخاب کرد');
+      throw new BadRequestError("نمی‌توان از یک ویژگی چند مقدار انتخاب کرد");
     }
   }
 }

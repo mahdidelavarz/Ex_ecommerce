@@ -26,12 +26,21 @@ export const productService = {
   },
 
   /**
+   * Get single product by id
+   */
+  getById: async (id: string): Promise<ProductDetail> => {
+  const response = await apiClient.get<ApiResponse<ProductDetail>>(`/products/id/${id}`);
+  return response.data.data;
+},
+
+  /**
    * Get single product by slug
    */
   getBySlug: async (slug: string): Promise<ProductDetail> => {
     const response = await apiClient.get<ApiResponse<ProductDetail>>(`/products/${slug}`);
     return response.data.data;
   },
+
 
   /**
    * Get related products
