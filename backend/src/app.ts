@@ -18,6 +18,7 @@ import attributeRoutes from './modules/attributes/attribute.routes';
 import variantRoutes from './modules/variants/variant.routes';
 import tagRoutes from './modules/tags/tag.routes';
 import cartRoutes from './modules/cart/cart.routes';
+import couponRoutes from './modules/coupons/coupon.routes';
 
 
 
@@ -73,6 +74,7 @@ app.use(`${apiPrefix}/attributes`, attributeRoutes);
 app.use(`${apiPrefix}`, variantRoutes);
 app.use(`${apiPrefix}/tags`, tagRoutes);
 app.use(`${apiPrefix}/cart`, cartRoutes);
+app.use(`${apiPrefix}/coupons`, couponRoutes);
 
 
 // app.use(`${apiPrefix}/auth`, authRoutes);
