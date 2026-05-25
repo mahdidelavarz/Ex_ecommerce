@@ -1,16 +1,28 @@
 // src/components/layout/Header.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
-import MegaMenu from './MegaMenu';
-import MobileCategoryMenu from './MobileCategoryMenu';
-import { LucideLogIn, LucideSearch, MdiAccountCircle, MdiCartOutline, MdiHeartOutline, MdiMenu } from '../icons/Icons';
+import { useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/modules/auth/hooks/useAuth";
+import MegaMenu from "./MegaMenu";
+import MobileCategoryMenu from "./MobileCategoryMenu";
+import {
+  LucideLogIn,
+  LucideSearch,
+  MdiAccountCircle,
+  MdiCart,
+  MdiCartOutline,
+  MdiHeartOutline,
+  MdiMenu,
+} from "../icons/Icons";
+import { useCartStore } from "@/modules/cart/store/cart.store";
+import { useCart } from "@/modules/cart/hooks/useCart";
 
 export default function Header() {
   const { user, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { openCart } = useCartStore();
+  const { cart } = useCart();
 
   return (
     <header className="sticky top-0 z-30 bg-surface border-b border-border shadow-sm">
@@ -63,13 +75,20 @@ export default function Header() {
             </Link>
 
             {/* Cart */}
-            <Link
-              href="/cart"
+            <button
+              onClick={openCart}
               className="p-2 hover:bg-surface-raised rounded-button transition-colors relative"
               aria-label="سبد خرید"
             >
-              <MdiCartOutline className="w-5 h-5 text-text-secondary" />
-            </Link>
+              <MdiCart
+                className="w-5 h-5 text-text-secondary"
+              />
+              {cart && cart.total_items > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-error text-white text-xs rounded-full flex items-center justify-center font-medium">
+                  {cart.total_items}
+                </span>
+              )}
+            </button>
 
             {/* User */}
             {isAuthenticated ? (
@@ -79,7 +98,7 @@ export default function Header() {
               >
                 <MdiAccountCircle className="w-5 h-5 text-text-secondary" />
                 <span className="text-sm text-text-secondary hidden md:inline">
-                  {user?.full_name?.split(' ')[0]}
+                  {user?.full_name?.split(" ")[0]}
                 </span>
               </Link>
             ) : (

@@ -8,6 +8,7 @@ import AuthInitProvider from "@/modules/auth/components/AuthInitProvider";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import QueryProvider from "@/lib/query-provider";
+import CartDrawer from "@/modules/cart/components/CartDrawer";
 
 const vazirmatn = localFont({
   src: [
@@ -66,6 +67,7 @@ export default function RootLayout({
             <AuthInitProvider>
               <Header />
               <main className="flex-1">{children}</main>
+              <CartDrawer />
               <Footer />
             </AuthInitProvider>
           </QueryProvider>
@@ -75,11 +77,11 @@ export default function RootLayout({
             toastOptions={{
               duration: 4000,
               style: {
-                background: 'var(--color-surface)',
-                color: 'var(--color-text-primary)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-card)',
-                fontFamily: 'var(--font-vazirmatn)',
+                background: "var(--color-surface)",
+                color: "var(--color-text-primary)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-card)",
+                fontFamily: "var(--font-vazirmatn)",
               },
             }}
           />
