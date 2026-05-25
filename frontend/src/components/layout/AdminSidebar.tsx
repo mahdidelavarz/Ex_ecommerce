@@ -43,6 +43,11 @@ const menuItems = [
     href: "/admin/products",
   },
   {
+    title: "خصوصیات",
+    icon: MdiPackageVariant,
+    href: "/admin/attributes",
+  },
+  {
     title: "سفارشات",
     icon: MdiCart,
     href: "/admin/orders",
