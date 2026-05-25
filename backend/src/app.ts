@@ -14,6 +14,7 @@ import cookieParser from 'cookie-parser';
 import categoryRoutes from './modules/categories/category.routes';
 import brandRoutes from './modules/brands/brand.routes';
 import productRoutes from './modules/products/product.routes';
+import attributeRoutes from './modules/attributes/attribute.routes';
 
 
 
@@ -65,6 +66,7 @@ app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/categories`, categoryRoutes);
 app.use(`${apiPrefix}/brands`, brandRoutes);
 app.use(`${apiPrefix}/products`, productRoutes);
+app.use(`${apiPrefix}/attributes`, attributeRoutes);
 
 // app.use(`${apiPrefix}/auth`, authRoutes);
 // app.use(`${apiPrefix}/users`, userRoutes);
