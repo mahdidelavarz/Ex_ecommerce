@@ -16,6 +16,7 @@ import brandRoutes from './modules/brands/brand.routes';
 import productRoutes from './modules/products/product.routes';
 import attributeRoutes from './modules/attributes/attribute.routes';
 import variantRoutes from './modules/variants/variant.routes';
+import tagRoutes from './modules/tags/tag.routes';
 
 
 
@@ -69,6 +70,7 @@ app.use(`${apiPrefix}/brands`, brandRoutes);
 app.use(`${apiPrefix}/products`, productRoutes);
 app.use(`${apiPrefix}/attributes`, attributeRoutes);
 app.use(`${apiPrefix}`, variantRoutes);
+app.use(`${apiPrefix}/tags`, tagRoutes);
 
 
 // app.use(`${apiPrefix}/auth`, authRoutes);
