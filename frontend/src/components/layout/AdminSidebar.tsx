@@ -48,6 +48,11 @@ const menuItems = [
     href: "/admin/attributes",
   },
   {
+    title: "تگ‌ها",
+    icon: "mdi:tag-multiple",
+    href: "/admin/tags",
+  },
+  {
     title: "سفارشات",
     icon: MdiCart,
     href: "/admin/orders",
