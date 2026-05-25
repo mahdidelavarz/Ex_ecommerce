@@ -1,3 +1,5 @@
+import { ProductVariant } from "@/modules/variants/types/variant.types";
+
 // src/modules/products/types/product.types.ts
 export interface ProductListResponse {
   id: string;
@@ -54,24 +56,6 @@ export interface ProductImage {
   alt_text: string | null;
   is_thumbnail: boolean;
   sort_order: number;
-}
-
-export interface ProductVariant {
-  id: string;
-  sku: string;
-  price: number;
-  compare_at_price: number | null;
-  stock_quantity: number;
-  is_active: boolean;
-  attributes: Array<{
-    name: string;
-    value: string;
-    color_code: string | null;
-  }>;
-  images: Array<{
-    id: string;
-    image_url: string;
-  }>;
 }
 
 export interface Tag {
