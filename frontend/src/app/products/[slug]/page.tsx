@@ -3,11 +3,11 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Icon } from '@iconify/react';
 import { useProduct, useRelatedProducts } from '@/modules/products/hooks/useProducts';
 import ProductGrid from '@/modules/products/components/ProductGrid';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ProductVariant } from '@/modules/variants/types/variant.types';
+import { MdiCheckCircle, MdiCloseCircle, MdiChevronLeft, MdiImageOff, MdiPackageVariantClosed, SvgSpinnersRingResize, MdiMinus, LucidePlus, MdiCartPlus } from '@/components/icons/Icons';
 
 export default function SingleProductPage() {
   const params = useParams();
@@ -23,7 +23,7 @@ export default function SingleProductPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="  text-primary" width={48} />
       </div>
     );
   }
@@ -32,7 +32,7 @@ export default function SingleProductPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Icon icon="mdi:package-variant-closed" className="text-text-muted mx-auto mb-4" width={64} />
+          <MdiPackageVariantClosed className="text-text-muted mx-auto mb-4" width={64} />
           <h1 className="text-xl font-bold text-text-primary mb-2">محصول یافت نشد</h1>
           <a href="/products" className="text-primary hover:underline">بازگشت به محصولات</a>
         </div>
@@ -49,13 +49,13 @@ export default function SingleProductPage() {
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-text-muted mb-8">
           <a href="/" className="hover:text-primary">خانه</a>
-          <Icon icon="mdi:chevron-left" className="w-4 h-4" />
+          <MdiChevronLeft className="w-4 h-4" />
           {product.category && (
             <>
               <a href={`/categories/${product.category.slug}`} className="hover:text-primary">
                 {product.category.name}
               </a>
-              <Icon icon="mdi:chevron-left" className="w-4 h-4" />
+              <MdiChevronLeft className="w-4 h-4" />
             </>
           )}
           <span className="text-text-primary truncate">{product.title}</span>
@@ -73,7 +73,7 @@ export default function SingleProductPage() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-surface-raised">
-                  <Icon icon="mdi:image-off" className="w-24 h-24 text-text-muted" />
+                  <MdiImageOff className="w-24 h-24 text-text-muted" />
                 </div>
               )}
             </div>
@@ -140,12 +140,12 @@ export default function SingleProductPage() {
                   <div className="flex items-center gap-2 text-sm mb-4">
                     {currentVariant.stock_quantity > 0 ? (
                       <span className="text-success flex items-center gap-1">
-                        <Icon icon="mdi:check-circle" className="w-4 h-4" />
+                        <MdiCheckCircle className="w-4 h-4" />
                         موجود در انبار
                       </span>
                     ) : (
                       <span className="text-error flex items-center gap-1">
-                        <Icon icon="mdi:close-circle" className="w-4 h-4" />
+                        <MdiCloseCircle className="w-4 h-4" />
                         ناموجود
                       </span>
                     )}
@@ -158,21 +158,21 @@ export default function SingleProductPage() {
                         onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                         className="p-2 hover:bg-surface-raised"
                       >
-                        <Icon icon="mdi:minus" className="w-5 h-5" />
+                        < MdiMinus className="w-5 h-5" />
                       </button>
                       <span className="px-4 font-medium">{quantity}</span>
                       <button
                         onClick={() => setQuantity((q) => q + 1)}
                         className="p-2 hover:bg-surface-raised"
                       >
-                        <Icon icon="mdi:plus" className="w-5 h-5" />
+                        <LucidePlus className="w-5 h-5" />
                       </button>
                     </div>
                     <button
                       disabled={currentVariant.stock_quantity === 0}
                       className="flex-1 bg-primary text-white py-3 px-6 rounded-button font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                     >
-                      <Icon icon="mdi:cart-plus" className="w-5 h-5" />
+                      <MdiCartPlus className="w-5 h-5" />
                       افزودن به سبد خرید
                     </button>
                   </div>

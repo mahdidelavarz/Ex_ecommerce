@@ -59,7 +59,7 @@ export default function AdminCategoriesPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <SvgSpinnersRingResize
-          className="animate-spin text-primary"
+          className="  text-primary"
           width={48}
         />
       </div>

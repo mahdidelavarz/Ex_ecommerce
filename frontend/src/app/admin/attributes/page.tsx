@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import { useAttributes } from "@/modules/attributes/hooks/useAttributes";
 import { attributeService } from "@/modules/attributes/services/attribute.service";
@@ -11,7 +10,17 @@ import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import Button from "@/components/ui/Button";
 import type { Attribute } from "@/modules/attributes/types/attribute.types";
-import { LucidePlus } from "@/components/icons/Icons";
+import {
+  LucidePencil,
+  LucidePlus,
+  LucideSearch,
+  MdiChevronLeft,
+  MdiChevronRight,
+  MdiClose,
+  MdiShape,
+  MdiTrashCan,
+  SvgSpinnersRingResize,
+} from "@/components/icons/Icons";
 
 export default function AdminAttributesPage() {
   const router = useRouter();
@@ -55,9 +64,8 @@ export default function AdminAttributesPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon
-          icon="mdi:loading"
-          className="animate-spin text-primary"
+        <SvgSpinnersRingResize
+          className="  text-primary"
           width={48}
         />
       </div>
@@ -88,8 +96,7 @@ export default function AdminAttributesPage() {
           {/* Search */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
             <div className="relative">
-              <Icon
-                icon="mdi:search"
+              <LucideSearch
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted"
                 width={20}
               />
@@ -127,8 +134,7 @@ export default function AdminAttributesPage() {
               ))
             ) : data?.data?.length === 0 ? (
               <div className="text-center py-12">
-                <Icon
-                  icon="mdi:shape-plus-outline"
+                <LucidePlus
                   className="text-text-muted mx-auto mb-3"
                   width={48}
                 />
@@ -159,7 +165,7 @@ export default function AdminAttributesPage() {
                 disabled={page === 1}
                 className="p-2 hover:bg-surface-raised rounded-button disabled:opacity-50"
               >
-                <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+                <MdiChevronRight className="w-5 h-5" />
               </button>
               {Array.from(
                 { length: data.meta.totalPages },
@@ -180,7 +186,7 @@ export default function AdminAttributesPage() {
                 disabled={page === data.meta.totalPages}
                 className="p-2 hover:bg-surface-raised rounded-button disabled:opacity-50"
               >
-                <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+                <MdiChevronLeft className="w-5 h-5" />
               </button>
             </div>
           )}
@@ -205,7 +211,7 @@ function AttributeCard({
     <div className="bg-surface rounded-card shadow-card hover:shadow-card-hover transition-all p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <Icon icon="mdi:shape" className="w-6 h-6 text-primary" />
+          <MdiShape className="w-6 h-6 text-primary" />
           <h3 className="text-lg font-bold text-text-primary">
             {attribute.name}
           </h3>
@@ -219,14 +225,14 @@ function AttributeCard({
             className="p-2 hover:bg-primary-light rounded-button text-primary"
             title="ویرایش"
           >
-            <Icon icon="mdi:pencil" className="w-4 h-4" />
+            <LucidePencil className="w-4 h-4" />
           </button>
           <button
             onClick={onDelete}
             className="p-2 hover:bg-error-light rounded-button text-error"
             title="حذف"
           >
-            <Icon icon="mdi:delete" className="w-4 h-4" />
+            <MdiTrashCan className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -255,7 +261,7 @@ function AttributeCard({
               className="absolute -top-2 -left-2 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               title="حذف"
             >
-              <Icon icon="mdi:close" className="w-3 h-3" />
+              <MdiClose className="w-3 h-3" />
             </button>
           </div>
         ))}

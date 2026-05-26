@@ -1,11 +1,16 @@
 // src/modules/cart/components/AddToCartButton.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Icon } from '@iconify/react';
-import { useCart } from '../hooks/useCart';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useCart } from "../hooks/useCart";
+import { useAuthStore } from "@/modules/auth/store/auth.store";
+import { useRouter } from "next/navigation";
+import {
+  LucidePlus,
+  MdiCartPlus,
+  MdiMinus,
+  SvgSpinnersRingResize,
+} from "@/components/icons/Icons";
 
 interface AddToCartButtonProps {
   variantId: string;
@@ -18,7 +23,7 @@ export default function AddToCartButton({
   variantId,
   stockQuantity,
   quantity = 1,
-  className = '',
+  className = "",
 }: AddToCartButtonProps) {
   const [qty, setQty] = useState(quantity);
   const { addItem, isAdding } = useCart();
@@ -29,7 +34,7 @@ export default function AddToCartButton({
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
     addItem({ variant_id: variantId, quantity: qty });
@@ -43,15 +48,17 @@ export default function AddToCartButton({
           disabled={isOutOfStock}
           className="p-2 hover:bg-surface-raised disabled:opacity-50"
         >
-          <Icon icon="mdi:minus" className="w-4 h-4" />
+          <MdiMinus className="w-4 h-4" />
         </button>
-        <span className="px-4 text-sm font-medium min-w-[40px] text-center">{qty}</span>
+        <span className="px-4 text-sm font-medium min-w-[40px] text-center">
+          {qty}
+        </span>
         <button
           onClick={() => setQty((q) => Math.min(stockQuantity, q + 1))}
           disabled={isOutOfStock || qty >= stockQuantity}
           className="p-2 hover:bg-surface-raised disabled:opacity-50"
         >
-          <Icon icon="mdi:plus" className="w-4 h-4" />
+          <LucidePlus className="w-4 h-4" />
         </button>
       </div>
 
@@ -61,11 +68,11 @@ export default function AddToCartButton({
         className="flex-1 bg-primary text-white py-3 px-6 rounded-button font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
       >
         {isAdding ? (
-          <Icon icon="mdi:loading" className="w-5 h-5 animate-spin" />
+          <SvgSpinnersRingResize className="w-5 h-5" />
         ) : (
-          <Icon icon="mdi:cart-plus" className="w-5 h-5" />
+          <MdiCartPlus className="w-5 h-5" />
         )}
-        {isOutOfStock ? 'ناموجود' : 'افزودن به سبد خرید'}
+        {isOutOfStock ? "ناموجود" : "افزودن به سبد خرید"}
       </button>
     </div>
   );

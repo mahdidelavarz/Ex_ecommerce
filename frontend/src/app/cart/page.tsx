@@ -2,9 +2,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { formatPrice } from '@/utils/formatPrice';
+import { MdiCartOff, MdiStore, SvgSpinnersRingResize, MdiTrashCan, MdiImageOff, MdiMinus, LucidePlus, LucideTrash2 } from '../../components/icons/Icons';
 
 export default function CartPage() {
   const { cart, isLoading, updateItem, removeItem, clearCart } = useCart();
@@ -12,7 +12,7 @@ export default function CartPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="  text-primary" width={48} />
       </div>
     );
   }
@@ -21,11 +21,11 @@ export default function CartPage() {
     return (
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16 text-center">
-          <Icon icon="mdi:cart-off" className="text-text-muted mx-auto mb-4" width={80} />
+          <MdiCartOff className="text-text-muted mx-auto mb-4" width={80} />
           <h1 className="text-2xl font-bold text-text-primary mb-2">سبد خرید خالی است</h1>
           <p className="text-text-secondary mb-8">محصولاتی که به سبد خرید اضافه می‌کنید اینجا نمایش داده می‌شوند.</p>
           <Link href="/products" className="inline-flex items-center gap-2 bg-primary text-white px-8 py-3 rounded-button font-medium hover:bg-primary-hover transition-colors">
-            <Icon icon="mdi:store" className="w-5 h-5" />
+            <MdiStore className="w-5 h-5" />
             مشاهده محصولات
           </Link>
         </div>
@@ -42,7 +42,7 @@ export default function CartPage() {
             onClick={() => clearCart()}
             className="text-error hover:text-red-700 text-sm flex items-center gap-1"
           >
-            <Icon icon="mdi:delete" className="w-4 h-4" />
+            <MdiTrashCan className="w-4 h-4" />
             حذف همه
           </button>
         </div>
@@ -57,7 +57,7 @@ export default function CartPage() {
                     <img src={item.variant.image} alt={item.variant.product?.title} className="w-24 h-24 rounded-lg object-cover" />
                   ) : (
                     <div className="w-24 h-24 rounded-lg bg-surface-raised flex items-center justify-center">
-                      <Icon icon="mdi:image-off" className="w-10 h-10 text-text-muted" />
+                      <MdiImageOff className="w-10 h-10 text-text-muted" />
                     </div>
                   )}
                 </Link>
@@ -80,7 +80,7 @@ export default function CartPage() {
                         onClick={() => updateItem({ itemId: item.id, quantity: Math.max(1, item.quantity - 1) })}
                         className="p-2 hover:bg-surface-raised"
                       >
-                        <Icon icon="mdi:minus" className="w-4 h-4" />
+                        <MdiMinus className="w-4 h-4" />
                       </button>
                       <span className="px-4 font-medium">{item.quantity}</span>
                       <button
@@ -88,7 +88,7 @@ export default function CartPage() {
                         disabled={item.quantity >= item.variant.stock_quantity}
                         className="p-2 hover:bg-surface-raised disabled:opacity-50"
                       >
-                        <Icon icon="mdi:plus" className="w-4 h-4" />
+                        <LucidePlus className="w-4 h-4" />
                       </button>
                     </div>
 
@@ -102,7 +102,7 @@ export default function CartPage() {
                 </div>
 
                 <button onClick={() => removeItem(item.id)} className="self-start p-2 hover:bg-error-light rounded-button text-error">
-                  <Icon icon="mdi:delete-outline" className="w-5 h-5" />
+                  <LucideTrash2 className="w-5 h-5" />
                 </button>
               </div>
             ))}

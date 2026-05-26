@@ -6,13 +6,13 @@ import { useRouter, useParams } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
 import { attributeService } from '@/modules/attributes/services/attribute.service';
+import { MdiArrowRight, MdiClose, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const valueSchema = z.object({
   value: z.string().min(1, 'مقدار الزامی است').max(100),
@@ -96,7 +96,7 @@ export default function AdminAttributeFormPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="  text-primary" width={48} />
       </div>
     );
   }
@@ -108,7 +108,7 @@ export default function AdminAttributeFormPage() {
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <button onClick={() => router.back()} className="p-2 hover:bg-surface-raised rounded-button">
-              <Icon icon="mdi:arrow-right" className="w-5 h-5 text-text-secondary" />
+              <MdiArrowRight className="w-5 h-5 text-text-secondary" />
             </button>
             <h1 className="text-2xl font-bold text-text-primary">
               {isEdit ? 'ویرایش ویژگی' : 'ویژگی جدید'}
@@ -171,7 +171,7 @@ export default function AdminAttributeFormPage() {
                             onClick={() => remove(index)}
                             className="p-2 hover:bg-error-light rounded-button text-error"
                           >
-                            <Icon icon="mdi:close" className="w-4 h-4" />
+                            <MdiClose className="w-4 h-4" />
                           </button>
                         )}
                       </div>

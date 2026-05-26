@@ -6,7 +6,6 @@ import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { couponService } from '@/modules/coupons/services/coupon.service';
@@ -15,6 +14,7 @@ import { useCategories } from '@/modules/categories/hooks/useCategories';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
 import { useProducts } from '@/modules/products/hooks/useProducts';
+import { MdiArrowRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const formSchema = z.object({
   code: z.string().min(1, 'کد الزامی است').max(50),
@@ -91,7 +91,7 @@ export default function AdminCouponFormPage() {
     }
   };
 
-  if (isAuthLoading) return <div className="flex items-center justify-center min-h-screen"><Icon icon="mdi:loading" className="animate-spin text-primary" width={48} /></div>;
+  if (isAuthLoading) return <div className="flex items-center justify-center min-h-screen"><SvgSpinnersRingResize className="  text-primary" width={48} /></div>;
 
   return (
     <div className="flex min-h-screen">
@@ -99,7 +99,7 @@ export default function AdminCouponFormPage() {
       <main className="flex-1 lg:mr-64 p-4 lg:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
-            <button onClick={() => router.back()} className="p-2 hover:bg-surface-raised rounded-button"><Icon icon="mdi:arrow-right" className="w-5 h-5" /></button>
+            <button onClick={() => router.back()} className="p-2 hover:bg-surface-raised rounded-button"><MdiArrowRight className="w-5 h-5" /></button>
             <h1 className="text-2xl font-bold text-text-primary">{isEdit ? 'ویرایش' : 'کد تخفیف جدید'}</h1>
           </div>
 

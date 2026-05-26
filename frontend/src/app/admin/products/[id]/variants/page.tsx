@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useVariants } from '@/modules/variants/hooks/useVariants';
 import { variantService } from '@/modules/variants/services/variant.service';
@@ -12,7 +11,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ProductVariant } from '@/modules/variants/types/variant.types';
-import { LucidePlus } from '@/components/icons/Icons';
+import { LucidePencil, LucidePlus, MdiArrowRight, MdiCheckCircle, MdiClose, MdiImageOff, MdiPackageVariantClosed, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 export default function AdminProductVariantsPage() {
   const router = useRouter();
@@ -46,7 +45,7 @@ export default function AdminProductVariantsPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="  text-primary" width={48} />
       </div>
     );
   }
@@ -60,7 +59,7 @@ export default function AdminProductVariantsPage() {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <button onClick={() => router.back()} className="p-2 hover:bg-surface-raised rounded-button">
-                <Icon icon="mdi:arrow-right" className="w-5 h-5 text-text-secondary" />
+                <MdiArrowRight className="w-5 h-5 text-text-secondary" />
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-text-primary">واریانت‌های محصول</h1>
@@ -86,7 +85,7 @@ export default function AdminProductVariantsPage() {
               ))
             ) : variants?.length === 0 ? (
               <div className="text-center py-16 bg-surface rounded-card shadow-card">
-                <Icon icon="mdi:package-variant-closed" className="text-text-muted mx-auto mb-3" width={48} />
+                <MdiPackageVariantClosed className="text-text-muted mx-auto mb-3" width={48} />
                 <p className="text-text-secondary mb-4">هیچ واریانتی برای این محصول ثبت نشده</p>
                 <Button
                   onClick={() => router.push(`/admin/products/${productId}/variants/new`)}
@@ -144,7 +143,7 @@ function VariantCard({
             ))
           ) : (
             <div className="w-16 h-16 rounded-lg bg-surface-raised flex items-center justify-center">
-              <Icon icon="mdi:image-off" className="w-6 h-6 text-text-muted" />
+              <MdiImageOff className="w-6 h-6 text-text-muted" />
             </div>
           )}
         </div>
@@ -199,13 +198,13 @@ function VariantCard({
                   onClick={() => { onStockUpdate(stockValue); setEditingStock(false); }}
                   className="p-1 text-success hover:bg-success-light rounded"
                 >
-                  <Icon icon="mdi:check" className="w-4 h-4" />
+                  <MdiCheckCircle className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { setStockValue(variant.stock_quantity); setEditingStock(false); }}
                   className="p-1 text-error hover:bg-error-light rounded"
                 >
-                  <Icon icon="mdi:close" className="w-4 h-4" />
+                  <MdiClose className="w-4 h-4" />
                 </button>
               </div>
             ) : (
@@ -214,7 +213,7 @@ function VariantCard({
                   موجودی: {variant.stock_quantity}
                 </span>
                 <button onClick={() => setEditingStock(true)} className="p-1 hover:bg-surface-raised rounded text-text-muted">
-                  <Icon icon="mdi:pencil" className="w-3 h-3" />
+                  <LucidePencil className="w-3 h-3" />
                 </button>
               </div>
             )}
@@ -227,10 +226,10 @@ function VariantCard({
         {/* Actions */}
         <div className="flex lg:flex-col gap-1">
           <button onClick={onEdit} className="p-2 hover:bg-primary-light rounded-button text-primary" title="ویرایش">
-            <Icon icon="mdi:pencil" className="w-4 h-4" />
+            <LucidePencil className="w-4 h-4" />
           </button>
           <button onClick={onDelete} className="p-2 hover:bg-error-light rounded-button text-error" title="حذف">
-            <Icon icon="mdi:delete" className="w-4 h-4" />
+            <MdiTrashCan className="w-4 h-4" />
           </button>
           <span className={`px-2 py-1 rounded-full text-xs font-medium text-center ${
             variant.is_active ? 'bg-success-light text-success' : 'bg-error-light text-error'

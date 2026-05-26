@@ -6,13 +6,13 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { variantService } from '@/modules/variants/services/variant.service';
 import { useAllAttributes } from '@/modules/attributes/hooks/useAttributes';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
+import { MdiArrowRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const variantFormSchema = z.object({
   sku: z.string().min(1, 'کد محصول الزامی است'),
@@ -111,7 +111,7 @@ export default function AdminVariantFormPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="  text-primary" width={48} />
       </div>
     );
   }
@@ -123,7 +123,7 @@ export default function AdminVariantFormPage() {
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <button onClick={() => router.back()} className="p-2 hover:bg-surface-raised rounded-button">
-              <Icon icon="mdi:arrow-right" className="w-5 h-5 text-text-secondary" />
+              <MdiArrowRight className="w-5 h-5 text-text-secondary" />
             </button>
             <h1 className="text-2xl font-bold text-text-primary">
               {isEdit ? 'ویرایش واریانت' : 'واریانت جدید'}

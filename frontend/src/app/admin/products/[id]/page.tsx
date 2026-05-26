@@ -6,7 +6,6 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import { productService } from "@/modules/products/services/product.service";
@@ -20,7 +19,7 @@ import AdminSidebar from "@/components/layout/AdminSidebar";
 import Button from "@/components/ui/Button";
 import { formatPrice } from "@/utils/formatPrice";
 import type { ProductVariant } from "@/modules/variants/types/variant.types";
-import { LucidePlus } from "@/components/icons/Icons";
+import { LucidePencil, LucidePlus, LucideSearch, MdiArrowRight, MdiClose, MdiImageMultiple, MdiInformation, MdiPackageVariant, MdiPackageVariantClosed, MdiTrashCan, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
 const productFormSchema = z.object({
   category_id: z.string().min(1, "دسته‌بندی الزامی است"),
@@ -271,9 +270,8 @@ export default function AdminProductFormPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon
-          icon="mdi:loading"
-          className="animate-spin text-primary"
+        <SvgSpinnersRingResize
+          className="  text-primary"
           width={48}
         />
       </div>
@@ -292,8 +290,7 @@ export default function AdminProductFormPage() {
                 onClick={() => router.back()}
                 className="p-2 hover:bg-surface-raised rounded-button"
               >
-                <Icon
-                  icon="mdi:arrow-right"
+                <MdiArrowRight
                   className="w-5 h-5 text-text-secondary"
                 />
               </button>
@@ -309,19 +306,19 @@ export default function AdminProductFormPage() {
           {/* Tabs */}
           <div className="flex border-b border-border mb-6">
             {[
-              { key: "basic", label: "اطلاعات پایه", icon: "mdi:information" },
-              { key: "images", label: "تصاویر", icon: "mdi:image-multiple" },
+              { key: "basic", label: "اطلاعات پایه", icon: <MdiInformation/> },
+              { key: "images", label: "تصاویر", icon: <MdiImageMultiple/> },
               ...(isEdit
                 ? [
                     {
                       key: "variants",
                       label: "واریانت‌ها",
-                      icon: "mdi:package-variant",
+                      icon: <MdiPackageVariant/>,
                       count: variants?.length,
                     },
                   ]
                 : []),
-              { key: "seo", label: "سئو", icon: "mdi:magnify" },
+              { key: "seo", label: "سئو", icon: <LucideSearch/>  },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -332,7 +329,9 @@ export default function AdminProductFormPage() {
                     : "border-transparent text-text-secondary hover:text-text-primary"
                 }`}
               >
-                <Icon icon={tab.icon} className="w-4 h-4" />
+                <div className="w-4 h-4">
+                  {tab.icon}
+                </div>
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
                   <span className="bg-primary-light text-primary text-xs px-1.5 py-0.5 rounded-full">
@@ -554,7 +553,7 @@ export default function AdminProductFormPage() {
                           onClick={() => removeImage(index)}
                           className="p-2 hover:bg-error-light rounded-button text-error mt-5"
                         >
-                          <Icon icon="mdi:close" className="w-4 h-4" />
+                          <MdiClose className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -577,7 +576,7 @@ export default function AdminProductFormPage() {
                         onClick={resetVariantForm}
                         className="p-2 hover:bg-surface-raised rounded-button"
                       >
-                        <Icon icon="mdi:close" className="w-5 h-5" />
+                        <MdiClose className="w-5 h-5" />
                       </button>
                     </div>
 
@@ -771,8 +770,7 @@ export default function AdminProductFormPage() {
 
                   {variants?.length === 0 ? (
                     <div className="text-center py-8">
-                      <Icon
-                        icon="mdi:package-variant-closed"
+                      <MdiPackageVariantClosed
                         className="text-text-muted mx-auto mb-2"
                         width={40}
                       />
@@ -827,14 +825,14 @@ export default function AdminProductFormPage() {
                               onClick={() => handleEditVariant(variant)}
                               className="p-2 hover:bg-primary-light rounded-button text-primary"
                             >
-                              <Icon icon="mdi:pencil" className="w-4 h-4" />
+                              <LucidePencil className="w-4 h-4" />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteVariant(variant)}
                               className="p-2 hover:bg-error-light rounded-button text-error"
                             >
-                              <Icon icon="mdi:delete" className="w-4 h-4" />
+                              <MdiTrashCan className="w-4 h-4" />
                             </button>
                           </div>
                         </div>

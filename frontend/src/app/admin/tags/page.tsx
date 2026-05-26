@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useTags } from '@/modules/tags/hooks/useTags';
 import { tagService } from '@/modules/tags/services/tag.service';
@@ -10,7 +9,7 @@ import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
 import type { Tag } from '@/modules/tags/services/tag.service';
-import { LucidePlus } from '@/components/icons/Icons';
+import { LucidePencil, LucidePlus, LucideSearch, MdiCheck, MdiClose, MdiTag, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 export default function AdminTagsPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
@@ -60,7 +59,7 @@ export default function AdminTagsPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="  text-primary" width={48} />
       </div>
     );
   }
@@ -88,7 +87,7 @@ export default function AdminTagsPage() {
 
           {/* Search */}
           <div className="relative mb-6">
-            <Icon icon="mdi:search" className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={20} />
+            <LucideSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={20} />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -116,13 +115,13 @@ export default function AdminTagsPage() {
                           className="flex-1 px-3 py-1 border border-border rounded-input text-sm"
                           autoFocus
                         />
-                        <button onClick={handleUpdate} className="text-success p-1"><Icon icon="mdi:check" className="w-5 h-5" /></button>
-                        <button onClick={() => setEditingTag(null)} className="text-error p-1"><Icon icon="mdi:close" className="w-5 h-5" /></button>
+                        <button onClick={handleUpdate} className="text-success p-1"><MdiCheck className="w-5 h-5" /></button>
+                        <button onClick={() => setEditingTag(null)} className="text-error p-1"><MdiClose className="w-5 h-5" /></button>
                       </div>
                     ) : (
                       <>
                         <div className="flex items-center gap-3">
-                          <Icon icon="mdi:tag" className="w-5 h-5 text-text-muted" />
+                          <MdiTag className="w-5 h-5 text-text-muted" />
                           <div>
                             <span className="font-medium text-text-primary">{tag.name}</span>
                             <code className="text-xs text-text-muted mr-2">{tag.slug}</code>
@@ -134,13 +133,13 @@ export default function AdminTagsPage() {
                             onClick={() => { setEditingTag(tag); setEditName(tag.name); }}
                             className="p-2 hover:bg-primary-light rounded-button text-primary"
                           >
-                            <Icon icon="mdi:pencil" className="w-4 h-4" />
+                            <LucidePencil className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(tag)}
                             className="p-2 hover:bg-error-light rounded-button text-error"
                           >
-                            <Icon icon="mdi:delete" className="w-4 h-4" />
+                            <MdiTrashCan className="w-4 h-4" />
                           </button>
                         </div>
                       </>

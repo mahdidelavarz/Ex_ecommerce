@@ -3,12 +3,12 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Icon } from '@iconify/react';
 import { useProducts } from '@/modules/products/hooks/useProducts';
 import { useCategories } from '@/modules/categories/hooks/useCategories';
 import { useAllBrands } from '@/modules/brands/hooks/useBrands';
 import ProductGrid from '@/modules/products/components/ProductGrid';
 import { formatPrice } from '@/utils/formatPrice';
+import { LucideSearch, MdiChevronLeft, MdiChevronRight } from '@/components/icons/Icons';
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
@@ -47,7 +47,7 @@ export default function ProductsPage() {
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-text-muted mb-6">
           <a href="/" className="hover:text-primary">خانه</a>
-          <Icon icon="mdi:chevron-left" className="w-4 h-4" />
+          <MdiChevronLeft className="w-4 h-4" />
           <span className="text-text-primary">محصولات</span>
         </nav>
 
@@ -61,7 +61,7 @@ export default function ProductsPage() {
               <div className="mb-6">
                 <label className="text-sm font-medium text-text-secondary block mb-2">جستجو</label>
                 <div className="relative">
-                  <Icon icon="mdi:search" className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={18} />
+                  <LucideSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={18} />
                   <input
                     type="text"
                     value={search}
@@ -198,7 +198,7 @@ export default function ProductsPage() {
                   disabled={page === 1}
                   className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
                 >
-                  <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+                  <MdiChevronRight className="w-5 h-5" />
                 </button>
                 {Array.from({ length: productsData.meta.totalPages }, (_, i) => i + 1)
                   .slice(Math.max(0, page - 3), Math.min(productsData.meta.totalPages, page + 2))
@@ -218,7 +218,7 @@ export default function ProductsPage() {
                   disabled={page === productsData.meta.totalPages}
                   className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
                 >
-                  <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+                  <MdiChevronLeft className="w-5 h-5" />
                 </button>
               </div>
             )}

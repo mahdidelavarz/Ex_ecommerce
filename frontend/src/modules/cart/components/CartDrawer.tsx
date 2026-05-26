@@ -2,10 +2,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
 import { useCart } from '../hooks/useCart';
 import { useCartStore } from '../store/cart.store';
 import { formatPrice } from '@/utils/formatPrice';
+import { LucidePlus, LucideTrash2, MdiCartOutline, MdiClose, MdiImageOff, MdiMinus } from '@/components/icons/Icons';
 
 export default function CartDrawer() {
   const { cart, isLoading, updateItem, removeItem } = useCart();
@@ -27,7 +27,7 @@ export default function CartDrawer() {
             {cart && <span className="text-text-muted text-sm mr-2">({cart.total_items})</span>}
           </h2>
           <button onClick={closeCart} className="p-2 hover:bg-surface-raised rounded-button">
-            <Icon icon="mdi:close" className="w-6 h-6" />
+            <MdiClose className="w-6 h-6" />
           </button>
         </div>
 
@@ -47,7 +47,7 @@ export default function CartDrawer() {
             </div>
           ) : !cart || cart.items.length === 0 ? (
             <div className="text-center py-16">
-              <Icon icon="mdi:cart-outline" className="text-text-muted mx-auto mb-4" width={64} />
+              <MdiCartOutline className="text-text-muted mx-auto mb-4" width={64} />
               <p className="text-text-secondary">سبد خرید خالی است</p>
               <Link
                 href="/products"
@@ -67,7 +67,7 @@ export default function CartDrawer() {
                       <img src={item.variant.image} alt={item.variant.product?.title} className="w-20 h-20 rounded-lg object-cover" />
                     ) : (
                       <div className="w-20 h-20 rounded-lg bg-surface flex items-center justify-center">
-                        <Icon icon="mdi:image-off" className="w-8 h-8 text-text-muted" />
+                        <MdiImageOff className="w-8 h-8 text-text-muted" />
                       </div>
                     )}
                   </Link>
@@ -98,7 +98,7 @@ export default function CartDrawer() {
                           onClick={() => updateItem({ itemId: item.id, quantity: Math.max(1, item.quantity - 1) })}
                           className="p-1 hover:bg-surface"
                         >
-                          <Icon icon="mdi:minus" className="w-3 h-3" />
+                          <MdiMinus className="w-3 h-3" />
                         </button>
                         <span className="px-2 text-sm">{item.quantity}</span>
                         <button
@@ -106,7 +106,7 @@ export default function CartDrawer() {
                           disabled={item.quantity >= item.variant.stock_quantity}
                           className="p-1 hover:bg-surface disabled:opacity-50"
                         >
-                          <Icon icon="mdi:plus" className="w-3 h-3" />
+                          <LucidePlus className="w-3 h-3" />
                         </button>
                       </div>
                       <span className="text-sm font-bold">{formatPrice(item.variant.price * item.quantity)}</span>
@@ -118,7 +118,7 @@ export default function CartDrawer() {
                     onClick={() => removeItem(item.id)}
                     className="self-start p-1 hover:bg-error-light rounded text-error"
                   >
-                    <Icon icon="mdi:delete-outline" className="w-4 h-4" />
+                    <LucideTrash2 className="w-4 h-4" />
                   </button>
                 </div>
               ))}
