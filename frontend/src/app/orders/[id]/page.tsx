@@ -7,7 +7,8 @@ import { useOrder, useCancelOrder } from "@/modules/orders/hooks/useOrders";
 import { formatPrice } from "@/utils/formatPrice";
 import { useQuery } from "@tanstack/react-query";
 import { paymentService } from "@/modules/payment/services/payment.service";
-
+import ShipmentTimeline from "@/modules/shipments/components/ShipmentTimeline";
+import { useShipments } from "@/modules/shipments/hooks/useShipments";
 
 const statusLabels: Record<string, string> = {
   pending: "در انتظار",
@@ -47,6 +48,8 @@ export default function OrderDetailPage() {
     queryKey: ["payments", orderId],
     queryFn: () => paymentService.findByOrder(orderId),
   });
+
+  const { data: shipments } = useShipments(orderId);
 
   if (isLoading) {
     return (
@@ -236,6 +239,13 @@ export default function OrderDetailPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {shipments && shipments.length > 0 && (
+          <div className="bg-surface rounded-card shadow-card p-6 mb-6">
+            <h2 className="font-bold text-text-primary mb-4">پیگیری ارسال</h2>
+            <ShipmentTimeline shipments={shipments} />
           </div>
         )}
 
