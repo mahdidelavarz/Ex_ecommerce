@@ -23,7 +23,8 @@ import orderRoutes from './modules/orders/order.routes';
 import PaymentRoutes from './modules/payments/payment.routes';
 import shipmentRoutes from './modules/shipments/shipment.routes';
 import reviewRoutes from './modules/reviews/review.routes';
-
+// src/app.ts
+import wishlistRoutes from './modules/wishlist/wishlist.routes';
 
 
 // Import routes
@@ -83,6 +84,7 @@ app.use(`${apiPrefix}/orders`, orderRoutes);
 app.use(`${apiPrefix}/payment`, PaymentRoutes);
 app.use(`${apiPrefix}/shipments`, shipmentRoutes);
 app.use(`${apiPrefix}/reviews`, reviewRoutes);
+app.use(`${apiPrefix}/wishlist`, wishlistRoutes);
 
 // app.use(`${apiPrefix}/auth`, authRoutes);
 // app.use(`${apiPrefix}/users`, userRoutes);
