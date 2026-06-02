@@ -67,6 +67,7 @@ const menuItems = [
     icon: MdiTicketPercent,
     href: "/admin/coupons",
   },
+  { title: "نظرات", icon: "mdi:comment-text-multiple", href: "/admin/reviews" },
   {
     title: "بازگشت به سایت",
     icon: MdiArrowRight,

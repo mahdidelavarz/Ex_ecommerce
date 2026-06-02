@@ -8,6 +8,7 @@ import ProductGrid from '@/modules/products/components/ProductGrid';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ProductVariant } from '@/modules/variants/types/variant.types';
 import { MdiCheckCircle, MdiCloseCircle, MdiChevronLeft, MdiImageOff, MdiPackageVariantClosed, SvgSpinnersRingResize, MdiMinus, LucidePlus, MdiCartPlus } from '@/components/icons/Icons';
+import ReviewsSection from '@/modules/reviews/components/ReviewsSection';
 
 export default function SingleProductPage() {
   const params = useParams();
@@ -275,6 +276,7 @@ export default function SingleProductPage() {
           </section>
         )}
       </div>
+      {product && <ReviewsSection productId={product.id} />}
     </main>
   );
 }
