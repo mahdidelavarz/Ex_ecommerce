@@ -101,6 +101,8 @@ A complete, production-ready e-commerce platform built with Next.js 16, Express.
 ## 📁 Project Structure
 
 ```
+
+```
 nazi-shop/
 ├── backend/                          # Express API
 │   ├── src/
