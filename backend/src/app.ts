@@ -23,15 +23,10 @@ import orderRoutes from './modules/orders/order.routes';
 import PaymentRoutes from './modules/payments/payment.routes';
 import shipmentRoutes from './modules/shipments/shipment.routes';
 import reviewRoutes from './modules/reviews/review.routes';
-// src/app.ts
 import wishlistRoutes from './modules/wishlist/wishlist.routes';
+import returnRoutes from './modules/returns/return.routes';
 
 
-// Import routes
-// import authRoutes from './modules/auth/auth.routes';
-// import userRoutes from './modules/users/users.routes';
-// import productRoutes from './modules/products/products.routes';
-// ... other route imports
 
 const app = express();
 
@@ -85,11 +80,9 @@ app.use(`${apiPrefix}/payment`, PaymentRoutes);
 app.use(`${apiPrefix}/shipments`, shipmentRoutes);
 app.use(`${apiPrefix}/reviews`, reviewRoutes);
 app.use(`${apiPrefix}/wishlist`, wishlistRoutes);
+app.use(`${apiPrefix}/returns`, returnRoutes);
 
-// app.use(`${apiPrefix}/auth`, authRoutes);
-// app.use(`${apiPrefix}/users`, userRoutes);
-// app.use(`${apiPrefix}/products`, productRoutes);
-// ... other routes
+
 
 // 404 handler
 app.use((req, res) => {
