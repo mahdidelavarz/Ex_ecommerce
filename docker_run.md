@@ -23,7 +23,3 @@ docker ps
 
 # ۶. بک‌اند رو اجرا کن
 npm run dev
-
-curl -X POST http://localhost:5000/api/v1/auth/make-admin \
-  -H "Content-Type: application/json" \
-  -d '{"phone_number": "09123456789"}'
