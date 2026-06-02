@@ -9,6 +9,7 @@ import { formatPrice } from '@/utils/formatPrice';
 import type { ProductVariant } from '@/modules/variants/types/variant.types';
 import { MdiCheckCircle, MdiCloseCircle, MdiChevronLeft, MdiImageOff, MdiPackageVariantClosed, SvgSpinnersRingResize, MdiMinus, LucidePlus, MdiCartPlus } from '@/components/icons/Icons';
 import ReviewsSection from '@/modules/reviews/components/ReviewsSection';
+import WishlistButton from '@/modules/wishlist/components/WishlistButton';
 
 export default function SingleProductPage() {
   const params = useParams();
@@ -176,6 +177,7 @@ export default function SingleProductPage() {
                       <MdiCartPlus className="w-5 h-5" />
                       افزودن به سبد خرید
                     </button>
+                    <WishlistButton variantId={currentVariant.id} />
                   </div>
                 </>
               ) : (
