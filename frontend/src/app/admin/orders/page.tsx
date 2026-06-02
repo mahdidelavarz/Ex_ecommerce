@@ -24,6 +24,7 @@ const statusColors: Record<string, string> = {
 const paymentColors: Record<string, string> = {
   pending: 'bg-warning-light text-warning', paid: 'bg-success-light text-success',
   failed: 'bg-error-light text-error', refunded: 'bg-error-light text-error',
+  partially_paid: 'bg-info-light text-info',
 };
 
 export default function AdminOrdersPage() {
@@ -36,7 +37,12 @@ export default function AdminOrdersPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders', 'admin', { page, search, status: statusFilter, payment_status: paymentFilter }],
-    queryFn: () => orderService.adminList({ page, limit: 20, search: search || undefined, status: statusFilter || undefined, payment_status: paymentFilter || undefined }),
+    queryFn: () => orderService.adminList({
+      page, limit: 20,
+      search: search || undefined,
+      status: statusFilter || undefined,
+      payment_status: paymentFilter || undefined,
+    }),
   });
 
   if (isAuthLoading) {
@@ -62,7 +68,7 @@ export default function AdminOrdersPage() {
                 <input
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                  placeholder="جستجوی شماره سفارش یا مشتری..."
+                  placeholder="جستجو..."
                   className="w-full pr-10 pl-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -106,10 +112,12 @@ export default function AdminOrdersPage() {
                     <tr
                       key={order.id}
                       onClick={() => router.push(`/admin/orders/${order.id}`)}
-                      className="border-b border-border hover:bg-surface-raised/50 cursor-pointer transition-colors"
+                      className="border-b border-border hover:bg-surface-raised/50 cursor-pointer"
                     >
                       <td className="px-4 py-3 font-medium text-primary">{order.order_number}</td>
-                      <td className="px-4 py-3 hidden md:table-cell">{order.user?.full_name || '-'}</td>
+                      <td className="px-4 py-3 hidden md:table-cell text-text-secondary">
+                        {order.user?.full_name || order.customer_phone || '-'}
+                      </td>
                       <td className="px-4 py-3 text-center font-bold">{formatPrice(order.total_amount)}</td>
                       <td className="px-4 py-3 text-center hidden sm:table-cell">
                         <span className={`px-2 py-1 rounded-full text-xs ${statusColors[order.order_status]}`}>
@@ -137,9 +145,14 @@ export default function AdminOrdersPage() {
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
                 <Icon icon="mdi:chevron-right" className="w-5 h-5" />
               </button>
-              {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1).slice(Math.max(0, page - 3), Math.min(data.meta.totalPages, page + 2)).map(p => (
-                <button key={p} onClick={() => setPage(p)} className={`w-10 h-10 rounded-button text-sm ${p === page ? 'bg-primary text-white' : 'hover:bg-surface'}`}>{p}</button>
-              ))}
+              {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
+                .slice(Math.max(0, page - 3), Math.min(data.meta.totalPages, page + 2))
+                .map(p => (
+                  <button key={p} onClick={() => setPage(p)}
+                    className={`w-10 h-10 rounded-button text-sm ${p === page ? 'bg-primary text-white' : 'hover:bg-surface'}`}>
+                    {p}
+                  </button>
+                ))}
               <button onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))} disabled={page === data.meta.totalPages} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
                 <Icon icon="mdi:chevron-left" className="w-5 h-5" />
               </button>
