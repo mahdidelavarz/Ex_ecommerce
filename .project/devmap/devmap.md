@@ -1,0 +1,106 @@
+# Dev Map — Road to Production
+
+> Strategy: shared issues first, then module-by-module. Each explored module has its own file under `modules/`.
+> Status labels: 🔴 Blocker | 🟠 Bug | 🟡 Incomplete | 🔵 Hardening
+
+---
+
+## Shared / Cross-Cutting Issues
+
+### Infrastructure
+
+| # | Issue | Severity | File |
+|---|-------|----------|------|
+| I-1 | `docker-compose.yml` healthcheck runs `pg_isready -U postgres` but `POSTGRES_USER` is `node_user` — container startup hangs | 🔴 Blocker | `docker-compose.yml:15` |
+| I-2 | TypeORM `synchronize: true` must be disabled before production — auto-alters/drops tables on startup | 🔴 Blocker | `backend/src/config/database.ts` |
+| I-3 | No migrations exist yet — switching off `synchronize` requires generating an initial migration first | 🔴 Blocker | `backend/src/database/migrations/` (empty) |
+| I-4 | `DB_SSL=false` default — production DB connection needs SSL enabled | 🔵 Hardening | `backend/src/config/env.ts` |
+| I-5 | File uploads go to local `./uploads` — won't survive container restarts or multi-instance deploy | 🔵 Hardening | `backend/src/config/env.ts` |
+
+### Security
+
+| # | Issue | Severity | File |
+|---|-------|----------|------|
+| S-1 | `/auth/make-admin` has no auth or role guard — anyone can promote themselves to admin | 🔴 Blocker | `auth.routes.ts:29` |
+| S-2 | `apiLimiter` defined but never applied to any routes — only auth endpoints have rate limiting | 🟠 Bug | `backend/src/middleware/rateLimiter.ts` |
+| S-3 | OTP code returned in API response in `development` mode — safe only if `NODE_ENV` is strictly controlled | 🟡 Incomplete | `auth.service.ts:61` |
+
+### Backend Patterns
+
+| # | Issue | Severity | Notes |
+|---|-------|----------|-------|
+| P-1 | `returns` module bypasses service layer — routes call repository directly, no Zod validation | 🟠 Bug | `modules/returns/` |
+| P-2 | Race condition on order number generation — uses `count() + 1`, concurrent orders can collide | 🟠 Bug | `order.repository.ts` |
+| P-3 | Race condition on return number generation — same `count() + 1` pattern | 🟠 Bug | `return.repository.ts:18` |
+| P-4 | Inventory stock check not atomic — check then decrement allows overselling under concurrent load | 🟠 Bug | `order.repository.ts` |
+| P-5 | Shipping cost hardcoded as `50000` in two places — not configurable | 🟡 Incomplete | `order.repository.ts` + `checkout/page.tsx` |
+| P-6 | Tax hardcoded to `0` — no calculation or config | 🟡 Incomplete | `order.repository.ts` |
+
+### Frontend Patterns
+
+| # | Issue | Severity | Notes |
+|---|-------|----------|-------|
+| F-1 | Checkout sends `addressId: 'temp-address-id'` (hardcoded) — backend rejects with address lookup | 🔴 Blocker | `checkout/page.tsx` |
+| F-2 | No order confirmation page/redirect after successful order placement | 🟡 Incomplete | `checkout/page.tsx` |
+| F-3 | Coupon field in checkout has no validation feedback | 🟡 Incomplete | `checkout/page.tsx` |
+| F-4 | No customer-facing UI to create a return request — backend is fully built | 🟡 Incomplete | missing page in `frontend/src/app/` |
+
+---
+
+## Module Map
+
+| Module | Backend | Frontend | Status | Detail |
+|--------|---------|----------|--------|--------|
+| auth | ✅ | ✅ | ✅ Explored | [modules/auth.md](modules/auth.md) |
+| categories | ✅ | ✅ | ✅ Explored | [modules/categories.md](modules/categories.md) |
+| brands | ✅ | ✅ | ✅ Explored | [modules/brands.md](modules/brands.md) |
+| products | ✅ | ✅ | ✅ Explored | [modules/products.md](modules/products.md) |
+| attributes | ✅ | ✅ | ✅ Explored | [modules/attributes.md](modules/attributes.md) |
+| variants | ✅ | ✅ | ✅ Explored | [modules/variants.md](modules/variants.md) |
+| tags | ✅ | ✅ | ✅ Explored | [modules/tags.md](modules/tags.md) |
+| cart | ✅ | ✅ | ✅ Explored | [modules/cart.md](modules/cart.md) |
+| coupons | ✅ | ✅ | ✅ Explored | [modules/coupons.md](modules/coupons.md) |
+| orders | ✅ | ✅ | ✅ Explored | [modules/orders.md](modules/orders.md) |
+| payments | ✅ stub | — | ✅ Explored | [modules/payments.md](modules/payments.md) |
+| shipments | ✅ | ✅ | ✅ Explored | [modules/shipments.md](modules/shipments.md) |
+| reviews | ✅ | ✅ | ✅ Explored | [modules/reviews.md](modules/reviews.md) |
+| wishlist | ✅ | ✅ | ✅ Explored | [modules/wishlist.md](modules/wishlist.md) |
+| returns | ⚠️ partial | ✅ admin only | ✅ Explored | [modules/returns.md](modules/returns.md) |
+
+---
+
+## Admin Panel
+
+| Page | Status | Notes |
+|------|--------|-------|
+| Dashboard / overview | ❌ Missing | No stats page — `/admin` has no landing page |
+| Categories | ✅ | |
+| Brands | ✅ | |
+| Products | ✅ | |
+| Attributes | ✅ | |
+| Tags | ✅ | |
+| Coupons | ✅ | |
+| Orders | ✅ | |
+| Reviews | ✅ | |
+| Returns | ✅ | |
+| Users management | ❌ Missing | No UI to view/edit users or change roles |
+| Shipments (standalone) | ❌ Missing | Managed inside order detail only |
+
+---
+
+## Production Checklist (final gate)
+
+- [ ] I-1: Fix Docker healthcheck user (`node_user`)
+- [ ] I-2/I-3: Disable `synchronize`, generate & run initial migration
+- [ ] S-1 / AUTH-B1: Remove or guard `/auth/make-admin`
+- [ ] AUTH-B2: Fix `secure: false` on cookies
+- [ ] AUTH-B3: Lock JWT `algorithms` to `['HS256']`
+- [ ] AUTH-F1: Remove `refreshToken` from `localStorage`
+- [ ] F-1 / O-F1: Real address selection in checkout
+- [ ] C-F1: Allow guest add-to-cart (remove forced login in `AddToCartButton`)
+- [ ] PRD-F1: Sanitize `dangerouslySetInnerHTML` (XSS)
+- [ ] PRD-F2/F3: Fix product detail crash + JSX syntax error
+- [ ] O-B1 / PRD-B1: Fix route ordering (admin/all and slug/related)
+- [ ] CPN-B1: Validate category restrictions in coupon `validate()`
+- [ ] PAY-B1–B3 / PAY-F1–F2: Zarinpal gateway integration — initiate + verify endpoints + frontend redirect
+- [ ] All remaining module blockers resolved
