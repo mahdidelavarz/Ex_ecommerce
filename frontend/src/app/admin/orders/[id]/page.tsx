@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import { useOrder } from "@/modules/orders/hooks/useOrders";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +15,7 @@ import Button from "@/components/ui/Button";
 import { formatPrice } from "@/utils/formatPrice";
 import { shipmentStatusLabels } from "@/modules/shipments/types/shipment.types";
 import { paymentService } from "@/modules/payment/services/payment.service";
-import { LucidePencil, LucidePlus } from "@/components/icons/Icons";
+import { LucidePencil, LucidePlus, MdiArrowRight, MdiClipboardTextOff, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
 const statusLabels: Record<string, string> = {
   pending: "در انتظار",
@@ -133,8 +132,7 @@ export default function AdminOrderDetailPage() {
   if (isAuthLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon
-          icon="mdi:loading"
+        <SvgSpinnersRingResize
           className="animate-spin text-primary"
           width={48}
         />
@@ -147,8 +145,7 @@ export default function AdminOrderDetailPage() {
       <div className="flex min-h-screen">
         <AdminSidebar />
         <main className="flex-1 lg:mr-64 p-8 text-center">
-          <Icon
-            icon="mdi:clipboard-text-off"
+          <MdiClipboardTextOff
             className="text-text-muted mx-auto mb-4"
             width={64}
           />
@@ -169,7 +166,7 @@ export default function AdminOrderDetailPage() {
                 onClick={() => router.push("/admin/orders")}
                 className="p-2 hover:bg-surface-raised rounded-button"
               >
-                <Icon icon="mdi:arrow-right" className="w-5 h-5" />
+                <MdiArrowRight className="w-5 h-5" />
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-text-primary">

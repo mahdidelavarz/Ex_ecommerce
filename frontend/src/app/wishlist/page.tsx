@@ -2,11 +2,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
+
 import { useWishlist, useRemoveFromWishlist } from '@/modules/wishlist/hooks/useWishlist';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { formatPrice } from '@/utils/formatPrice';
-import WishlistButton from '@/modules/wishlist/components/WishlistButton';
+import { MdiClose, MdiHeartOff, MdiHeartOutline, MdiImageOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
+
 
 export default function WishlistPage() {
   const { data: wishlist, isLoading } = useWishlist();
@@ -16,7 +17,7 @@ export default function WishlistPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
       </div>
     );
   }
@@ -25,14 +26,14 @@ export default function WishlistPage() {
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex items-center gap-3 mb-8">
-          <Icon icon="mdi:heart" className="w-8 h-8 text-error" />
+          <MdiHeartOutline className="w-8 h-8 text-error" />
           <h1 className="text-2xl font-bold text-text-primary">علاقه‌مندی‌ها</h1>
           <span className="text-text-muted">({wishlist?.length || 0})</span>
         </div>
 
         {!wishlist || wishlist.length === 0 ? (
           <div className="text-center py-16 bg-surface rounded-card shadow-card">
-            <Icon icon="mdi:heart-off" className="text-text-muted mx-auto mb-4" width={64} />
+            <MdiHeartOff className="text-text-muted mx-auto mb-4" width={64} />
             <p className="text-text-secondary mb-4">لیست علاقه‌مندی‌ها خالی است</p>
             <Link href="/products" className="text-primary hover:underline">مشاهده محصولات</Link>
           </div>
@@ -45,7 +46,7 @@ export default function WishlistPage() {
                     <img src={item.variant.image} alt={item.variant.product?.title} className="w-24 h-24 rounded-lg object-cover" />
                   ) : (
                     <div className="w-24 h-24 rounded-lg bg-surface-raised flex items-center justify-center">
-                      <Icon icon="mdi:image-off" className="w-10 h-10 text-text-muted" />
+                      <MdiImageOff className="w-10 h-10 text-text-muted" />
                     </div>
                   )}
                 </Link>
@@ -81,7 +82,7 @@ export default function WishlistPage() {
                   onClick={() => removeFromWishlist.mutate(item.id)}
                   className="self-start p-2 hover:bg-error-light rounded-button text-error"
                 >
-                  <Icon icon="mdi:close" className="w-4 h-4" />
+                  <MdiClose className="w-4 h-4" />
                 </button>
               </div>
             ))}

@@ -2,13 +2,13 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Icon } from "@iconify/react";
 import { useOrder, useCancelOrder } from "@/modules/orders/hooks/useOrders";
 import { formatPrice } from "@/utils/formatPrice";
 import { useQuery } from "@tanstack/react-query";
 import { paymentService } from "@/modules/payment/services/payment.service";
 import ShipmentTimeline from "@/modules/shipments/components/ShipmentTimeline";
 import { useShipments } from "@/modules/shipments/hooks/useShipments";
+import { MdiClipboardTextOff, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
 const statusLabels: Record<string, string> = {
   pending: "در انتظار",
@@ -54,8 +54,7 @@ export default function OrderDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Icon
-          icon="mdi:loading"
+        <SvgSpinnersRingResize
           className="animate-spin text-primary"
           width={48}
         />
@@ -67,8 +66,7 @@ export default function OrderDetailPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Icon
-            icon="mdi:clipboard-text-off"
+          <MdiClipboardTextOff
             className="text-text-muted mx-auto mb-4"
             width={64}
           />

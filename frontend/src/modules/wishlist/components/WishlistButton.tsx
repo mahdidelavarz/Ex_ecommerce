@@ -2,11 +2,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useAddToWishlist, useRemoveFromWishlist, useWishlist } from '../hooks/useWishlist';
-import { wishlistService } from '../services/wishlist.service';
+import { MdiHeart, MdiHeartOutline } from '@/components/icons/Icons';
 
 interface WishlistButtonProps {
   variantId: string;
@@ -53,7 +52,7 @@ export default function WishlistButton({ variantId, className = '', size = 24 }:
       } ${className}`}
       title={isWishlisted ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
     >
-      <Icon icon={isWishlisted ? 'mdi:heart' : 'mdi:heart-outline'} width={size} />
+      {isWishlisted ? <MdiHeart width={size}/> : <MdiHeartOutline width={size}/>}
     </button>
   );
 }

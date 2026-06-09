@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
@@ -12,6 +11,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
+import { MdiArrowRight, MdiClipboardTextOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const statusLabels: Record<string, string> = {
   pending: 'در انتظار', approved: 'تایید شده', rejected: 'رد شده',
@@ -60,7 +60,7 @@ export default function AdminReturnDetailPage() {
   if (isAuthLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
       </div>
     );
   }
@@ -70,7 +70,7 @@ export default function AdminReturnDetailPage() {
       <div className="flex min-h-screen">
         <AdminSidebar />
         <main className="flex-1 lg:mr-64 p-8 text-center">
-          <Icon icon="mdi:clipboard-text-off" className="text-text-muted mx-auto mb-4" width={64} />
+          <MdiClipboardTextOff className="text-text-muted mx-auto mb-4" width={64} />
           <h1 className="text-xl font-bold">مرجوعی یافت نشد</h1>
         </main>
       </div>
@@ -85,7 +85,7 @@ export default function AdminReturnDetailPage() {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <button onClick={() => router.push('/admin/returns')} className="p-2 hover:bg-surface-raised rounded-button">
-                <Icon icon="mdi:arrow-right" className="w-5 h-5" />
+                <MdiArrowRight className="w-5 h-5" />
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-text-primary">{ret.return_number}</h1>

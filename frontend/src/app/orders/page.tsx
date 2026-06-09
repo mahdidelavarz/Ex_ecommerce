@@ -3,9 +3,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
 import { useMyOrders } from '@/modules/orders/hooks/useOrders';
 import { formatPrice } from '@/utils/formatPrice';
+import { MdiClipboardTextOff } from '@/components/icons/Icons';
 
 const statusLabels: Record<string, string> = {
   pending: 'در انتظار', confirmed: 'تایید شده', processing: 'در حال پردازش',
@@ -39,7 +39,7 @@ export default function MyOrdersPage() {
           </div>
         ) : data?.data?.length === 0 ? (
           <div className="text-center py-16">
-            <Icon icon="mdi:clipboard-text-off" className="text-text-muted mx-auto mb-4" width={64} />
+            <MdiClipboardTextOff className="text-text-muted mx-auto mb-4" width={64} />
             <p className="text-text-secondary">هیچ سفارشی ثبت نشده است</p>
             <Link href="/products" className="inline-block mt-4 text-primary hover:underline">
               مشاهده محصولات

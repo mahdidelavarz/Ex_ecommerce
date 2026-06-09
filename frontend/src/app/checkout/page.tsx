@@ -3,13 +3,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Icon } from '@iconify/react';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { useCreateOrder } from '@/modules/orders/hooks/useOrders';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import Button from '@/components/ui/Button';
 import { formatPrice } from '@/utils/formatPrice';
-import { MdiStore } from '@/components/icons/Icons';
+import { MdiCartOff, MdiStore } from '@/components/icons/Icons';
 
 // Temporary - will be replaced with real address management
 const tempAddress = {
@@ -37,7 +36,7 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-16 text-center">
-          <Icon icon="mdi:cart-off" className="text-text-muted mx-auto mb-4" width={80} />
+          <MdiCartOff className="text-text-muted mx-auto mb-4" width={80} />
           <h1 className="text-2xl font-bold text-text-primary mb-2">سبد خرید خالی است</h1>
           <p className="text-text-secondary mb-8">برای ثبت سفارش، ابتدا محصولی به سبد خرید اضافه کنید.</p>
           <Button onClick={() => router.push('/products')} icon={MdiStore}>

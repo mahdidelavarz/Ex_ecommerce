@@ -3,10 +3,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
 import { useMyOrders } from '@/modules/orders/hooks/useOrders';
 import { formatPrice } from '@/utils/formatPrice';
 import { useProtectedRoute } from '@/modules/auth/hooks/useProtectedRoute';
+import { MdiChevronLeft, MdiChevronRight, MdiClipboardTextOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const statusLabels: Record<string, string> = {
   pending: 'در انتظار', confirmed: 'تایید شده', processing: 'در حال پردازش',
@@ -27,7 +27,7 @@ export default function ProfileOrdersPage() {
   if (isAuthLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
       </div>
     );
   }
@@ -45,7 +45,7 @@ export default function ProfileOrdersPage() {
 
       {data?.data?.length === 0 ? (
         <div className="text-center py-16 bg-surface rounded-card shadow-card">
-          <Icon icon="mdi:clipboard-text-off" className="text-text-muted mx-auto mb-4" width={64} />
+          <MdiClipboardTextOff className="text-text-muted mx-auto mb-4" width={64} />
           <p className="text-text-secondary mb-4">هیچ سفارشی ثبت نشده</p>
           <Link href="/products" className="text-primary hover:underline">مشاهده محصولات</Link>
         </div>
@@ -79,11 +79,11 @@ export default function ProfileOrdersPage() {
       {data?.meta && data.meta.totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-6">
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-            <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+            <MdiChevronRight className="w-5 h-5" />
           </button>
           <span className="px-4 py-2 text-sm">{page} از {data.meta.totalPages}</span>
           <button onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))} disabled={page === data.meta.totalPages} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-            <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+            <MdiChevronLeft className="w-5 h-5" />
           </button>
         </div>
       )}
