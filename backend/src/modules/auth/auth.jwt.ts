@@ -27,7 +27,7 @@ export class JWTService {
    */
   static verifyAccessToken(token: string): JWTPayload | null {
     try {
-      return jwt.verify(token, env.jwt.accessSecret) as JWTPayload;
+      return jwt.verify(token, env.jwt.accessSecret, { algorithms: ['HS256'] }) as JWTPayload;
     } catch (error) {
       console.error('Access token verification failed:', error);
       return null;
@@ -39,7 +39,7 @@ export class JWTService {
    */
   static verifyRefreshToken(token: string): JWTPayload | null {
     try {
-      return jwt.verify(token, env.jwt.refreshSecret) as JWTPayload;
+      return jwt.verify(token, env.jwt.refreshSecret, { algorithms: ['HS256'] }) as JWTPayload;
     } catch (error) {
       console.error('Refresh token verification failed:', error);
       return null;

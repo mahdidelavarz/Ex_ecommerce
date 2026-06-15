@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
@@ -12,6 +11,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
+import { MdiChevronLeft, MdiChevronRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const statusLabels: Record<string, string> = {
   pending: 'در انتظار',
@@ -59,7 +59,7 @@ export default function AdminReturnsPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
       </div>
     );
   }
@@ -188,11 +188,11 @@ export default function AdminReturnsPage() {
           {data?.meta && data.meta.totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-                <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+                <MdiChevronRight className="w-5 h-5" />
               </button>
               <span className="px-4 py-2 text-sm">{page} از {data.meta.totalPages}</span>
               <button onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))} disabled={page === data.meta.totalPages} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-                <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+                <MdiChevronLeft className="w-5 h-5" />
               </button>
             </div>
           )}

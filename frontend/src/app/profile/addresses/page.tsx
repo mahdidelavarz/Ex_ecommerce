@@ -3,14 +3,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Icon } from '@iconify/react';
 import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { useProtectedRoute } from '@/modules/auth/hooks/useProtectedRoute';
 import Button from '@/components/ui/Button';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
-import { LucidePlus } from '@/components/icons/Icons';
+import { LucidePencil, LucidePlus, LucideTrash2, MdiMapMarkerOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 interface Address {
   id: string;
@@ -113,7 +112,7 @@ export default function ProfileAddressesPage() {
   if (isAuthLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
       </div>
     );
   }
@@ -125,6 +124,7 @@ export default function ProfileAddressesPage() {
         <Link href="/profile" className="text-text-secondary hover:text-primary transition-colors">پروفایل</Link>
         <Link href="/profile/orders" className="text-text-secondary hover:text-primary transition-colors">سفارش‌ها</Link>
         <Link href="/profile/addresses" className="text-primary font-medium border-b-2 border-primary pb-4 -mb-[17px]">آدرس‌ها</Link>
+        <Link href="/profile/sessions" className="text-text-secondary hover:text-primary transition-colors">نشست‌ها</Link>
       </div>
 
       <div className="flex items-center justify-between mb-8">
@@ -182,7 +182,7 @@ export default function ProfileAddressesPage() {
       {/* Addresses List */}
       {addresses?.length === 0 && !showForm ? (
         <div className="text-center py-16 bg-surface rounded-card shadow-card">
-          <Icon icon="mdi:map-marker-off" className="text-text-muted mx-auto mb-4" width={64} />
+          <MdiMapMarkerOff className="text-text-muted mx-auto mb-4" width={64} />
           <p className="text-text-secondary">هیچ آدرسی ثبت نشده</p>
         </div>
       ) : (
@@ -191,10 +191,10 @@ export default function ProfileAddressesPage() {
             <div key={address.id} className="bg-surface rounded-card shadow-card p-6 relative">
               <div className="absolute top-3 left-3 flex gap-1">
                 <button onClick={() => handleEdit(address)} className="p-2 hover:bg-primary-light rounded-button text-primary">
-                  <Icon icon="mdi:pencil" className="w-4 h-4" />
+                  <LucidePencil className="w-4 h-4" />
                 </button>
                 <button onClick={() => deleteMutation.mutate(address.id)} className="p-2 hover:bg-error-light rounded-button text-error">
-                  <Icon icon="mdi:delete" className="w-4 h-4" />
+                  <LucideTrash2 className="w-4 h-4" />
                 </button>
               </div>
               <p className="font-bold text-text-primary mb-1">{address.full_name}</p>

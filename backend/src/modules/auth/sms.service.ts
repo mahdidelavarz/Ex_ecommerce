@@ -59,7 +59,10 @@ export class SMSService {
       if (typeof error === 'object' && error !== null && 'response' in error) {
         logger.error('Kavenegar Error:', (error as any).response?.data);
       } else {
-        logger.error('Kavenegar Error:', error);
+        // Avoid logging the raw error object: AxiosError.config.url embeds
+        // the Kavenegar API key and would otherwise end up in the log files.
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error(`Kavenegar Error: ${message}`);
       }
       return {
         success: false,

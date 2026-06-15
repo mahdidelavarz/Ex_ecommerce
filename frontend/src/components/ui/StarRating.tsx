@@ -1,5 +1,6 @@
 // src/components/ui/StarRating.tsx
-import { Icon } from '@iconify/react';
+
+import { MdiStar, MdiStarOutline } from "../icons/Icons";
 
 interface StarRatingProps {
   rating: number;
@@ -9,7 +10,13 @@ interface StarRatingProps {
   onChange?: (rating: number) => void;
 }
 
-export default function StarRating({ rating, max = 5, size = 20, interactive = false, onChange }: StarRatingProps) {
+export default function StarRating({
+  rating,
+  max = 5,
+  size = 20,
+  interactive = false,
+  onChange,
+}: StarRatingProps) {
   return (
     <div className="flex items-center gap-0.5" dir="ltr">
       {Array.from({ length: max }).map((_, i) => (
@@ -18,13 +25,19 @@ export default function StarRating({ rating, max = 5, size = 20, interactive = f
           type="button"
           disabled={!interactive}
           onClick={() => interactive && onChange?.(i + 1)}
-          className={`${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : 'cursor-default'}`}
+          className={`${interactive ? "cursor-pointer hover:scale-110 transition-transform" : "cursor-default"}`}
         >
-          <Icon
-            icon={i < rating ? 'mdi:star' : 'mdi:star-outline'}
-            className={i < rating ? 'text-warning' : 'text-text-muted'}
-            width={size}
-          />
+          {i < rating ? (
+            <MdiStar
+              className={i < rating ? "text-warning" : "text-text-muted"}
+              width={size}
+            />
+          ) : (
+            <MdiStarOutline
+              className={i < rating ? "text-warning" : "text-text-muted"}
+              width={size}
+            />
+          )}
         </button>
       ))}
     </div>

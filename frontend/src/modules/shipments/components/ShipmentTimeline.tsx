@@ -1,7 +1,7 @@
 // src/modules/shipments/components/ShipmentTimeline.tsx
 'use client';
 
-import { Icon } from '@iconify/react';
+import { MdiOpenInNew, MdiTruckDelivery } from '@/components/icons/Icons';
 import type { Shipment } from '../types/shipment.types';
 import { shipmentStatusLabels, shipmentStatusColors } from '../types/shipment.types';
 
@@ -18,7 +18,7 @@ export default function ShipmentTimeline({ shipments }: ShipmentTimelineProps) {
         <div key={shipment.id} className="bg-surface-raised rounded-card p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Icon icon="mdi:truck-delivery" className="w-5 h-5 text-primary" />
+              <MdiTruckDelivery className="w-5 h-5 text-primary" />
               <span className="font-medium text-text-primary">{shipment.courier_name}</span>
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${shipmentStatusColors[shipment.status]}`}>
@@ -69,7 +69,7 @@ export default function ShipmentTimeline({ shipments }: ShipmentTimelineProps) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 mt-3 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
             >
-              <Icon icon="mdi:open-in-new" className="w-4 h-4" />
+              <MdiOpenInNew className="w-4 h-4" />
               پیگیری مرسوله
             </a>
           )}

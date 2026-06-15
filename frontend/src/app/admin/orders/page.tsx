@@ -3,12 +3,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Icon } from '@iconify/react';
 import { useQuery } from '@tanstack/react-query';
 import { orderService } from '@/modules/orders/services/order.service';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import { formatPrice } from '@/utils/formatPrice';
+import { LucideSearch, MdiChevronLeft, MdiChevronRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const statusLabels: Record<string, string> = {
   pending: 'در انتظار', confirmed: 'تایید شده', processing: 'در حال پردازش',
@@ -48,7 +48,7 @@ export default function AdminOrdersPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Icon icon="mdi:loading" className="animate-spin text-primary" width={48} />
+        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
       </div>
     );
   }
@@ -64,7 +64,7 @@ export default function AdminOrdersPage() {
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="relative">
-                <Icon icon="mdi:search" className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={20} />
+                <LucideSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={20} />
                 <input
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -143,7 +143,7 @@ export default function AdminOrdersPage() {
           {data?.meta && data.meta.totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-                <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+                <MdiChevronRight className="w-5 h-5" />
               </button>
               {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
                 .slice(Math.max(0, page - 3), Math.min(data.meta.totalPages, page + 2))
@@ -154,7 +154,7 @@ export default function AdminOrdersPage() {
                   </button>
                 ))}
               <button onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))} disabled={page === data.meta.totalPages} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-                <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+                <MdiChevronLeft className="w-5 h-5" />
               </button>
             </div>
           )}

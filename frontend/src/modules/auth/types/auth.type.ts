@@ -3,7 +3,7 @@ export interface AuthUser {
   id: string;
   email: string | null;
   phone_number: string | null;
-  full_name: string;
+  full_name: string | null;
   role: "customer" | "admin" | "support";
   birthday: string;
   profile_completed: boolean;
@@ -26,8 +26,17 @@ export interface SendOtpResponse {
 
 export interface VerifyOtpResponse {
   user: AuthUser;
-  refreshToken: string;
   requiresProfileCompletion: boolean;
+}
+
+export interface Session {
+  id: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+  last_used_at: string | null;
+  expires_at: string;
+  is_current: boolean;
 }
 
 export interface ApiResponse<T = unknown> {

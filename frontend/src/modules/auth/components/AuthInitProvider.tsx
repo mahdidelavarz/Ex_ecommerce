@@ -10,36 +10,31 @@ export default function AuthInitProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { setUser, setLoading, refreshToken } = useAuthStore();
+  const { setUser, setLoading, setInitialized } = useAuthStore();
 
   useEffect(() => {
     const initAuth = async () => {
-      if (!refreshToken) {
-        setLoading(false);
-        return;
-      }
-
       try {
-        // Try to get current user with existing cookie
+        // Access token cookie (if any) is sent automatically
         const user = await authService.getMe();
         setUser(user);
       } catch (error) {
-        // Token might be expired, try to refresh
+        // Access token missing/expired, try to refresh via cookie
         try {
-          await authService.refreshToken(refreshToken);
+          await authService.refreshToken();
           const user = await authService.getMe();
           setUser(user);
         } catch (refreshError) {
-          // Both tokens expired, clear auth
           setUser(null);
         }
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     };
 
     initAuth();
-  }, [refreshToken, setUser, setLoading]);
+  }, [setUser, setLoading, setInitialized]);
 
   return <>{children}</>;
 }

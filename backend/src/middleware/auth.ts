@@ -36,7 +36,7 @@ export const authenticate = asyncHandler(
     }
 
     try {
-      const decoded = jwt.verify(token, env.jwt.accessSecret) as JwtPayload;
+      const decoded = jwt.verify(token, env.jwt.accessSecret, { algorithms: ['HS256'] }) as JwtPayload;
       
       const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({
@@ -68,7 +68,7 @@ export const optionalAuth = asyncHandler(
     }
 
     try {
-      const decoded = jwt.verify(token, env.jwt.accessSecret) as JwtPayload;
+      const decoded = jwt.verify(token, env.jwt.accessSecret, { algorithms: ['HS256'] }) as JwtPayload;
       
       const userRepository = AppDataSource.getRepository(User);
       const user = await userRepository.findOne({

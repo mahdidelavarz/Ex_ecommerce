@@ -18,10 +18,6 @@ export const verifyOtpSchema = z.object({
     .regex(/^\d{4}$/, 'کد تایید نامعتبر است'),
 });
 
-export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, 'رفرش توکن الزامی است'),
-});
-
 export const completeProfileSchema = z.object({
   full_name: z.string().min(2, 'نام کامل الزامی است'),
   email: z.string().email('ایمیل نامعتبر است').optional().nullable(),

@@ -5,9 +5,20 @@ import { asyncHandler } from "../../middleware/asyncHandler";
 import { ApiResponseHelper } from "../../shared/utils/response";
 import { Messages } from "../../shared/constants/messages";
 import { env } from "../../config/env";
-import { AppDataSource } from '../../config/database';
-import { User, UserRole } from '../../database/entities/user.entity';
-import { NotFoundError } from '../../shared/utils/errors';
+import { UnauthorizedError } from "../../shared/utils/errors";
+import {
+  setAccessTokenCookie,
+  setRefreshTokenCookie,
+  clearAuthCookies,
+  REFRESH_TOKEN_COOKIE,
+} from "../../shared/utils/cookies";
+
+function getRequestMeta(req: Request): { ipAddress: string | null; userAgent: string | null } {
+  return {
+    ipAddress: req.ip ?? req.socket.remoteAddress ?? null,
+    userAgent: req.headers["user-agent"] ?? null,
+  };
+}
 
 export class AuthController {
   private authService: AuthService;
@@ -37,49 +48,20 @@ export class AuthController {
     ApiResponseHelper.success(res, result, Messages.AUTH.OTP_SENT);
   });
 
-
-  // src/modules/auth/auth.controller.ts - اضافه کن به کلاس
-
-/**
- * POST /api/v1/auth/make-admin (TEMP - فقط برای development)
- */
-makeAdmin = asyncHandler(async (req: Request, res: Response) => {
-  const { phone_number } = req.body;
-  
-  const userRepository = AppDataSource.getRepository(User);
-  const user = await userRepository.findOne({ where: { phone_number } });
-  
-  if (!user) {
-    throw new NotFoundError('User not found');
-  }
-  
-  user.role = UserRole.ADMIN;
-  await userRepository.save(user);
-  
-  ApiResponseHelper.success(res, { user: this.authService['sanitizeUser'](user) }, 'User promoted to admin');
-});
-
   /**
    * POST /api/v1/auth/verify-otp
    */
   verifyOTP = asyncHandler(async (req: Request, res: Response) => {
     const { phone_number, otp_code } = req.body;
-    const result = await this.authService.verifyOTP(phone_number, otp_code);
+    const result = await this.authService.verifyOTP(phone_number, otp_code, getRequestMeta(req));
 
-    // Set access token as httpOnly cookie
-    res.cookie("accessToken", result.tokens.accessToken, {
-      httpOnly: true,
-      secure: false ,//env.nodeEnv === "production",
-      sameSite: "lax", // ← strict رو بکن lax
-      maxAge: 15 * 60 * 1000,
-      path: "/",
-    });
+    setAccessTokenCookie(res, result.tokens.accessToken);
+    setRefreshTokenCookie(res, result.tokens.refreshToken);
 
     ApiResponseHelper.success(
       res,
       {
         user: result.user,
-        refreshToken: result.tokens.refreshToken,
         requiresProfileCompletion: result.requiresProfileCompletion,
       },
       Messages.AUTH.OTP_VERIFIED,
@@ -90,25 +72,18 @@ makeAdmin = asyncHandler(async (req: Request, res: Response) => {
    * POST /api/v1/auth/refresh
    */
   refreshToken = asyncHandler(async (req: Request, res: Response) => {
-    const { refreshToken } = req.body;
-    const tokens = await this.authService.refreshToken(refreshToken);
+    const refreshTokenString = req.cookies?.[REFRESH_TOKEN_COOKIE];
 
-    // Set new access token
-    res.cookie("accessToken", tokens.accessToken, {
-      httpOnly: true,
-      secure: false ,//env.nodeEnv === "production",
-      sameSite: "lax", // ← strict رو بکن lax
-      maxAge: 15 * 60 * 1000,
-      path: "/",
-    });
+    if (!refreshTokenString) {
+      throw new UnauthorizedError("Refresh token not found");
+    }
 
-    ApiResponseHelper.success(
-      res,
-      {
-        refreshToken: tokens.refreshToken,
-      },
-      Messages.AUTH.TOKEN_REFRESHED,
-    );
+    const tokens = await this.authService.refreshToken(refreshTokenString, getRequestMeta(req));
+
+    setAccessTokenCookie(res, tokens.accessToken);
+    setRefreshTokenCookie(res, tokens.refreshToken);
+
+    ApiResponseHelper.success(res, null, Messages.AUTH.TOKEN_REFRESHED);
   });
 
   /**
@@ -123,15 +98,10 @@ makeAdmin = asyncHandler(async (req: Request, res: Response) => {
    * POST /api/v1/auth/logout
    */
   logout = asyncHandler(async (req: Request, res: Response) => {
-    await this.authService.logout(req.userId!);
+    const refreshTokenString = req.cookies?.[REFRESH_TOKEN_COOKIE];
+    await this.authService.logout(req.userId!, refreshTokenString);
 
-    res.cookie("accessToken", "", {
-      httpOnly: true,
-      secure: env.nodeEnv === "production",
-      sameSite: "strict",
-      maxAge: 0,
-      path: "/",
-    });
+    clearAuthCookies(res);
 
     ApiResponseHelper.success(res, null, Messages.AUTH.LOGOUT_SUCCESS);
   });
@@ -153,12 +123,31 @@ makeAdmin = asyncHandler(async (req: Request, res: Response) => {
   });
 
   /**
-   * GET /api/v1/auth/callback
-   * Google OAuth callback
+   * DELETE /api/v1/auth/account
    */
-  googleCallback = asyncHandler(async (req: Request, res: Response) => {
-    // This would be implemented based on your Google OAuth flow
-    // For now, return a placeholder
-    ApiResponseHelper.success(res, null, "Google callback endpoint");
+  deleteAccount = asyncHandler(async (req: Request, res: Response) => {
+    await this.authService.deleteAccount(req.userId!);
+
+    clearAuthCookies(res);
+
+    ApiResponseHelper.success(res, null, Messages.USERS.DELETED);
+  });
+
+  /**
+   * GET /api/v1/auth/sessions
+   */
+  getSessions = asyncHandler(async (req: Request, res: Response) => {
+    const currentRefreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE];
+    const sessions = await this.authService.getSessions(req.userId!, currentRefreshToken);
+
+    ApiResponseHelper.success(res, { sessions });
+  });
+
+  /**
+   * DELETE /api/v1/auth/sessions/:id
+   */
+  revokeSession = asyncHandler(async (req: Request, res: Response) => {
+    await this.authService.revokeSession(req.userId!, req.params.id);
+    ApiResponseHelper.success(res, null, Messages.AUTH.LOGOUT_SUCCESS);
   });
 }

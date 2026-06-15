@@ -21,6 +21,8 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(120);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const isLocked = failedAttempts >= 5;
 
   useEffect(() => {
     if (timer <= 0) return;
@@ -31,6 +33,8 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
   }, [timer]);
 
   const handleVerify = async () => {
+    if (isLocked) return;
+
     if (otp.length !== 4) {
       toast.error('لطفاً کد ۴ رقمی را وارد کنید');
       return;
@@ -41,7 +45,7 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
       const result = await authService.verifyOtp(phoneNumber, otp);
 
       // Save to store
-      login(result.user, result.refreshToken);
+      login(result.user);
 
       toast.success('خوش آمدید!');
 
@@ -55,6 +59,7 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
       const message =
         error instanceof Error ? error.message : 'کد تایید نامعتبر است';
       toast.error(message);
+      setFailedAttempts((prev) => prev + 1);
     } finally {
       setIsLoading(false);
     }
@@ -64,6 +69,7 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
     try {
       await authService.sendOtp(phoneNumber);
       setTimer(120);
+      setFailedAttempts(0);
       toast.success('کد تایید مجدداً ارسال شد');
     } catch (error: unknown) {
       toast.error('خطا در ارسال مجدد کد');
@@ -112,10 +118,16 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
           loading={isLoading}
           className="w-full"
           size="lg"
-          disabled={otp.length !== 4}
+          disabled={otp.length !== 4 || isLocked}
         >
           تایید کد
         </Button>
+
+        {isLocked && (
+          <p className="text-error text-sm text-center">
+            تعداد تلاش‌ها بیش از حد — لطفاً دوباره کد تایید را دریافت کنید
+          </p>
+        )}
       </div>
 
       <div className="text-center mt-6">
