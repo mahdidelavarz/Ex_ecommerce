@@ -124,6 +124,7 @@ export default function ProfileAddressesPage() {
         <Link href="/profile" className="text-text-secondary hover:text-primary transition-colors">پروفایل</Link>
         <Link href="/profile/orders" className="text-text-secondary hover:text-primary transition-colors">سفارش‌ها</Link>
         <Link href="/profile/addresses" className="text-primary font-medium border-b-2 border-primary pb-4 -mb-[17px]">آدرس‌ها</Link>
+        <Link href="/profile/sessions" className="text-text-secondary hover:text-primary transition-colors">نشست‌ها</Link>
       </div>
 
       <div className="flex items-center justify-between mb-8">

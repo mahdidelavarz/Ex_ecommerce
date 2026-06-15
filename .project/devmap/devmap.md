@@ -21,7 +21,7 @@
 
 | # | Issue | Severity | File |
 |---|-------|----------|------|
-| S-1 | `/auth/make-admin` has no auth or role guard — anyone can promote themselves to admin | 🔴 Blocker | `auth.routes.ts:29` |
+| S-1 | ~~`/auth/make-admin` has no auth or role guard — anyone can promote themselves to admin~~ — ✅ Fixed, route removed | 🔴 Blocker | `auth.routes.ts:29` |
 | S-2 | `apiLimiter` defined but never applied to any routes — only auth endpoints have rate limiting | 🟠 Bug | `backend/src/middleware/rateLimiter.ts` |
 | S-3 | OTP code returned in API response in `development` mode — safe only if `NODE_ENV` is strictly controlled | 🟡 Incomplete | `auth.service.ts:61` |
 
@@ -51,7 +51,7 @@
 
 | Module | Backend | Frontend | Status | Detail |
 |--------|---------|----------|--------|--------|
-| auth | ✅ | ✅ | ✅ Explored | [modules/auth.md](modules/auth.md) |
+| auth | ✅ | ✅ | ✅ Fixed | [modules/auth.md](modules/auth.md) |
 | categories | ✅ | ✅ | ✅ Explored | [modules/categories.md](modules/categories.md) |
 | brands | ✅ | ✅ | ✅ Explored | [modules/brands.md](modules/brands.md) |
 | products | ✅ | ✅ | ✅ Explored | [modules/products.md](modules/products.md) |
@@ -92,10 +92,10 @@
 
 - [ ] I-1: Fix Docker healthcheck user (`node_user`)
 - [ ] I-2/I-3: Disable `synchronize`, generate & run initial migration
-- [ ] S-1 / AUTH-B1: Remove or guard `/auth/make-admin`
-- [ ] AUTH-B2: Fix `secure: false` on cookies
-- [ ] AUTH-B3: Lock JWT `algorithms` to `['HS256']`
-- [ ] AUTH-F1: Remove `refreshToken` from `localStorage`
+- [x] S-1 / AUTH-B1: Remove or guard `/auth/make-admin`
+- [x] AUTH-B2: Fix `secure: false` on cookies
+- [x] AUTH-B3: Lock JWT `algorithms` to `['HS256']`
+- [x] AUTH-F1: Remove `refreshToken` from `localStorage`
 - [ ] F-1 / O-F1: Real address selection in checkout
 - [ ] C-F1: Allow guest add-to-cart (remove forced login in `AddToCartButton`)
 - [ ] PRD-F1: Sanitize `dangerouslySetInnerHTML` (XSS)

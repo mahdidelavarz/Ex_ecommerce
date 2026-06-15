@@ -1,5 +1,5 @@
 // src/database/entities/user.entity.ts
-import { Entity, Column, OneToMany, Index } from 'typeorm';
+import { Entity, Column, OneToMany, Index, BeforeInsert, BeforeUpdate } from 'typeorm';
 import { BaseEntity } from '../base.entity';
 import { UserAddress } from './user-address.entity';
 import { Cart } from './cart.entity';
@@ -30,8 +30,8 @@ export class User extends BaseEntity {
   @Index()
   phone_number: string | null;
 
-  @Column({ type: 'text' })
-  full_name: string;
+  @Column({ type: 'text', nullable: true })
+  full_name: string | null;
 
   @Column({ type: 'date', nullable: true })
   birthday: Date | null;
@@ -77,4 +77,12 @@ export class User extends BaseEntity {
 
   @OneToMany(() => InventoryLog, (log) => log.created_by_user)
   inventory_logs: InventoryLog[];
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  normalizeEmail() {
+    if (this.email) {
+      this.email = this.email.trim().toLowerCase();
+    }
+  }
 }

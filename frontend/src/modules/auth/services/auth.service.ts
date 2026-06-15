@@ -5,6 +5,7 @@ import type {
   AuthUser,
   SendOtpResponse,
   VerifyOtpResponse,
+  Session,
 } from '../types/auth.type';
 
 export const authService = {
@@ -31,11 +32,6 @@ export const authService = {
       { phone_number, otp_code }
     );
 
-    // Store refresh token
-    if (typeof window !== 'undefined' && response.data.data.refreshToken) {
-      localStorage.setItem('refreshToken', response.data.data.refreshToken);
-    }
-
     return response.data.data;
   },
 
@@ -48,20 +44,11 @@ export const authService = {
   },
 
   /**
-   * Refresh access token
+   * Refresh access token. The refresh token itself lives in an httpOnly
+   * cookie, so nothing needs to be sent or stored on the client.
    */
-  refreshToken: async (refreshToken: string): Promise<string> => {
-    const response = await apiClient.post<ApiResponse<{ refreshToken: string }>>(
-      '/auth/refresh',
-      { refreshToken }
-    );
-
-    const newRefreshToken = response.data.data.refreshToken;
-    if (typeof window !== 'undefined' && newRefreshToken) {
-      localStorage.setItem('refreshToken', newRefreshToken);
-    }
-
-    return newRefreshToken;
+  refreshToken: async (): Promise<void> => {
+    await apiClient.post('/auth/refresh');
   },
 
   /**
@@ -69,9 +56,6 @@ export const authService = {
    */
   logout: async (): Promise<void> => {
     await apiClient.post('/auth/logout');
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('refreshToken');
-    }
   },
 
   /**
@@ -102,5 +86,29 @@ export const authService = {
       data
     );
     return response.data.data.user;
+  },
+
+  /**
+   * List active sessions for the current user
+   */
+  getSessions: async (): Promise<Session[]> => {
+    const response = await apiClient.get<ApiResponse<{ sessions: Session[] }>>(
+      '/auth/sessions'
+    );
+    return response.data.data.sessions;
+  },
+
+  /**
+   * Revoke a single session
+   */
+  revokeSession: async (sessionId: string): Promise<void> => {
+    await apiClient.delete(`/auth/sessions/${sessionId}`);
+  },
+
+  /**
+   * Deactivate the current account
+   */
+  deleteAccount: async (): Promise<void> => {
+    await apiClient.delete('/auth/account');
   },
 };

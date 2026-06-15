@@ -39,6 +39,7 @@ export default function ProfileOrdersPage() {
         <Link href="/profile" className="text-text-secondary hover:text-primary transition-colors">پروفایل</Link>
         <Link href="/profile/orders" className="text-primary font-medium border-b-2 border-primary pb-4 -mb-[17px]">سفارش‌ها</Link>
         <Link href="/profile/addresses" className="text-text-secondary hover:text-primary transition-colors">آدرس‌ها</Link>
+        <Link href="/profile/sessions" className="text-text-secondary hover:text-primary transition-colors">نشست‌ها</Link>
       </div>
 
       <h1 className="text-2xl font-bold text-text-primary mb-8">سفارش‌های من</h1>

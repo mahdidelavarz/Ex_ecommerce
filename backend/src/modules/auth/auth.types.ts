@@ -15,7 +15,7 @@ export interface AuthUser {
   id: string;
   email: string | null;
   phone_number: string | null;
-  full_name: string;
+  full_name: string | null;
   role: "customer" | "admin" | "support";
   profile_completed: boolean;
   is_active: boolean;
@@ -30,10 +30,6 @@ export interface SendOtpRequest {
 export interface VerifyOtpRequest {
   phone_number: string;
   otp_code: string;
-}
-
-export interface RefreshTokenRequest {
-  refreshToken: string;
 }
 
 export interface AuthResponse {

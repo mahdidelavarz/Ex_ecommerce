@@ -43,12 +43,7 @@ export default function OTPForm({ onSuccess }: OTPFormProps) {
     try {
       const response = await authService.sendOtp(data.phone_number);
 
-      // In dev mode, auto-fill OTP from response
-      if (response.otpCode) {
-        toast.success(`کد تایید: ${response.otpCode}`, { duration: 5000 });
-      } else {
-        toast.success(response.message);
-      }
+      toast.success(response.message);
 
       onSuccess(data.phone_number);
     } catch (error: unknown) {

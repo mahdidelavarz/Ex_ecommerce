@@ -11,6 +11,7 @@
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/config/database.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/config/database.ts",
     "seed:run": "ts-node src/database/seeds/run-seeds.ts",
+    "make-admin": "ts-node src/database/seeds/make-admin.ts",
     "typeorm": "typeorm-ts-node-commonjs",
     "docker:dev": "docker compose -f ../docker-compose.dev.yml up -d postgres",
     "docker:down": "docker compose -f ../docker-compose.dev.yml down"

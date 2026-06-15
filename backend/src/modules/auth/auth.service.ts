@@ -23,11 +23,25 @@ export class AuthService {
   private loginLogRepository = AppDataSource.getRepository(LoginLog);
 
   /**
+   * Remove verified and expired OTP codes so the table doesn't grow unbounded
+   */
+  private async cleanupOtpCodes(): Promise<void> {
+    await this.otpRepository
+      .createQueryBuilder()
+      .delete()
+      .where('verified = true')
+      .orWhere('expires_at < :now', { now: new Date() })
+      .execute();
+  }
+
+  /**
    * Send OTP to phone number
    */
   async sendOTP(
     phoneNumber: string,
   ): Promise<{ message: string; otpCode?: string }> {
+    await this.cleanupOtpCodes();
+
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
     const recentOTP = await this.otpRepository.findOne({
       where: {
@@ -74,6 +88,7 @@ export class AuthService {
   async verifyOTP(
     phoneNumber: string,
     otpCode: string,
+    meta: { ipAddress?: string | null; userAgent?: string | null } = {},
   ): Promise<{
     user: AuthUser;
     tokens: TokenPair;
@@ -110,8 +125,8 @@ export class AuthService {
       );
     }
 
-    otpRecord.verified = true;
-    await this.otpRepository.save(otpRecord);
+    // OTP is no longer needed once verified
+    await this.otpRepository.delete({ phone_number: phoneNumber });
 
     // Find or create user - FIX: Proper null check and single object save
     let user = await this.userRepository.findOne({
@@ -119,10 +134,9 @@ export class AuthService {
     });
 
     if (!user) {
-      // Create user with default full_name since it's NOT NULL
       const newUser = this.userRepository.create({
         phone_number: phoneNumber,
-        full_name: "", // ← این رو اضافه کن
+        full_name: null,
         role: UserRole.CUSTOMER,
         profile_completed: false,
         is_active: true,
@@ -132,13 +146,19 @@ export class AuthService {
     }
 
     // Now TypeScript guarantees user is not null
-    const tokens = await this.generateTokenPair(user!);
+    const tokens = await this.generateTokenPair(user!, meta);
+
+    const now = new Date();
 
     // Create login log
     await this.loginLogRepository.save({
       user_id: user!.id,
-      logged_in_at: new Date(),
+      ip_address: meta.ipAddress ?? null,
+      user_agent: meta.userAgent ?? null,
+      logged_in_at: now,
     });
+
+    await this.userRepository.update(user!.id, { last_login_at: now });
 
     return {
       user: this.sanitizeUser(user!),
@@ -150,7 +170,10 @@ export class AuthService {
   /**
    * Refresh access token
    */
-  async refreshToken(refreshTokenString: string): Promise<TokenPair> {
+  async refreshToken(
+    refreshTokenString: string,
+    meta: { ipAddress?: string | null; userAgent?: string | null } = {},
+  ): Promise<TokenPair> {
     const payload = JWTService.verifyRefreshToken(refreshTokenString);
     if (!payload) {
       throw new UnauthorizedError("Invalid refresh token");
@@ -190,10 +213,11 @@ export class AuthService {
       throw new NotFoundError("User not found");
     }
 
-    const newTokens = await this.generateTokenPair(user);
+    const newTokens = await this.generateTokenPair(user, meta);
 
     validToken.revoked = true;
     validToken.revoked_at = new Date();
+    validToken.last_used_at = new Date();
     await this.refreshTokenRepository.save(validToken);
 
     return newTokens;
@@ -215,9 +239,102 @@ export class AuthService {
   }
 
   /**
-   * Logout user
+   * Logout user. If a refresh token is provided, only that session is
+   * revoked; otherwise all of the user's sessions are revoked.
    */
-  async logout(userId: string): Promise<void> {
+  async logout(userId: string, refreshTokenString?: string): Promise<void> {
+    if (refreshTokenString) {
+      const tokens = await this.refreshTokenRepository.find({
+        where: { user_id: userId, revoked: false },
+      });
+
+      for (const token of tokens) {
+        const isValid = await bcrypt.compare(refreshTokenString, token.token_hash);
+        if (isValid) {
+          token.revoked = true;
+          token.revoked_at = new Date();
+          await this.refreshTokenRepository.save(token);
+          return;
+        }
+      }
+    }
+
+    await this.refreshTokenRepository.update(
+      { user_id: userId, revoked: false },
+      { revoked: true, revoked_at: new Date() },
+    );
+  }
+
+  /**
+   * List active sessions (non-revoked, non-expired refresh tokens) for a user
+   */
+  async getSessions(userId: string, currentRefreshToken?: string): Promise<Array<{
+    id: string;
+    ip_address: string | null;
+    user_agent: string | null;
+    created_at: Date;
+    last_used_at: Date | null;
+    expires_at: Date;
+    is_current: boolean;
+  }>> {
+    const tokens = await this.refreshTokenRepository.find({
+      where: { user_id: userId, revoked: false },
+      order: { created_at: 'DESC' },
+    });
+
+    const result = [];
+    for (const token of tokens) {
+      if (token.expires_at <= new Date()) continue;
+
+      const isCurrent = currentRefreshToken
+        ? await bcrypt.compare(currentRefreshToken, token.token_hash)
+        : false;
+
+      result.push({
+        id: token.id,
+        ip_address: token.ip_address,
+        user_agent: token.user_agent,
+        created_at: token.created_at,
+        last_used_at: token.last_used_at,
+        expires_at: token.expires_at,
+        is_current: isCurrent,
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Revoke a single session by refresh token id
+   */
+  async revokeSession(userId: string, sessionId: string): Promise<void> {
+    const token = await this.refreshTokenRepository.findOne({
+      where: { id: sessionId, user_id: userId },
+    });
+
+    if (!token) {
+      throw new NotFoundError('Session not found');
+    }
+
+    token.revoked = true;
+    token.revoked_at = new Date();
+    await this.refreshTokenRepository.save(token);
+  }
+
+  /**
+   * Deactivate the current user's account (soft delete) and revoke all sessions
+   */
+  async deleteAccount(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    user.is_active = false;
+    user.deleted_at = new Date();
+    await this.userRepository.save(user);
+
     await this.refreshTokenRepository.update(
       { user_id: userId, revoked: false },
       { revoked: true, revoked_at: new Date() },
@@ -243,9 +360,11 @@ export class AuthService {
       throw new NotFoundError("User not found");
     }
 
-    if (profileData.email) {
+    const email = profileData.email ? profileData.email.trim().toLowerCase() : null;
+
+    if (email) {
       const existingUser = await this.userRepository.findOne({
-        where: { email: profileData.email },
+        where: { email },
       });
       if (existingUser && existingUser.id !== userId) {
         throw new BadRequestError("This email is already in use");
@@ -253,7 +372,7 @@ export class AuthService {
     }
 
     user.full_name = profileData.full_name;
-    user.email = profileData.email || user.email;
+    user.email = email || user.email;
     user.birthday = profileData.birthday
       ? new Date(profileData.birthday)
       : user.birthday;
@@ -283,9 +402,11 @@ export class AuthService {
       throw new NotFoundError("User not found");
     }
 
-    if (profileData.email) {
+    const email = profileData.email ? profileData.email.trim().toLowerCase() : profileData.email;
+
+    if (email) {
       const existingUser = await this.userRepository.findOne({
-        where: { email: profileData.email },
+        where: { email },
       });
       if (existingUser && existingUser.id !== userId) {
         throw new BadRequestError("This email is already in use");
@@ -293,7 +414,7 @@ export class AuthService {
     }
 
     if (profileData.full_name) user.full_name = profileData.full_name;
-    if (profileData.email !== undefined) user.email = profileData.email;
+    if (profileData.email !== undefined) user.email = email ?? null;
     if (profileData.birthday !== undefined) {
       user.birthday = profileData.birthday
         ? new Date(profileData.birthday)
@@ -306,45 +427,12 @@ export class AuthService {
   }
 
   /**
-   * Google OAuth callback
-   */
-  async handleGoogleCallback(googleUser: {
-    email: string;
-    full_name?: string;
-    phone?: string | null;
-  }): Promise<{ user: AuthUser; tokens: TokenPair; isNewUser: boolean }> {
-    let user = await this.userRepository.findOne({
-      where: { email: googleUser.email },
-    });
-
-    const isNewUser = !user;
-
-    if (!user) {
-      const newUser = this.userRepository.create({
-        email: googleUser.email,
-        phone_number: googleUser.phone || null,
-        full_name: googleUser.full_name || "", // ← این باید باشه
-        role: UserRole.CUSTOMER,
-        profile_completed: !!googleUser.full_name,
-        is_active: true,
-      });
-
-      user = await this.userRepository.save(newUser);
-    }
-
-    const tokens = await this.generateTokenPair(user!);
-
-    return {
-      user: this.sanitizeUser(user!),
-      tokens,
-      isNewUser,
-    };
-  }
-
-  /**
    * Private helper methods
    */
-  private async generateTokenPair(user: User): Promise<TokenPair> {
+  private async generateTokenPair(
+    user: User,
+    meta: { ipAddress?: string | null; userAgent?: string | null } = {},
+  ): Promise<TokenPair> {
     const payload = {
       userId: user.id,
       email: user.email || undefined,
@@ -361,6 +449,8 @@ export class AuthService {
     await this.refreshTokenRepository.save({
       user_id: user.id,
       token_hash: tokenHash,
+      ip_address: meta.ipAddress ?? null,
+      user_agent: meta.userAgent ?? null,
       expires_at: expiresAt,
     });
 

@@ -111,6 +111,12 @@ export default function ProfilePage() {
           >
             آدرس‌ها
           </Link>
+          <Link
+            href="/profile/sessions"
+            className="text-text-secondary hover:text-primary transition-colors"
+          >
+            نشست‌ها
+          </Link>
         </div>
 
         <div className="bg-surface rounded-2xl shadow-card overflow-hidden">
@@ -121,7 +127,7 @@ export default function ProfilePage() {
                   <MdiAccountCircle className="text-primary" width={48} />
                 </div>
                 <div className="text-white">
-                  <h1 className="text-3xl font-bold">{user.full_name}</h1>
+                  <h1 className="text-3xl font-bold">{user.full_name || "کاربر"}</h1>
                   <p className="text-primary-light">{user.phone_number}</p>
                 </div>
               </div>
@@ -143,7 +149,7 @@ export default function ProfilePage() {
               <InfoCard
                 icon={MdiAccount}
                 label="نام کامل"
-                value={user.full_name}
+                value={user.full_name || "-"}
               />
               <InfoCard
                 icon={MdiPhone}
