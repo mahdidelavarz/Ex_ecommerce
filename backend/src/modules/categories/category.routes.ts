@@ -17,6 +17,7 @@ const controller = new CategoryController();
 // Public routes
 router.get('/', validate({ query: categoryQuerySchema }), controller.list);
 router.get('/tree', controller.tree);
+router.get('/:slug/products', controller.getProductsBySlug);
 router.get('/:id', controller.getById);
 
 // Admin routes

@@ -117,6 +117,19 @@ export class CategoryService {
     await this.repo.delete(id, force);
   }
 
+  async getProductsBySlug(slug: string, page: number, limit: number) {
+    const { products, total } = await this.repo.getProductsBySlug(slug, page, limit);
+    return {
+      data: products,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   async bulkSort(dto: BulkSortDto) {
     await this.repo.bulkSort(dto.items);
   }

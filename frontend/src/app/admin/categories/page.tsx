@@ -39,6 +39,11 @@ export default function AdminCategoriesPage() {
   });
 
   const handleDelete = async (category: Category) => {
+    if (category.products_count > 0) {
+      toast.error(`این دسته‌بندی ${category.products_count} محصول دارد و نمی‌توان آن را حذف کرد`);
+      return;
+    }
+
     const confirmMessage =
       category.children_count > 0
         ? `این دسته‌بندی ${category.children_count} زیرمجموعه دارد. با حذف اجباری، زیرمجموعه‌ها نیز حذف می‌شوند. ادامه می‌دهید؟`

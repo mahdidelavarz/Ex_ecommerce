@@ -1,8 +1,10 @@
 // src/modules/categories/hooks/useCategories.ts
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { categoryService } from '../services/category.service';
+import type { Category } from '../types/category.types';
 
 export function useCategories(params?: {
   parent_id?: string | null;
@@ -32,5 +34,43 @@ export function useCategory(slug: string) {
     queryFn: () => categoryService.getBySlug(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<Category>) => categoryService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('دسته‌بندی ایجاد شد');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در ایجاد دسته‌بندی'),
+  });
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Category> }) =>
+      categoryService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('دسته‌بندی بروزرسانی شد');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در بروزرسانی دسته‌بندی'),
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, force }: { id: string; force?: boolean }) =>
+      categoryService.delete(id, force),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('دسته‌بندی حذف شد');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در حذف دسته‌بندی'),
   });
 }

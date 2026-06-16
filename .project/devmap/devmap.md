@@ -52,7 +52,7 @@
 | Module | Backend | Frontend | Status | Detail |
 |--------|---------|----------|--------|--------|
 | auth | ✅ | ✅ | ✅ Fixed | [modules/auth.md](modules/auth.md) |
-| categories | ✅ | ✅ | ✅ Explored | [modules/categories.md](modules/categories.md) |
+| categories | ✅ | ✅ | ✅ Fixed | [modules/categories.md](modules/categories.md) |
 | brands | ✅ | ✅ | ✅ Explored | [modules/brands.md](modules/brands.md) |
 | products | ✅ | ✅ | ✅ Explored | [modules/products.md](modules/products.md) |
 | attributes | ✅ | ✅ | ✅ Explored | [modules/attributes.md](modules/attributes.md) |

@@ -190,6 +190,28 @@ export class CategoryRepository {
     }
   }
 
+  async getProductsBySlug(slug: string, page: number, limit: number) {
+    const category = await this.repo.findOne({ where: { slug } });
+    if (!category) throw new NotFoundError('دسته‌بندی یافت نشد');
+
+    const childIds = await this.getAllChildrenIds(category.id);
+    const allIds = [category.id, ...childIds];
+
+    const [products, total] = await this.productRepo
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.brand', 'brand')
+      .where('product.category_id IN (:...ids)', { ids: allIds })
+      .andWhere('product.is_active = true')
+      .andWhere('product.is_public = true')
+      .orderBy('product.created_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { products, total };
+  }
+
   // Private helpers
   private async generateUniqueSlug(
     name: string,
@@ -242,18 +264,16 @@ export class CategoryRepository {
   }
 
   private async getAllChildrenIds(categoryId: string): Promise<string[]> {
-    const children = await this.repo.find({
-      where: { parent_id: categoryId },
-    });
-
-    let ids: string[] = children.map((c) => c.id);
-
-    for (const child of children) {
-      const childIds = await this.getAllChildrenIds(child.id);
-      ids = ids.concat(childIds);
-    }
-
-    return ids;
+    const rows: { id: string }[] = await this.repo.query(
+      `WITH RECURSIVE tree AS (
+         SELECT id FROM categories WHERE parent_id = $1
+         UNION ALL
+         SELECT c.id FROM categories c INNER JOIN tree t ON c.parent_id = t.id
+       )
+       SELECT id FROM tree`,
+      [categoryId],
+    );
+    return rows.map((r) => r.id);
   }
 
   private buildTree(categories: Category[]): any[] {

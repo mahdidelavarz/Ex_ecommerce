@@ -1,7 +1,7 @@
 // src/app/(admin)/admin/categories/[id]/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,11 +9,37 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { categoryService } from '@/modules/categories/services/category.service';
-import { useCategories } from '@/modules/categories/hooks/useCategories';
+import { useCategoryTree } from '@/modules/categories/hooks/useCategories';
+import type { CategoryTreeNode } from '@/modules/categories/types/category.types';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
 import { MdiArrowRight, SolarFolderWithFilesBold, SvgSpinnersRingResize } from '@/components/icons/Icons';
 import { Icon } from '@iconify/react';
+
+const iconifyPattern = /^[a-z0-9-]+:[a-z0-9-]+$/;
+
+function flattenTree(
+  nodes: CategoryTreeNode[],
+  depth = 0,
+): Array<{ id: string; name: string; depth: number }> {
+  return nodes.flatMap((node) => [
+    { id: node.id, name: node.name, depth },
+    ...flattenTree(node.children ?? [], depth + 1),
+  ]);
+}
+
+function collectDescendantIds(nodes: CategoryTreeNode[]): string[] {
+  return nodes.flatMap((node) => [node.id, ...collectDescendantIds(node.children ?? [])]);
+}
+
+function findNode(nodes: CategoryTreeNode[], id: string): CategoryTreeNode | null {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const found = findNode(node.children ?? [], id);
+    if (found) return found;
+  }
+  return null;
+}
 
 // Schema - exact match with form values
 const categoryFormSchema = z.object({
@@ -21,7 +47,9 @@ const categoryFormSchema = z.object({
   name: z.string().min(2, 'نام الزامی است').max(100),
   description: z.string().nullable(),
   image: z.string().nullable(),
-  icon: z.string().nullable(),
+  icon: z.string()
+    .refine((val) => !val || iconifyPattern.test(val), 'فرمت آیکون نامعتبر است (مثال: mdi:folder)')
+    .nullable(),
   color: z.string().nullable(),
   sort_order: z.number().min(0),
   is_active: z.boolean(),
@@ -38,7 +66,16 @@ export default function AdminCategoryFormPage() {
   const isEdit = params.id !== 'new';
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: categoriesData } = useCategories({ limit: 100 });
+  const { data: categoryTree } = useCategoryTree();
+
+  const validParents = useMemo(() => {
+    const flat = flattenTree(categoryTree ?? []);
+    if (!isEdit) return flat;
+    const currentId = params.id as string;
+    const subtree = findNode(categoryTree ?? [], currentId);
+    const excludeIds = new Set([currentId, ...collectDescendantIds(subtree?.children ?? [])]);
+    return flat.filter((cat) => !excludeIds.has(cat.id));
+  }, [categoryTree, isEdit, params.id]);
 
   const {
     register,
@@ -181,9 +218,9 @@ export default function AdminCategoryFormPage() {
                       className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <option value="">بدون والد (دسته اصلی)</option>
-                      {categoriesData?.data?.map((cat) => (
+                      {validParents.map((cat) => (
                         <option key={cat.id} value={cat.id}>
-                          {cat.name}
+                          {'—'.repeat(cat.depth)} {cat.name}
                         </option>
                       ))}
                     </select>
@@ -279,6 +316,9 @@ export default function AdminCategoryFormPage() {
                         />
                       )}
                     </div>
+                    {errors.icon && (
+                      <p className="text-sm text-error">{errors.icon.message}</p>
+                    )}
                     <p className="text-xs text-text-muted">
                       آیکون‌ها از{' '}
                       <a

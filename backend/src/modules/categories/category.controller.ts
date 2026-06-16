@@ -70,6 +70,16 @@ export class CategoryController {
   });
 
   /**
+   * GET /api/v1/categories/:slug/products - Products for a category (public)
+   */
+  getProductsBySlug = asyncHandler(async (req: Request, res: Response) => {
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string) : 20, 50);
+    const result = await this.service.getProductsBySlug(req.params.slug, page, limit);
+    ApiResponseHelper.success(res, result.data, 'Products fetched successfully', 200, result.meta);
+  });
+
+  /**
    * PATCH /api/v1/categories/sort - Bulk sort update (admin)
    */
   bulkSort = asyncHandler(async (req: Request, res: Response) => {

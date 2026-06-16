@@ -417,16 +417,16 @@ export class ProductRepository {
   }
 
   private async getCategoryChildrenIds(categoryId: string): Promise<string[]> {
-    const children = await this.categoryRepo.find({
-      where: { parent_id: categoryId },
-    });
-    let ids: string[] = [];
-    for (const child of children) {
-      ids.push(child.id);
-      const grandChildren = await this.getCategoryChildrenIds(child.id);
-      ids = ids.concat(grandChildren);
-    }
-    return ids;
+    const rows: { id: string }[] = await this.categoryRepo.query(
+      `WITH RECURSIVE tree AS (
+         SELECT id FROM categories WHERE parent_id = $1
+         UNION ALL
+         SELECT c.id FROM categories c INNER JOIN tree t ON c.parent_id = t.id
+       )
+       SELECT id FROM tree`,
+      [categoryId],
+    );
+    return rows.map((r) => r.id);
   }
 
   private formatProductDetail(product: Product): any {
