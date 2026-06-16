@@ -8,7 +8,7 @@ export class Brand extends BaseEntity {
   @Column({ type: 'uuid', primary: true, generated: 'uuid' })
   id: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', unique: true })
   name: string;
 
   @Column({ type: 'text', unique: true })
@@ -24,7 +24,7 @@ export class Brand extends BaseEntity {
   @OneToMany(() => Product, (product) => product.brand)
   products: Product[];
 
-  @Column({ type: 'boolean', default: true })  // ← اضافه کن
-  is_active: boolean;  // ← اضافه کن
+  @Column({ type: 'boolean', default: true })
+  is_active: boolean;
 
 }

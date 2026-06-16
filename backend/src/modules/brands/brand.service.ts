@@ -65,6 +65,20 @@ export class BrandService {
     return brand as unknown as BrandResponse;
   }
 
+  async getProductsBySlug(slug: string, page: number, limit: number) {
+    const { products, total, brand } = await this.repo.getProductsBySlug(slug, page, limit);
+    return {
+      brand,
+      data: products,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   async delete(id: string): Promise<void> {
     await this.repo.delete(id);
   }

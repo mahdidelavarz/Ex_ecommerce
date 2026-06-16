@@ -16,6 +16,7 @@ const controller = new BrandController();
 // Public routes
 router.get('/', validate({ query: brandQuerySchema }), controller.list);
 router.get('/all', controller.all);
+router.get('/:slug/products', controller.getProductsBySlug);
 router.get('/:id', controller.getById);
 
 // Admin routes

@@ -41,7 +41,7 @@ export const brandService = {
   /**
    * Create brand (admin)
    */
-  create: async (data: { name: string; logo?: string; description?: string }): Promise<Brand> => {
+  create: async (data: { name: string; logo?: string | null; description?: string | null; is_active?: boolean }): Promise<Brand> => {
     const response = await apiClient.post<ApiResponse<Brand>>('/brands', data);
     return response.data.data;
   },

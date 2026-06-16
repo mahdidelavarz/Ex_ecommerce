@@ -7,17 +7,19 @@ export const createBrandSchema = z.object({
     .min(2, 'نام برند باید حداقل ۲ کاراکتر باشد')
     .max(100, 'نام برند نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد'),
   logo: z.string().url('آدرس لوگو نامعتبر است').nullable().optional(),
-  description: z.string().max(500).nullable().optional(),
+  description: z.string().max(500, 'توضیحات نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد').nullable().optional(),
+  is_active: z.boolean().optional(),
 });
 
 export const updateBrandSchema = z.object({
   name: z
     .string()
     .min(2, 'نام برند باید حداقل ۲ کاراکتر باشد')
-    .max(100)
+    .max(100, 'نام برند نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد')
     .optional(),
   logo: z.string().url('آدرس لوگو نامعتبر است').nullable().optional(),
-  description: z.string().max(500).nullable().optional(),
+  description: z.string().max(500, 'توضیحات نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد').nullable().optional(),
+  is_active: z.boolean().optional(),
 });
 
 export const brandQuerySchema = z.object({

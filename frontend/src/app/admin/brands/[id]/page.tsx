@@ -13,10 +13,16 @@ import AdminSidebar from "@/components/layout/AdminSidebar";
 import Button from "@/components/ui/Button";
 import { MdiArrowRight, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
+const urlPattern = /^https?:\/\/.+/;
+
 const brandFormSchema = z.object({
   name: z.string().min(2, "نام برند الزامی است").max(100),
-  logo: z.string().nullable(),
+  logo: z
+    .string()
+    .refine((val) => !val || urlPattern.test(val), "آدرس لوگو نامعتبر است")
+    .nullable(),
   description: z.string().nullable(),
+  is_active: z.boolean(),
 });
 
 type BrandFormData = z.infer<typeof brandFormSchema>;
@@ -32,6 +38,8 @@ export default function AdminBrandFormPage() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<BrandFormData>({
     resolver: zodResolver(brandFormSchema),
@@ -39,8 +47,12 @@ export default function AdminBrandFormPage() {
       name: "",
       logo: null,
       description: null,
+      is_active: true,
     },
   });
+
+  const logoUrl = watch("logo");
+  const isActive = watch("is_active");
 
   useEffect(() => {
     if (isEdit) {
@@ -55,6 +67,7 @@ export default function AdminBrandFormPage() {
         name: brand.name,
         logo: brand.logo || null,
         description: brand.description || null,
+        is_active: brand.is_active,
       });
     } catch (error) {
       toast.error("خطا در دریافت اطلاعات برند");
@@ -67,15 +80,16 @@ export default function AdminBrandFormPage() {
     try {
       const payload = {
         name: data.name,
-        logo: data.logo || undefined,
-        description: data.description || undefined,
+        logo: data.logo || null,
+        description: data.description || null,
+        is_active: data.is_active,
       };
 
       if (isEdit) {
         await brandService.update(params.id as string, payload);
         toast.success("برند با موفقیت بروزرسانی شد");
       } else {
-        await brandService.create({ ...payload });
+        await brandService.create(payload);
         toast.success("برند با موفقیت ایجاد شد");
       }
       router.push("/admin/brands");
@@ -89,10 +103,7 @@ export default function AdminBrandFormPage() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize
-          className="  text-primary"
-          width={48}
-        />
+        <SvgSpinnersRingResize className="text-primary" width={48} />
       </div>
     );
   }
@@ -145,6 +156,19 @@ export default function AdminBrandFormPage() {
                   placeholder="https://..."
                   className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+                {errors.logo && (
+                  <p className="text-sm text-error">{errors.logo.message}</p>
+                )}
+                {logoUrl && urlPattern.test(logoUrl) && (
+                  <img
+                    src={logoUrl}
+                    alt="پیش‌نمایش لوگو"
+                    className="h-16 object-contain border border-border rounded-lg p-1 bg-white"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                )}
               </div>
 
               {/* Description */}
@@ -158,6 +182,25 @@ export default function AdminBrandFormPage() {
                   placeholder="توضیحات برند..."
                   className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                 />
+              </div>
+
+              {/* Active toggle */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text-secondary">
+                  وضعیت
+                </label>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setValue("is_active", e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-border rounded-full peer peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
+                  <span className="mr-3 text-sm text-text-secondary">
+                    {isActive ? "فعال" : "غیرفعال"}
+                  </span>
+                </label>
               </div>
 
               {/* Actions */}

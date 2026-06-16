@@ -53,7 +53,7 @@
 |--------|---------|----------|--------|--------|
 | auth | ✅ | ✅ | ✅ Fixed | [modules/auth.md](modules/auth.md) |
 | categories | ✅ | ✅ | ✅ Fixed | [modules/categories.md](modules/categories.md) |
-| brands | ✅ | ✅ | ✅ Explored | [modules/brands.md](modules/brands.md) |
+| brands | ✅ | ✅ | ✅ Fixed | [modules/brands.md](modules/brands.md) |
 | products | ✅ | ✅ | ✅ Explored | [modules/products.md](modules/products.md) |
 | attributes | ✅ | ✅ | ✅ Explored | [modules/attributes.md](modules/attributes.md) |
 | variants | ✅ | ✅ | ✅ Explored | [modules/variants.md](modules/variants.md) |

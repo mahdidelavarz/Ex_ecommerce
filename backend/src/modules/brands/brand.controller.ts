@@ -60,6 +60,16 @@ export class BrandController {
   });
 
   /**
+   * GET /api/v1/brands/:slug/products - Products for a brand (public)
+   */
+  getProductsBySlug = asyncHandler(async (req: Request, res: Response) => {
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string) : 20, 50);
+    const result = await this.service.getProductsBySlug(req.params.slug, page, limit);
+    ApiResponseHelper.success(res, result.data, 'Products fetched successfully', 200, result.meta);
+  });
+
+  /**
    * DELETE /api/v1/brands/:id - Delete brand (admin)
    */
   delete = asyncHandler(async (req: Request, res: Response) => {

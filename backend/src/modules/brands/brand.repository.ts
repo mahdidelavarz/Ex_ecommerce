@@ -81,13 +81,17 @@ export class BrandRepository {
   }
 
   async create(dto: CreateBrandDto) {
+    const existing = await this.repo.findOne({ where: { name: dto.name.trim() } });
+    if (existing) throw new ConflictError('برند با این نام قبلاً ثبت شده است');
+
     const slug = await this.generateUniqueSlug(dto.name);
 
     const brand = this.repo.create({
-      name: dto.name,
+      name: dto.name.trim(),
       slug,
       logo: dto.logo || null,
       description: dto.description || null,
+      is_active: dto.is_active !== undefined ? dto.is_active : true,
     });
 
     return this.repo.save(brand);
@@ -99,15 +103,37 @@ export class BrandRepository {
       throw new NotFoundError('برند مورد نظر یافت نشد');
     }
 
-    if (dto.name && dto.name !== brand.name) {
+    if (dto.name && dto.name.trim() !== brand.name) {
+      const existing = await this.repo.findOne({ where: { name: dto.name.trim() } });
+      if (existing) throw new ConflictError('برند با این نام قبلاً ثبت شده است');
       brand.slug = await this.generateUniqueSlug(dto.name, id);
-      brand.name = dto.name;
+      brand.name = dto.name.trim();
     }
 
     if (dto.logo !== undefined) brand.logo = dto.logo;
     if (dto.description !== undefined) brand.description = dto.description;
+    if (dto.is_active !== undefined) brand.is_active = dto.is_active;
 
     return this.repo.save(brand);
+  }
+
+  async getProductsBySlug(slug: string, page: number, limit: number) {
+    const brand = await this.repo.findOne({ where: { slug } });
+    if (!brand) throw new NotFoundError('برند یافت نشد');
+
+    const [products, total] = await this.productRepo
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .leftJoinAndSelect('product.brand', 'brand')
+      .where('product.brand_id = :brandId', { brandId: brand.id })
+      .andWhere('product.is_active = true')
+      .andWhere('product.is_public = true')
+      .orderBy('product.created_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { products, total, brand };
   }
 
   async delete(id: string) {

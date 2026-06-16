@@ -22,10 +22,12 @@ export interface CreateBrandDto {
   name: string;
   logo?: string | null;
   description?: string | null;
+  is_active?: boolean;
 }
 
 export interface UpdateBrandDto {
   name?: string;
   logo?: string | null;
   description?: string | null;
+  is_active?: boolean;
 }
