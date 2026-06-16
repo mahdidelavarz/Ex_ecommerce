@@ -13,7 +13,7 @@ export const apiClient = axios.create({
 });
 
 const redirectToLogin = (): void => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
     window.location.href = '/login';
   }
 };

@@ -24,6 +24,7 @@
     "sourceMap": true,
     "typeRoots": ["./node_modules/@types", "./src/shared/types"]
   },
-  "include": ["src/**/*", "src/shared/types/**/*"],
+  "files": ["src/shared/types/express.d.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

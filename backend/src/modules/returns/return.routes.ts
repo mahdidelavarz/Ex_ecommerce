@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { authenticate, authorize } from '../../middleware/auth';
 import { ReturnRepository } from './return.repository';
-import { UserRole } from '@/database/entities/user.entity';
+import { UserRole } from '../../database/entities/user.entity';
 
 const router = Router();
 const repo = new ReturnRepository();
