@@ -11,11 +11,11 @@
 
 | # | Issue | Severity | File |
 |---|-------|----------|------|
-| I-1 | `docker-compose.yml` healthcheck runs `pg_isready -U postgres` but `POSTGRES_USER` is `node_user` — container startup hangs | 🔴 Blocker | `docker-compose.yml:15` |
-| I-2 | TypeORM `synchronize: true` must be disabled before production — auto-alters/drops tables on startup | 🔴 Blocker | `backend/src/config/database.ts` |
-| I-3 | No migrations exist yet — switching off `synchronize` requires generating an initial migration first | 🔴 Blocker | `backend/src/database/migrations/` (empty) |
-| I-4 | `DB_SSL=false` default — production DB connection needs SSL enabled | 🔵 Hardening | `backend/src/config/env.ts` |
-| I-5 | File uploads go to local `./uploads` — won't survive container restarts or multi-instance deploy | 🔵 Hardening | `backend/src/config/env.ts` |
+| I-1 | ~~`docker-compose.yml` healthcheck ran `pg_isready -U postgres` but `POSTGRES_USER` is `node_user` — container startup hangs~~ — ✅ Fixed, changed to `-U node_user` | 🔴 Blocker | `docker-compose.yml:15` |
+| I-2 | ~~TypeORM `synchronize: true` must be disabled before production~~ — ✅ Already gated: `synchronize: env.nodeEnv === 'development'` in `database.ts:14`, disabled in production | 🔴 Blocker | `backend/src/config/database.ts` |
+| I-3 | No migrations exist yet — production deploy with `synchronize: false` will have no schema; generate initial migration once DB is running with `npm run migration:generate` | 🔴 Blocker | `backend/src/database/migrations/` (empty) |
+| I-4 | `DB_SSL=false` default — set `DB_SSL=true` in production `.env` | 🔵 Hardening | `backend/src/config/env.ts` |
+| I-5 | File uploads go to `./uploads` — volume-mounted in `docker-compose.yml` so single-instance restarts are safe; for multi-instance deploy, migrate to S3/object storage | 🔵 Hardening | `backend/src/config/env.ts` |
 
 ### Security
 
