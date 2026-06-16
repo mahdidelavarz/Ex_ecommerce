@@ -4,26 +4,26 @@
 
 | # | Issue | Severity | File |
 |---|-------|----------|------|
-| PRD-B1 | `GET /:slug/related` unreachable — declared after `GET /:slug`, Express matches slug first | 🔴 Blocker | `product.routes.ts:16` |
-| PRD-B2 | Price max filter uses `MIN(variants.price)` instead of `MAX` — wrong products filtered out | 🟠 Bug | `product.repository.ts:84` |
-| PRD-B3 | `findRelated()` missing `deleted_at IS NULL` — soft-deleted products appear as recommendations | 🟠 Bug | `product.repository.ts:209` |
-| PRD-B4 | No thumbnail reset before setting new one — multiple images can have `is_thumbnail = true` | 🟠 Bug | `product.repository.ts:~365` |
-| PRD-B5 | `getCategoryChildrenIds()` makes N recursive DB calls per depth level — should use recursive CTE | 🟡 Incomplete | `product.repository.ts` |
+| PRD-B1 | ~~`GET /:slug/related` unreachable — declared after `GET /:slug`~~ ✅ Fixed — swapped route order | 🔴 Blocker | `product.routes.ts:16` |
+| PRD-B2 | ~~Price max filter uses `MIN(variants.price)` instead of `MAX`~~ ✅ Fixed — `andHaving("MAX(variants.price) <= :maxPrice")` | 🟠 Bug | `product.repository.ts:84` |
+| PRD-B3 | ~~`findRelated()` missing `deleted_at IS NULL`~~ ✅ Fixed — added `is_active`, `is_public`, `deleted_at IS NULL` | 🟠 Bug | `product.repository.ts:209` |
+| PRD-B4 | ~~No thumbnail reset before setting new one~~ ✅ Already correct — `imageRepo.update({ product_id }, { is_thumbnail: false })` resets all before insert | 🟠 Bug | `product.repository.ts:~365` |
+| PRD-B5 | ~~`getCategoryChildrenIds()` N+1 recursive DB calls~~ ✅ Fixed — replaced with PostgreSQL recursive CTE | 🟡 Incomplete | `product.repository.ts` |
 | PRD-B6 | `bulkStatus()` not transactional — partial failure leaves products in mixed state | 🟡 Incomplete | `product.service.ts` |
 
 ## Frontend
 
 | # | Issue | Severity | File |
 |---|-------|----------|------|
-| PRD-F1 | `dangerouslySetInnerHTML` on `full_description` with no sanitization — XSS risk | 🔴 Blocker | `products/[slug]/page.tsx:264` |
-| PRD-F2 | Product detail page crashes when `product.variants` is empty or undefined | 🔴 Blocker | `products/[slug]/page.tsx:46` |
-| PRD-F3 | JSX syntax error: `< MdiMinus` (space before tag name) — parse failure | 🔴 Blocker | `products/[slug]/page.tsx:163` |
-| PRD-F4 | Discount badge uses `minPrice < maxPrice` (price variance) not `compare_at_price` | 🟠 Bug | `ProductCard.tsx:41` |
-| PRD-F5 | `AddToCartButton` on product detail not wired to `currentVariant.id` | 🟠 Bug | `products/[slug]/page.tsx` |
-| PRD-F6 | Filters not persisted to URL — reset on refresh, cannot share filter links | 🟡 Incomplete | `products/page.tsx` |
-| PRD-F7 | No mobile filter UI — sidebar is `hidden lg:block`, mobile users cannot filter | 🟡 Incomplete | `products/page.tsx` |
-| PRD-F8 | No SEO metadata — missing `generateMetadata`, og:image, og:title | 🟡 Incomplete | `products/page.tsx`, `products/[slug]/page.tsx` |
-| PRD-F9 | Plain `<img>` used everywhere — should be `next/image` | 🟡 Incomplete | `ProductCard.tsx`, `products/[slug]/page.tsx` |
+| PRD-F1 | ~~`dangerouslySetInnerHTML` with no sanitization~~ ✅ Fixed — `DOMPurify.sanitize()` via `isomorphic-dompurify` | 🔴 Blocker | `products/[slug]/page.tsx` |
+| PRD-F2 | ~~Page crashes when `product.variants` empty/undefined~~ ✅ Fixed — `activeVariants` filter + null-safe `currentVariant` | 🔴 Blocker | `products/[slug]/page.tsx` |
+| PRD-F3 | ~~JSX syntax error: `< MdiMinus`~~ ✅ Fixed — inline button replaced with `<AddToCartButton>` | 🔴 Blocker | `products/[slug]/page.tsx` |
+| PRD-F4 | ~~Discount badge uses `minPrice < maxPrice`~~ ✅ Fixed — backend `BOOL_OR(compare_at_price > price)` → `has_discount` field | 🟠 Bug | `ProductCard.tsx` |
+| PRD-F5 | ~~`AddToCartButton` not wired to `currentVariant.id`~~ ✅ Fixed — `<AddToCartButton variantId={currentVariant.id} stockQuantity={...} />` | 🟠 Bug | `products/[slug]/page.tsx` |
+| PRD-F6 | ~~Filters not persisted to URL~~ ✅ Fixed — all filter state URL-derived via `useSearchParams` + `useRouter.push` | 🟡 Incomplete | `products/page.tsx` |
+| PRD-F7 | ~~No mobile filter UI~~ ✅ Fixed — mobile toggle button + RTL slide-in drawer overlay | 🟡 Incomplete | `products/page.tsx` |
+| PRD-F8 | No SEO metadata — `'use client'` constraint prevents `generateMetadata` | 🟡 Incomplete | `products/[slug]/page.tsx` |
+| PRD-F9 | ~~Plain `<img>` everywhere~~ ✅ Fixed — `next/image` in `ProductCard.tsx` and `products/[slug]/page.tsx` | 🟡 Incomplete | `ProductCard.tsx`, `products/[slug]/page.tsx` |
 | PRD-F10 | Admin product form accepts image URL strings only — no file upload UI | 🟡 Incomplete | `admin/products/[id]/page.tsx` |
 | PRD-F11 | Variant images cannot be managed from admin UI | 🟡 Incomplete | `admin/products/[id]/variants/page.tsx` |
 | PRD-F12 | Product `specification` field has no form editor in admin | 🟡 Incomplete | `admin/products/[id]/page.tsx` |

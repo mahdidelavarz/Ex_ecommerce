@@ -41,6 +41,10 @@ export class ProductRepository {
       .addSelect("MAX(variants.price)", "max_price")
       .addSelect("SUM(variants.stock_quantity)", "total_stock")
       .addSelect("COUNT(DISTINCT variants.id)", "variants_count")
+      .addSelect(
+        `BOOL_OR(variants.compare_at_price IS NOT NULL AND variants.compare_at_price > variants.price)`,
+        "has_discount",
+      )
       .where("product.deleted_at IS NULL")
       .groupBy("product.id")
       .addGroupBy("category.id")
@@ -85,7 +89,7 @@ export class ProductRepository {
         minPrice: options.min_price || 0,
       });
       if (options.max_price) {
-        qb.andHaving("MIN(variants.price) <= :maxPrice", {
+        qb.andHaving("MAX(variants.price) <= :maxPrice", {
           maxPrice: options.max_price,
         });
       }
@@ -133,6 +137,7 @@ export class ProductRepository {
         },
         total_stock: parseInt(p.total_stock) || 0,
         variants_count: parseInt(p.variants_count) || 0,
+        has_discount: p.has_discount === true || p.has_discount === 't',
         avg_rating: 0,
         reviews_count: 0,
         is_active: p.is_active,
@@ -206,6 +211,7 @@ export class ProductRepository {
       })
       .andWhere("product.id != :id", { id: product.id })
       .andWhere("product.is_active = true")
+      .andWhere("product.is_public = true")
       .andWhere("product.deleted_at IS NULL")
       .orderBy("RANDOM()")
       .take(limit)

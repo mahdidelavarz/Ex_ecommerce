@@ -54,7 +54,7 @@
 | auth | ✅ | ✅ | ✅ Fixed | [modules/auth.md](modules/auth.md) |
 | categories | ✅ | ✅ | ✅ Fixed | [modules/categories.md](modules/categories.md) |
 | brands | ✅ | ✅ | ✅ Fixed | [modules/brands.md](modules/brands.md) |
-| products | ✅ | ✅ | ✅ Explored | [modules/products.md](modules/products.md) |
+| products | ✅ | ✅ | ✅ Fixed | [modules/products.md](modules/products.md) |
 | attributes | ✅ | ✅ | ✅ Explored | [modules/attributes.md](modules/attributes.md) |
 | variants | ✅ | ✅ | ✅ Explored | [modules/variants.md](modules/variants.md) |
 | tags | ✅ | ✅ | ✅ Explored | [modules/tags.md](modules/tags.md) |
@@ -98,9 +98,9 @@
 - [x] AUTH-F1: Remove `refreshToken` from `localStorage`
 - [ ] F-1 / O-F1: Real address selection in checkout
 - [ ] C-F1: Allow guest add-to-cart (remove forced login in `AddToCartButton`)
-- [ ] PRD-F1: Sanitize `dangerouslySetInnerHTML` (XSS)
-- [ ] PRD-F2/F3: Fix product detail crash + JSX syntax error
-- [ ] O-B1 / PRD-B1: Fix route ordering (admin/all and slug/related)
+- [x] PRD-F1: Sanitize `dangerouslySetInnerHTML` (XSS) — isomorphic-dompurify
+- [x] PRD-F2/F3: Fix product detail crash + JSX syntax error
+- [x] O-B1 / PRD-B1: Fix route ordering (admin/all and slug/related)
 - [ ] CPN-B1: Validate category restrictions in coupon `validate()`
 - [ ] PAY-B1–B3 / PAY-F1–F2: Zarinpal gateway integration — initiate + verify endpoints + frontend redirect
 - [ ] All remaining module blockers resolved

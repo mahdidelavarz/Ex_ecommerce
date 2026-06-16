@@ -24,6 +24,7 @@ export interface ProductListResponse {
   };
   total_stock: number;
   variants_count: number;
+  has_discount: boolean;
   avg_rating: number;
   reviews_count: number;
   is_active: boolean;

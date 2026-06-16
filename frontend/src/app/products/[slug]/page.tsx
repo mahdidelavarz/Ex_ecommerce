@@ -3,11 +3,14 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import DOMPurify from 'isomorphic-dompurify';
 import { useProduct, useRelatedProducts } from '@/modules/products/hooks/useProducts';
 import ProductGrid from '@/modules/products/components/ProductGrid';
+import AddToCartButton from '@/modules/cart/components/AddToCartButton';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ProductVariant } from '@/modules/variants/types/variant.types';
-import { MdiCheckCircle, MdiCloseCircle, MdiChevronLeft, MdiImageOff, MdiPackageVariantClosed, SvgSpinnersRingResize, MdiMinus, LucidePlus, MdiCartPlus } from '@/components/icons/Icons';
+import { MdiCheckCircle, MdiCloseCircle, MdiChevronLeft, MdiImageOff, MdiPackageVariantClosed, SvgSpinnersRingResize } from '@/components/icons/Icons';
 import ReviewsSection from '@/modules/reviews/components/ReviewsSection';
 import WishlistButton from '@/modules/wishlist/components/WishlistButton';
 
@@ -20,7 +23,6 @@ export default function SingleProductPage() {
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
 
   if (isLoading) {
     return (
@@ -42,8 +44,11 @@ export default function SingleProductPage() {
     );
   }
 
-  const currentVariant = selectedVariant || product.variants?.[0];
-  const hasDiscount = currentVariant?.compare_at_price && currentVariant.compare_at_price > currentVariant.price;
+  const activeVariants = product.variants?.filter((v) => v.is_active) ?? [];
+  const currentVariant = selectedVariant ?? activeVariants[0] ?? null;
+  const hasDiscount = currentVariant != null &&
+    currentVariant.compare_at_price != null &&
+    currentVariant.compare_at_price > currentVariant.price;
 
   return (
     <main className="min-h-screen bg-background">
@@ -66,12 +71,15 @@ export default function SingleProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Images */}
           <div>
-            <div className="bg-surface rounded-card shadow-card overflow-hidden mb-4 aspect-square">
+            <div className="bg-surface rounded-card shadow-card overflow-hidden mb-4 aspect-square relative">
               {product.images?.[selectedImage] ? (
-                <img
+                <Image
                   src={product.images[selectedImage].image_url}
                   alt={product.images[selectedImage].alt_text || product.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  priority
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-surface-raised">
@@ -85,11 +93,11 @@ export default function SingleProductPage() {
                   <button
                     key={img.id}
                     onClick={() => setSelectedImage(idx)}
-                    className={`w-20 h-20 rounded-lg border-2 flex-shrink-0 overflow-hidden ${
+                    className={`relative w-20 h-20 rounded-lg border-2 shrink-0 overflow-hidden ${
                       idx === selectedImage ? 'border-primary' : 'border-border'
                     }`}
                   >
-                    <img src={img.image_url} alt={img.alt_text || ''} className="w-full h-full object-cover" />
+                    <Image src={img.image_url} alt={img.alt_text || ''} fill className="object-cover" sizes="80px" />
                   </button>
                 ))}
               </div>
@@ -102,7 +110,9 @@ export default function SingleProductPage() {
             {product.brand && (
               <div className="flex items-center gap-2 mb-4">
                 {product.brand.logo && (
-                  <img src={product.brand.logo} alt={product.brand.name} className="w-8 h-8 rounded-lg" />
+                  <div className="relative w-8 h-8 rounded-lg overflow-hidden">
+                    <Image src={product.brand.logo} alt={product.brand.name} fill className="object-contain" sizes="32px" />
+                  </div>
                 )}
                 <a href={`/products?brand=${product.brand.id}`} className="text-text-secondary hover:text-primary text-sm">
                   {product.brand.name}
@@ -153,30 +163,13 @@ export default function SingleProductPage() {
                     )}
                   </div>
 
-                  {/* Quantity + Add to Cart */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center border border-border rounded-input">
-                      <button
-                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                        className="p-2 hover:bg-surface-raised"
-                      >
-                        < MdiMinus className="w-5 h-5" />
-                      </button>
-                      <span className="px-4 font-medium">{quantity}</span>
-                      <button
-                        onClick={() => setQuantity((q) => q + 1)}
-                        className="p-2 hover:bg-surface-raised"
-                      >
-                        <LucidePlus className="w-5 h-5" />
-                      </button>
-                    </div>
-                    <button
-                      disabled={currentVariant.stock_quantity === 0}
-                      className="flex-1 bg-primary text-white py-3 px-6 rounded-button font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                    >
-                      <MdiCartPlus className="w-5 h-5" />
-                      افزودن به سبد خرید
-                    </button>
+                  {/* Add to Cart */}
+                  <div className="flex items-center gap-3">
+                    <AddToCartButton
+                      variantId={currentVariant.id}
+                      stockQuantity={currentVariant.stock_quantity}
+                      className="flex-1"
+                    />
                     <WishlistButton variantId={currentVariant.id} />
                   </div>
                 </>
@@ -186,10 +179,10 @@ export default function SingleProductPage() {
             </div>
 
             {/* Variants Selection */}
-            {product.variants?.length > 0 && (
+            {activeVariants.length > 1 && (
               <div className="mb-6 space-y-4">
                 {/* Group by attribute type */}
-                {groupVariantsByAttribute(product.variants).map((group) => (
+                {groupVariantsByAttribute(activeVariants).map((group) => (
                   <div key={group.name}>
                     <label className="text-sm font-medium text-text-secondary block mb-2">
                       {group.name}
@@ -199,7 +192,7 @@ export default function SingleProductPage() {
                         <button
                           key={val.id}
                           onClick={() => {
-                            const variant = product.variants.find((v) =>
+                            const variant = activeVariants.find((v) =>
                               v.attributes.some((a) => a.id === val.id)
                             );
                             if (variant) setSelectedVariant(variant);
@@ -261,7 +254,7 @@ export default function SingleProductPage() {
               {product.full_description ? (
                 <div
                   className="prose max-w-none text-text-secondary"
-                  dangerouslySetInnerHTML={{ __html: product.full_description }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.full_description) }}
                 />
               ) : (
                 <p className="text-text-muted">توضیحاتی برای این محصول ثبت نشده است.</p>

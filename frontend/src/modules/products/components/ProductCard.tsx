@@ -1,5 +1,6 @@
 // src/modules/products/components/ProductCard.tsx
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ProductListResponse } from '../types/product.types';
 import { LucideStar, MdiImageOff } from '@/components/icons/Icons';
@@ -9,7 +10,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const hasDiscount = product.price_range.min < product.price_range.max;
+  const hasDiscount = product.has_discount ?? false;
   const minPrice = product.price_range.min;
   const maxPrice = product.price_range.max;
 
@@ -19,11 +20,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Image */}
         <div className="relative aspect-square overflow-hidden rounded-t-card bg-surface-raised">
           {product.thumbnail ? (
-            <img
+            <Image
               src={product.thumbnail}
               alt={product.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
