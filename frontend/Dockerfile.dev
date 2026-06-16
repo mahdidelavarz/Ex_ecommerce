@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+# Replace Iranian npm mirror in lockfile with a globally accessible one,
+# because chabokan.net serves an incomplete next package inside Docker.
+RUN sed -i 's|https://mirror2.chabokan.net/npm/|https://registry.npmmirror.com/|g' package-lock.json && \
+    npm ci
+
+COPY next.config.ts tsconfig.json postcss.config.mjs ./
+
+EXPOSE 3000
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+CMD ["node_modules/.bin/next", "dev", "-H", "0.0.0.0"]

@@ -1,25 +1,90 @@
-# از ریشه پروژه اجرا کن
-docker compose up -d postgres        # اول دیتابیس
-docker compose up -d --build backend # بعد بک‌اند
-docker compose up -d --build frontend # بعد فرانت‌اند
+# Docker Commands
 
-# یا همه با هم
-docker compose up -d --build
+## Dev Mode (hot reload)
 
-# ۱. همه کانتینرها رو متوقف و پاک کن
-docker compose -f docker-compose.dev.yml down -v
+```bash
+# Start full dev stack (postgres + backend + frontend)
+docker compose -f docker-compose.dev.yml up -d --build
 
-# ۲. مطمئن شو هیچی نمونده
-docker ps -a
-
-# ۳. اگه کانتینر قدیمی مونده بود، پاکش کن
-docker rm -f ecommerce-db-dev
-
-# ۴. دوباره اجرا کن (با یوزر جدید)
+# Start only postgres (if running backend locally with npm run dev)
 docker compose -f docker-compose.dev.yml up -d postgres
 
-# ۵. چک کن که بالا اومده
+# View logs
+docker compose -f docker-compose.dev.yml logs -f
+
+# Stop and remove containers + volumes
+docker compose -f docker-compose.dev.yml down -v
+```
+
+Dev services:
+| Service  | URL                   | Container               |
+|----------|-----------------------|-------------------------|
+| Postgres | localhost:5432        | ecommerce-db-dev        |
+| Backend  | http://localhost:5000 | ecommerce-backend-dev   |
+| Frontend | http://localhost:3000 | ecommerce-frontend-dev  |
+
+Source code is volume-mounted so changes reload automatically.
+
+---
+
+## Prod Mode
+
+```bash
+# Build and start all services
+docker compose up -d --build
+
+# Start in order (if needed)
+docker compose up -d postgres
+docker compose up -d --build backend
+docker compose up -d --build frontend
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+
+# Stop and remove volumes (destructive — deletes DB data)
+docker compose down -v
+```
+
+Prod services:
+| Service  | URL                   | Container            |
+|----------|-----------------------|----------------------|
+| Postgres | localhost:5432        | ecommerce-db         |
+| Backend  | http://localhost:5000 | ecommerce-backend    |
+| Frontend | http://localhost:3000 | ecommerce-frontend   |
+
+---
+
+## Database Migrations
+
+```bash
+# Run migrations (inside backend container or locally)
+npm run migration:run
+
+# Revert last migration
+npm run migration:revert
+
+# Generate a new migration from entity changes
+npm run migration:generate
+```
+
+---
+
+## Useful Commands
+
+```bash
+# List running containers
 docker ps
 
-# ۶. بک‌اند رو اجرا کن
-npm run dev
+# Remove a stuck container
+docker rm -f <container-name>
+
+# Remove all stopped containers
+docker container prune
+
+# Shell into a container
+docker exec -it ecommerce-backend-dev sh
+docker exec -it ecommerce-db-dev psql -U node_user -d ecommerce
+```

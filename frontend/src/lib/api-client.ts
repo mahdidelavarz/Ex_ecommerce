@@ -18,8 +18,10 @@ const redirectToLogin = (): void => {
   }
 };
 
-// Refresh token lives in an httpOnly cookie - on a 401, ask the backend to
-// rotate it (it reads the cookie itself) and retry the original request once.
+// Shared promise so concurrent 401s share one refresh call instead of each
+// firing their own, which causes a storm of refresh requests.
+let refreshPromise: Promise<void> | null = null;
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -29,7 +31,13 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        await axios.post(`${API_BASE_URL}/auth/refresh`, null, { withCredentials: true });
+        if (!refreshPromise) {
+          refreshPromise = axios
+            .post(`${API_BASE_URL}/auth/refresh`, null, { withCredentials: true })
+            .then(() => undefined)
+            .finally(() => { refreshPromise = null; });
+        }
+        await refreshPromise;
         return apiClient(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().logout();
