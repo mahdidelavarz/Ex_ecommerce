@@ -67,7 +67,7 @@ export default function AdminProductVariantsPage() {
               </div>
             </div>
             <Button
-              onClick={() => router.push(`/admin/products/${productId}/variants/new`)}
+              onClick={() => router.push(`/admin/products/variants/new?productId=${productId}`)}
               icon={LucidePlus}
             >
               واریانت جدید
@@ -88,7 +88,7 @@ export default function AdminProductVariantsPage() {
                 <MdiPackageVariantClosed className="text-text-muted mx-auto mb-3" width={48} />
                 <p className="text-text-secondary mb-4">هیچ واریانتی برای این محصول ثبت نشده</p>
                 <Button
-                  onClick={() => router.push(`/admin/products/${productId}/variants/new`)}
+                  onClick={() => router.push(`/admin/products/variants/new?productId=${productId}`)}
                   icon={LucidePlus}
                 >
                   ایجاد اولین واریانت

@@ -2,12 +2,14 @@
 import { AppDataSource } from '../../config/database';
 import { Tag } from '../../database/entities/tag.entity';
 import { ProductTag } from '../../database/entities/product-tag.entity';
-import { NotFoundError, ConflictError } from '../../shared/utils/errors';
+import { Product } from '../../database/entities/product.entity';
+import { NotFoundError, ConflictError, BadRequestError } from '../../shared/utils/errors';
 import { CreateTagDto, UpdateTagDto } from './tag.types';
 
 export class TagRepository {
   private repo = AppDataSource.getRepository(Tag);
   private productTagRepo = AppDataSource.getRepository(ProductTag);
+  private productRepo = AppDataSource.getRepository(Product);
 
   async findAll(options: { search?: string; page: number; limit: number }) {
     const qb = this.repo
@@ -43,11 +45,16 @@ export class TagRepository {
   }
 
   async create(dto: CreateTagDto) {
-    const slug = await this.generateUniqueSlug(dto.name);
-    const existing = await this.repo.findOne({ where: { slug } });
-    if (existing) throw new ConflictError('تگ با این نام قبلاً ثبت شده است');
+    const trimmedName = dto.name.trim();
+    if (!trimmedName) throw new BadRequestError('نام تگ نمی‌تواند خالی باشد');
 
-    const tag = this.repo.create({ name: dto.name, slug });
+    const existingByName = await this.repo.findOne({ where: { name: trimmedName } });
+    if (existingByName) throw new ConflictError('تگ با این نام قبلاً ثبت شده است');
+
+    const slug = await this.generateUniqueSlug(trimmedName);
+    if (!slug) throw new BadRequestError('نام تگ نامعتبر است');
+
+    const tag = this.repo.create({ name: trimmedName, slug });
     return this.repo.save(tag);
   }
 
@@ -56,8 +63,17 @@ export class TagRepository {
     if (!tag) throw new NotFoundError('تگ یافت نشد');
 
     if (dto.name && dto.name !== tag.name) {
-      tag.slug = await this.generateUniqueSlug(dto.name, id);
-      tag.name = dto.name;
+      const trimmedName = dto.name.trim();
+      if (!trimmedName) throw new BadRequestError('نام تگ نمی‌تواند خالی باشد');
+
+      const existingByName = await this.repo.findOne({ where: { name: trimmedName } });
+      if (existingByName && existingByName.id !== id) throw new ConflictError('تگ با این نام قبلاً ثبت شده است');
+
+      const slug = await this.generateUniqueSlug(trimmedName, id);
+      if (!slug) throw new BadRequestError('نام تگ نامعتبر است');
+
+      tag.slug = slug;
+      tag.name = trimmedName;
     }
 
     return this.repo.save(tag);
@@ -69,6 +85,31 @@ export class TagRepository {
 
     await this.productTagRepo.delete({ tag_id: id });
     await this.repo.remove(tag);
+  }
+
+  async getProductsByTag(slug: string, options: { page: number; limit: number }) {
+    const { page, limit } = options;
+
+    const tag = await this.repo.findOne({ where: { slug } });
+    if (!tag) throw new NotFoundError('تگ یافت نشد');
+
+    const [data, total] = await this.productRepo
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.category', 'category')
+      .leftJoinAndSelect('p.brand', 'brand')
+      .innerJoin('p.product_tags', 'pt', 'pt.tag_id = :tagId', { tagId: tag.id })
+      .where('p.deleted_at IS NULL')
+      .andWhere('p.is_active = true')
+      .orderBy('p.created_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      tag: { id: tag.id, name: tag.name, slug: tag.slug },
+      data,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   private async generateUniqueSlug(name: string, excludeId?: string): Promise<string> {

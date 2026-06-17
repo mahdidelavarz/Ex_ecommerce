@@ -2,64 +2,71 @@
 'use client';
 
 import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { useTags } from '@/modules/tags/hooks/useTags';
-import { tagService } from '@/modules/tags/services/tag.service';
+import { useTags, useCreateTag, useUpdateTag, useDeleteTag } from '@/modules/tags/hooks/useTags';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
-import type { Tag } from '@/modules/tags/services/tag.service';
-import { LucidePencil, LucidePlus, LucideSearch, MdiCheck, MdiClose, MdiTag, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import type { Tag } from '@/modules/tags/types/tag.types';
+import { LucidePencil, LucidePlus, LucideSearch, MdiCheck, MdiChevronLeft, MdiChevronRight, MdiClose, MdiTag, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
+
+const LIMIT = 50;
 
 export default function AdminTagsPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [newTagName, setNewTagName] = useState('');
+  const [newTagError, setNewTagError] = useState('');
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [editName, setEditName] = useState('');
+  const [editError, setEditError] = useState('');
 
-  const { data, isLoading, refetch } = useTags({ page, limit: 50, search: search || undefined });
+  const { data, isLoading } = useTags({ page, limit: LIMIT, search: search || undefined });
+  const createMutation = useCreateTag();
+  const updateMutation = useUpdateTag();
+  const deleteMutation = useDeleteTag();
 
-  const handleCreate = async () => {
-    if (!newTagName.trim()) return;
-    try {
-      await tagService.create({ name: newTagName.trim() });
-      toast.success('تگ ایجاد شد');
-      setNewTagName('');
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'خطا');
-    }
+  const totalPages = data?.meta ? Math.ceil(data.meta.total / LIMIT) : 1;
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1);
   };
 
-  const handleUpdate = async () => {
-    if (!editingTag || !editName.trim()) return;
-    try {
-      await tagService.update(editingTag.id, { name: editName.trim() });
-      toast.success('تگ بروزرسانی شد');
-      setEditingTag(null);
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'خطا');
+  const handleCreate = () => {
+    const name = newTagName.trim();
+    if (!name) {
+      setNewTagError('نام تگ نمی‌تواند خالی باشد');
+      return;
     }
+    setNewTagError('');
+    createMutation.mutate({ name }, {
+      onSuccess: () => setNewTagName(''),
+    });
   };
 
-  const handleDelete = async (tag: Tag) => {
+  const handleUpdate = () => {
+    const name = editName.trim();
+    if (!editingTag) return;
+    if (!name) {
+      setEditError('نام تگ نمی‌تواند خالی باشد');
+      return;
+    }
+    setEditError('');
+    updateMutation.mutate({ id: editingTag.id, data: { name } }, {
+      onSuccess: () => setEditingTag(null),
+    });
+  };
+
+  const handleDelete = (tag: Tag) => {
     if (!window.confirm(`حذف "${tag.name}"؟`)) return;
-    try {
-      await tagService.delete(tag.id);
-      toast.success('تگ حذف شد');
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'خطا');
-    }
+    deleteMutation.mutate(tag.id);
   };
 
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="  text-primary" width={48} />
+        <SvgSpinnersRingResize className="text-primary" width={48} />
       </div>
     );
   }
@@ -74,14 +81,21 @@ export default function AdminTagsPage() {
           {/* Create */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
             <div className="flex gap-3">
-              <input
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                placeholder="نام تگ جدید..."
-                className="flex-1 px-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <Button onClick={handleCreate} icon={LucidePlus}>ایجاد</Button>
+              <div className="flex-1">
+                <input
+                  value={newTagName}
+                  onChange={(e) => { setNewTagName(e.target.value); setNewTagError(''); }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                  placeholder="نام تگ جدید..."
+                  className={`w-full px-4 py-2 bg-surface border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                    newTagError ? 'border-error' : 'border-border'
+                  }`}
+                />
+                {newTagError && <p className="text-xs text-error mt-1">{newTagError}</p>}
+              </div>
+              <Button onClick={handleCreate} icon={LucidePlus} loading={createMutation.isPending}>
+                ایجاد
+              </Button>
             </div>
           </div>
 
@@ -90,7 +104,7 @@ export default function AdminTagsPage() {
             <LucideSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={20} />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearch}
               placeholder="جستجو..."
               className="w-full pr-10 pl-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
@@ -107,16 +121,27 @@ export default function AdminTagsPage() {
                 {data?.data?.map((tag) => (
                   <div key={tag.id} className="flex items-center justify-between p-4 hover:bg-surface-raised/50">
                     {editingTag?.id === tag.id ? (
-                      <div className="flex items-center gap-3 flex-1">
-                        <input
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleUpdate()}
-                          className="flex-1 px-3 py-1 border border-border rounded-input text-sm"
-                          autoFocus
-                        />
-                        <button onClick={handleUpdate} className="text-success p-1"><MdiCheck className="w-5 h-5" /></button>
-                        <button onClick={() => setEditingTag(null)} className="text-error p-1"><MdiClose className="w-5 h-5" /></button>
+                      <div className="flex flex-col gap-1 flex-1">
+                        <div className="flex items-center gap-3">
+                          <input
+                            value={editName}
+                            onChange={(e) => { setEditName(e.target.value); setEditError(''); }}
+                            onKeyDown={(e) => e.key === 'Enter' && handleUpdate()}
+                            className={`flex-1 px-3 py-1 border rounded-input text-sm ${editError ? 'border-error' : 'border-border'}`}
+                            autoFocus
+                          />
+                          <button
+                            onClick={handleUpdate}
+                            disabled={updateMutation.isPending}
+                            className="text-success p-1 disabled:opacity-50"
+                          >
+                            <MdiCheck className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => { setEditingTag(null); setEditError(''); }} className="text-error p-1">
+                            <MdiClose className="w-5 h-5" />
+                          </button>
+                        </div>
+                        {editError && <p className="text-xs text-error">{editError}</p>}
                       </div>
                     ) : (
                       <>
@@ -130,14 +155,15 @@ export default function AdminTagsPage() {
                         </div>
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => { setEditingTag(tag); setEditName(tag.name); }}
+                            onClick={() => { setEditingTag(tag); setEditName(tag.name); setEditError(''); }}
                             className="p-2 hover:bg-primary-light rounded-button text-primary"
                           >
                             <LucidePencil className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(tag)}
-                            className="p-2 hover:bg-error-light rounded-button text-error"
+                            disabled={deleteMutation.isPending}
+                            className="p-2 hover:bg-error-light rounded-button text-error disabled:opacity-50"
                           >
                             <MdiTrashCan className="w-4 h-4" />
                           </button>
@@ -146,9 +172,35 @@ export default function AdminTagsPage() {
                     )}
                   </div>
                 ))}
+                {data?.data?.length === 0 && (
+                  <p className="text-center text-text-muted py-8">هیچ تگی یافت نشد</p>
+                )}
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 text-sm text-text-secondary">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="flex items-center gap-1 px-3 py-1.5 border border-border rounded-button hover:bg-surface-raised disabled:opacity-40"
+              >
+                <MdiChevronRight className="w-4 h-4" />
+                قبلی
+              </button>
+              <span>صفحه {page} از {totalPages}</span>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= totalPages}
+                className="flex items-center gap-1 px-3 py-1.5 border border-border rounded-button hover:bg-surface-raised disabled:opacity-40"
+              >
+                بعدی
+                <MdiChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>

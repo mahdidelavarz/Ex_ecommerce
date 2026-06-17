@@ -31,4 +31,10 @@ export class TagService {
   async delete(id: string) {
     return this.repo.delete(id);
   }
+
+  async getProductsByTag(slug: string, options: { page?: number; limit?: number }) {
+    const page = options.page || 1;
+    const limit = Math.min(options.limit || 20, 50);
+    return this.repo.getProductsByTag(slug, { page, limit });
+  }
 }

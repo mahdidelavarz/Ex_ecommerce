@@ -11,6 +11,7 @@ const controller = new TagController();
 
 router.get('/', validate({ query: tagQuerySchema }), controller.list);
 router.get('/all', controller.all);
+router.get('/:slug/products', controller.getProductsByTag);
 router.get('/:id', controller.getById);
 router.post('/', authenticate, authorize(UserRole.ADMIN), validate({ body: createTagSchema }), controller.create);
 router.patch('/:id', authenticate, authorize(UserRole.ADMIN), validate({ body: updateTagSchema }), controller.update);

@@ -1,4 +1,5 @@
 // src/modules/attributes/attribute.repository.ts
+import { In } from 'typeorm';
 import { AppDataSource } from '../../config/database';
 import { Attribute } from '../../database/entities/attribute.entity';
 import { AttributeValue } from '../../database/entities/attribute-value.entity';
@@ -16,7 +17,8 @@ export class AttributeRepository {
       .createQueryBuilder('attribute')
       .leftJoinAndSelect('attribute.values', 'values')
       .loadRelationCountAndMap('attribute.values_count', 'attribute.values')
-      .orderBy('attribute.created_at', 'DESC');
+      .orderBy('attribute.created_at', 'DESC')
+      .addOrderBy('values.sort_order', 'ASC');
 
     if (options.search) {
       qb.andWhere('attribute.name ILIKE :search', { search: `%${options.search}%` });
@@ -33,7 +35,7 @@ export class AttributeRepository {
   async findAllMinimal() {
     return this.repo.find({
       relations: ['values'],
-      order: { name: 'ASC' },
+      order: { name: 'ASC', values: { sort_order: 'ASC' } },
     });
   }
 
@@ -41,6 +43,7 @@ export class AttributeRepository {
     const attribute = await this.repo.findOne({
       where: { id },
       relations: ['values'],
+      order: { values: { sort_order: 'ASC' } },
     });
 
     if (!attribute) {
@@ -62,15 +65,16 @@ export class AttributeRepository {
     await queryRunner.startTransaction();
 
     try {
-      const attribute = this.repo.create({ name: dto.name });
+      const attribute = this.repo.create({ name: dto.name, type: dto.type as any });
       const savedAttribute = await queryRunner.manager.save(attribute);
 
       if (dto.values?.length) {
-        const values = dto.values.map((v) =>
+        const values = dto.values.map((v, index) =>
           this.valueRepo.create({
             attribute_id: savedAttribute.id,
             value: v.value,
             color_code: v.color_code || null,
+            sort_order: index,
           })
         );
         await queryRunner.manager.save(values);
@@ -130,10 +134,18 @@ export class AttributeRepository {
     const attribute = await this.repo.findOne({ where: { id: attributeId } });
     if (!attribute) throw new NotFoundError('ویژگی یافت نشد');
 
+    const existing = await this.valueRepo.findOne({
+      where: { attribute_id: attributeId, value: dto.value },
+    });
+    if (existing) throw new ConflictError('این مقدار قبلاً ثبت شده است');
+
+    const count = await this.valueRepo.count({ where: { attribute_id: attributeId } });
+
     const value = this.valueRepo.create({
       attribute_id: attributeId,
       value: dto.value,
       color_code: dto.color_code || null,
+      sort_order: count,
     });
 
     return this.valueRepo.save(value);
@@ -162,6 +174,3 @@ export class AttributeRepository {
     await this.valueRepo.remove(value);
   }
 }
-
-// Need to import In
-import { In } from 'typeorm';

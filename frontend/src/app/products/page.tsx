@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useProducts } from '@/modules/products/hooks/useProducts';
 import { useCategories } from '@/modules/categories/hooks/useCategories';
 import { useAllBrands } from '@/modules/brands/hooks/useBrands';
+import { useAllTags } from '@/modules/tags/hooks/useTags';
 import ProductGrid from '@/modules/products/components/ProductGrid';
 import { LucideSearch, MdiChevronLeft, MdiChevronRight, MdiClose, MdiMenu } from '@/components/icons/Icons';
 
@@ -22,6 +23,7 @@ export default function ProductsPage() {
   const minPrice = searchParams.get('min_price') || '';
   const maxPrice = searchParams.get('max_price') || '';
   const hasStock = searchParams.get('has_stock') === 'true';
+  const tagSlug = searchParams.get('tag') || '';
   const sortBy = searchParams.get('sort_by') || 'created_at';
   const sortOrder = (searchParams.get('sort_order') as 'ASC' | 'DESC') || 'DESC';
 
@@ -30,6 +32,7 @@ export default function ProductsPage() {
 
   const { data: categoriesData } = useCategories({ limit: 100 });
   const { data: brandsData } = useAllBrands();
+  const { data: tagsData } = useAllTags();
 
   const { data: productsData, isLoading } = useProducts({
     page,
@@ -39,6 +42,7 @@ export default function ProductsPage() {
     brand_id: brandId || undefined,
     min_price: minPrice || undefined,
     max_price: maxPrice || undefined,
+    tag: tagSlug || undefined,
     has_stock: hasStock || undefined,
     sort_by: sortBy,
     sort_order: sortOrder,
@@ -159,6 +163,28 @@ export default function ProductsPage() {
           <span className="text-sm text-text-secondary">فقط کالاهای موجود</span>
         </label>
       </div>
+
+      {/* Tag Filter */}
+      {tagsData && tagsData.length > 0 && (
+        <div className="mb-6">
+          <label className="text-sm font-medium text-text-secondary block mb-2">تگ‌ها</label>
+          <div className="flex flex-wrap gap-2">
+            {tagsData.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => updateParams({ tag: tagSlug === tag.slug ? null : tag.slug })}
+                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  tagSlug === tag.slug
+                    ? 'bg-primary text-white border-primary'
+                    : 'border-border text-text-secondary hover:border-primary'
+                }`}
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 

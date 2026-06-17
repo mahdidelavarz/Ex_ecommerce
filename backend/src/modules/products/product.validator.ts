@@ -42,6 +42,7 @@ export const bulkStatusSchema = z.object({
 export const productQuerySchema = z.object({
   category_id: z.string().uuid().optional(),
   brand_id: z.string().uuid().optional(),
+  tag: z.string().optional(),
   search: z.string().optional(),
   min_price: z.string().transform(Number).optional(),
   max_price: z.string().transform(Number).optional(),

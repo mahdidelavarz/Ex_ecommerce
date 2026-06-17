@@ -55,9 +55,9 @@
 | categories | ✅ | ✅ | ✅ Fixed | [modules/categories.md](modules/categories.md) |
 | brands | ✅ | ✅ | ✅ Fixed | [modules/brands.md](modules/brands.md) |
 | products | ✅ | ✅ | ✅ Fixed | [modules/products.md](modules/products.md) |
-| attributes | ✅ | ✅ | ✅ Explored | [modules/attributes.md](modules/attributes.md) |
-| variants | ✅ | ✅ | ✅ Explored | [modules/variants.md](modules/variants.md) |
-| tags | ✅ | ✅ | ✅ Explored | [modules/tags.md](modules/tags.md) |
+| attributes | ✅ | ✅ | ✅ Fixed | [modules/attributes.md](modules/attributes.md) |
+| variants | ✅ | ✅ | ✅ Fixed | [modules/variants.md](modules/variants.md) |
+| tags | ✅ | ✅ | ✅ Fixed | [modules/tags.md](modules/tags.md) |
 | cart | ✅ | ✅ | ✅ Explored | [modules/cart.md](modules/cart.md) |
 | coupons | ✅ | ✅ | ✅ Explored | [modules/coupons.md](modules/coupons.md) |
 | orders | ✅ | ✅ | ✅ Explored | [modules/orders.md](modules/orders.md) |

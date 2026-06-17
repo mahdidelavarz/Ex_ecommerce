@@ -104,6 +104,7 @@ export interface UpdateProductDto {
 export interface ProductQueryParams {
   category_id?: string;
   brand_id?: string;
+  tag?: string;
   search?: string;
   min_price?: number;
   max_price?: number;

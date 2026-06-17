@@ -181,42 +181,67 @@ export default function SingleProductPage() {
             {/* Variants Selection */}
             {activeVariants.length > 1 && (
               <div className="mb-6 space-y-4">
-                {/* Group by attribute type */}
-                {groupVariantsByAttribute(activeVariants).map((group) => (
-                  <div key={group.name}>
-                    <label className="text-sm font-medium text-text-secondary block mb-2">
-                      {group.name}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {group.values.map((val) => (
-                        <button
-                          key={val.id}
-                          onClick={() => {
-                            const variant = activeVariants.find((v) =>
-                              v.attributes.some((a) => a.id === val.id)
-                            );
-                            if (variant) setSelectedVariant(variant);
-                          }}
-                          className={`
-                            px-4 py-2 rounded-button text-sm font-medium border transition-colors
-                            ${currentVariant?.attributes.some((a) => a.id === val.id)
-                              ? 'border-primary bg-primary-light text-primary'
-                              : 'border-border hover:border-primary text-text-secondary'
-                            }
-                          `}
-                        >
-                          {val.color_code && (
-                            <span
-                              className="inline-block w-3 h-3 rounded-full ms-1"
-                              style={{ backgroundColor: val.color_code }}
-                            />
-                          )}
-                          {val.value}
-                        </button>
-                      ))}
+                {groupVariantsByAttribute(activeVariants).map((group) => {
+                  // Derive selected value for this attribute group from currentVariant
+                  const selectedValueId = currentVariant?.attributes.find(
+                    (a) => a.name === group.name
+                  )?.id;
+
+                  return (
+                    <div key={group.name}>
+                      <label className="text-sm font-medium text-text-secondary block mb-2">
+                        {group.name}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {group.values.map((val) => {
+                          const isSelected = selectedValueId === val.id;
+                          // Out-of-stock if no active variant with this value has stock
+                          const isOutOfStock = !activeVariants.some(
+                            (v) => v.attributes.some((a) => a.id === val.id) && v.stock_quantity > 0
+                          );
+
+                          return (
+                            <button
+                              key={val.id}
+                              disabled={isOutOfStock}
+                              onClick={() => {
+                                if (isOutOfStock) return;
+                                // Build updated selection map from currentVariant + new pick
+                                const currentSelection: Record<string, string> = {};
+                                currentVariant?.attributes.forEach((a) => {
+                                  currentSelection[a.name] = a.id;
+                                });
+                                const updated = { ...currentSelection, [group.name]: val.id };
+                                const selectedIds = Object.values(updated);
+                                const matched = activeVariants.find((v) =>
+                                  selectedIds.every((vid) => v.attributes.some((a) => a.id === vid))
+                                );
+                                if (matched) setSelectedVariant(matched);
+                              }}
+                              className={`
+                                px-4 py-2 rounded-button text-sm font-medium border transition-colors
+                                ${isOutOfStock
+                                  ? 'opacity-40 cursor-not-allowed line-through border-border text-text-muted'
+                                  : isSelected
+                                    ? 'border-primary bg-primary-light text-primary'
+                                    : 'border-border hover:border-primary text-text-secondary'
+                                }
+                              `}
+                            >
+                              {val.color_code && (
+                                <span
+                                  className="inline-block w-3 h-3 rounded-full ms-1"
+                                  style={{ backgroundColor: val.color_code }}
+                                />
+                              )}
+                              {val.value}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 

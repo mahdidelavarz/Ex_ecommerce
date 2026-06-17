@@ -8,6 +8,7 @@ export interface AttributeValue {
 export interface Attribute {
   id: string;
   name: string;
+  type: 'color' | 'size' | 'text';
   values: AttributeValue[];
   values_count: number;
   created_at: string;
@@ -17,6 +18,7 @@ export interface Attribute {
 export interface AttributeMinimal {
   id: string;
   name: string;
+  type: 'color' | 'size' | 'text';
   values: AttributeValue[];
 }
 

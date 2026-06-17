@@ -25,6 +25,21 @@ const variantFormSchema = z.object({
   low_stock_threshold: z.number().int().min(0).nullable(),
   is_active: z.boolean(),
   attribute_value_ids: z.array(z.string()).optional(),
+}).superRefine((data, ctx) => {
+  if (data.compare_at_price != null && data.compare_at_price <= data.price) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'قیمت مقایسه باید بزرگ‌تر از قیمت فروش باشد',
+      path: ['compare_at_price'],
+    });
+  }
+  if (data.cost != null && data.cost > data.price) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'قیمت تمام شده نباید از قیمت فروش بیشتر باشد',
+      path: ['cost'],
+    });
+  }
 });
 
 type VariantFormData = z.infer<typeof variantFormSchema>;
@@ -37,6 +52,7 @@ export default function AdminVariantFormPage() {
   const isEdit = params.variantId !== 'new';
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingVariant, setIsLoadingVariant] = useState(isEdit);
   const { data: attributes } = useAllAttributes();
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<VariantFormData>({
@@ -62,6 +78,7 @@ export default function AdminVariantFormPage() {
   }, [params.variantId]);
 
   const loadVariant = async (id: string) => {
+    setIsLoadingVariant(true);
     try {
       const variant = await variantService.getById(id);
       reset({
@@ -76,9 +93,11 @@ export default function AdminVariantFormPage() {
         is_active: variant.is_active,
         attribute_value_ids: variant.attributes?.map((a) => a.id) || [],
       });
-    } catch (error) {
+    } catch {
       toast.error('خطا در دریافت اطلاعات');
       router.back();
+    } finally {
+      setIsLoadingVariant(false);
     }
   };
 
@@ -108,10 +127,10 @@ export default function AdminVariantFormPage() {
     }
   };
 
-  if (isAuthLoading) {
+  if (isAuthLoading || isLoadingVariant) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="  text-primary" width={48} />
+        <SvgSpinnersRingResize className="text-primary" width={48} />
       </div>
     );
   }

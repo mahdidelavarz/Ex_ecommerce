@@ -169,21 +169,7 @@ export class VariantRepository {
   async delete(id: string) {
     const variant = await this.repo.findOne({ where: { id } });
     if (!variant) throw new NotFoundError("واریانت یافت نشد");
-
-    // Check if used in orders
-    const orderCount = await this.orderItemRepo.count({
-      where: { variant_id: id },
-    });
-    if (orderCount > 0) {
-      throw new BadRequestError(
-        "این واریانت در سفارشات استفاده شده و قابل حذف نیست",
-      );
-    }
-
-    // Delete related records
-    await this.variantAttributeRepo.delete({ variant_id: id });
-    await this.variantImageRepo.delete({ variant_id: id });
-    await this.repo.remove(variant);
+    await this.repo.softDelete(id);
   }
 
   async bulkStock(dtos: { id: string; stock_quantity: number }[]) {

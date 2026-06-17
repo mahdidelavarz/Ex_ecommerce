@@ -1,8 +1,8 @@
 # Module: Attributes
 
-## Status Summary
+## Status Summary — ✅ All issues fixed (2026-06-17)
 
-Backend is mostly correct — routes are admin-guarded, Zod validators exist, and deletion guards prevent removing in-use attributes. The main gaps are: a misplaced import that causes a runtime crash on delete, no uniqueness constraint on values, and no `type` field to distinguish color vs size attributes. Frontend has a list + create page, but editing an existing attribute hides the values section entirely — admins have no way to add new values to an existing attribute.
+All 4 backend and 4 frontend issues resolved. Backend: `In` import moved to top (crash on delete fixed), uniqueness constraint + app-level duplicate check added on `(attribute_id, value)`, `AttributeType` enum (`color`/`size`/`text`) added to entity + validator + DTOs, `sort_order` column added to `AttributeValue` with ordering in all queries. Frontend: edit page now shows existing values with individual delete buttons and allows adding new ones, color picker double-registration fixed (uses `watch`+`setValue`), type selector dropdown added, 5 mutation hooks added (`useCreateAttribute`, `useUpdateAttribute`, `useDeleteAttribute`, `useAddAttributeValue`, `useDeleteAttributeValue`).
 
 ---
 

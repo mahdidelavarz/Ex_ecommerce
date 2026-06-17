@@ -1,10 +1,11 @@
 // src/database/entities/attribute-value.entity.ts
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Unique } from 'typeorm';
 import { BaseEntity } from '../base.entity';
 import { Attribute } from './attribute.entity';
 import { VariantAttributeValue } from './variant-attribute-value.entity';
 
 @Entity('attribute_values')
+@Unique(['attribute_id', 'value'])
 export class AttributeValue extends BaseEntity {
   @Column({ type: 'uuid', primary: true, generated: 'uuid' })
   id: string;
@@ -17,6 +18,9 @@ export class AttributeValue extends BaseEntity {
 
   @Column({ type: 'text', nullable: true })
   color_code: string | null;
+
+  @Column({ type: 'int', default: 0 })
+  sort_order: number;
 
   @ManyToOne(() => Attribute, (attribute) => attribute.values, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'attribute_id' })

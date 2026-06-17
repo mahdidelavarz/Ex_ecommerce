@@ -77,6 +77,11 @@ export class ProductRepository {
       });
     }
 
+    if (options.tag) {
+      qb.innerJoin('product.product_tags', 'pt_tag')
+        .innerJoin('pt_tag.tag', 'tag_filter', 'tag_filter.slug = :tagSlug', { tagSlug: options.tag });
+    }
+
     if (options.search) {
       qb.andWhere(
         "(product.title ILIKE :search OR product.short_description ILIKE :search)",
@@ -388,6 +393,10 @@ export class ProductRepository {
   async syncTags(productId: string, tag_ids: string[]) {
     await this.productTagRepo.delete({ product_id: productId });
     if (tag_ids.length > 0) {
+      const validTags = await this.tagRepo.find({ where: { id: In(tag_ids) } });
+      if (validTags.length !== tag_ids.length) {
+        throw new NotFoundError('برخی تگ‌ها یافت نشدند');
+      }
       const productTags = tag_ids.map((tagId) =>
         this.productTagRepo.create({ product_id: productId, tag_id: tagId }),
       );

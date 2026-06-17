@@ -1,5 +1,6 @@
 // src/modules/products/product.routes.ts
 import { Router } from 'express';
+import { z } from 'zod';
 import { ProductController } from './product.controller';
 import { validate } from '../../middleware/validate';
 import { authenticate, authorize } from '../../middleware/auth';
@@ -23,6 +24,12 @@ router.patch('/:id', authenticate, authorize(UserRole.ADMIN), validate({ body: u
 router.delete('/:id', authenticate, authorize(UserRole.ADMIN), controller.delete);
 router.post('/:id/images', authenticate, authorize(UserRole.ADMIN), controller.addImage);
 router.delete('/:id/images/:imageId', authenticate, authorize(UserRole.ADMIN), controller.deleteImage);
-router.post('/:id/tags', authenticate, authorize(UserRole.ADMIN), controller.syncTags);
+router.post(
+  '/:id/tags',
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate({ body: z.object({ tag_ids: z.array(z.string().uuid()).min(0) }) }),
+  controller.syncTags,
+);
 
 export default router;

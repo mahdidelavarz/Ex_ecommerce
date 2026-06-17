@@ -8,7 +8,7 @@ export class Tag extends BaseEntity {
   @Column({ type: 'uuid', primary: true, generated: 'uuid' })
   id: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', unique: true })
   name: string;
 
   @Column({ type: 'text', unique: true })

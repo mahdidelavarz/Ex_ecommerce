@@ -11,6 +11,7 @@ export class ProductController {
     const result = await this.service.list({
       category_id: req.query.category_id as string,
       brand_id: req.query.brand_id as string,
+      tag: req.query.tag as string,
       search: req.query.search as string,
       min_price: req.query.min_price
         ? parseFloat(req.query.min_price as string)

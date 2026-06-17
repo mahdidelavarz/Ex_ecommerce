@@ -31,7 +31,7 @@ export const attributeService = {
   /**
    * Create attribute (admin)
    */
-  create: async (data: { name: string; values?: { value: string; color_code?: string }[] }): Promise<Attribute> => {
+  create: async (data: { name: string; type?: string; values?: { value: string; color_code?: string }[] }): Promise<Attribute> => {
     const response = await apiClient.post<ApiResponse<Attribute>>('/attributes', data);
     return response.data.data;
   },
@@ -39,7 +39,7 @@ export const attributeService = {
   /**
    * Update attribute (admin)
    */
-  update: async (id: string, data: { name?: string }): Promise<Attribute> => {
+  update: async (id: string, data: { name?: string; type?: string }): Promise<Attribute> => {
     const response = await apiClient.patch<ApiResponse<Attribute>>(`/attributes/${id}`, data);
     return response.data.data;
   },

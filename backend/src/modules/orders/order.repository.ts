@@ -57,7 +57,12 @@ export class OrderRepository {
       for (const cartItem of cart.items) {
         const variant = await queryRunner.manager.findOne(ProductVariant, {
           where: { id: cartItem.variant_id },
-          relations: ['product'],
+          relations: [
+            'product',
+            'variant_attribute_values',
+            'variant_attribute_values.attribute_value',
+            'variant_attribute_values.attribute_value.attribute',
+          ],
         });
 
         if (!variant || !variant.is_active || !variant.product?.is_active) {
@@ -104,6 +109,10 @@ export class OrderRepository {
             title: variant.product?.title,
             sku: variant.sku,
             price: variant.price,
+            attributes: variant.variant_attribute_values?.map((vav) => ({
+              attribute: vav.attribute_value?.attribute?.name,
+              value: vav.attribute_value?.value,
+            })) ?? [],
           },
         });
       }

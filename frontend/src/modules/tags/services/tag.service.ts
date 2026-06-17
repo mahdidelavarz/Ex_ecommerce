@@ -1,13 +1,9 @@
 // src/modules/tags/services/tag.service.ts
 import { apiClient } from '@/lib/api-client';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
+import type { Tag } from '../types/tag.types';
 
-export interface Tag {
-  id: string;
-  name: string;
-  slug: string;
-  products_count: number;
-}
+export type { Tag };
 
 export const tagService = {
   list: async (params?: any) => {

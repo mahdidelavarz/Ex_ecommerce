@@ -40,4 +40,12 @@ export class TagController {
     await this.service.delete(req.params.id);
     ApiResponseHelper.success(res, null, 'تگ حذف شد');
   });
+
+  getProductsByTag = asyncHandler(async (req: Request, res: Response) => {
+    const result = await this.service.getProductsByTag(req.params.slug, {
+      page: req.query.page ? parseInt(req.query.page as string) : undefined,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+    });
+    ApiResponseHelper.success(res, result.data, undefined, 200, { ...result.meta, tag: result.tag });
+  });
 }

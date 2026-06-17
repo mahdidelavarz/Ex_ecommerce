@@ -1,8 +1,8 @@
 # Module: Variants (& Attributes)
 
-## Status Summary
+## Status Summary — ✅ Fixed (2026-06-17)
 
-Backend is mostly solid — inventory logic, auth guards, and Zod validators exist. The critical gaps are on the frontend: the "Add to Cart" button on the product detail page has no onClick handler, the new-variant admin route is broken due to a path mismatch, and the variant selector logic picks the wrong variant under multi-attribute products.
+All actionable issues resolved. VAR-F1/F4/F5 were already fixed (AddToCartButton with stock cap, attributes admin UI). Fixed: VAR-F2 (new variant route path), VAR-B1/F8 (compare_at_price > price validation on both backend + frontend), VAR-B4 (image_url URL validation), VAR-B5 (cost ≤ price validation), VAR-B2 (attribute snapshot in order items), VAR-B3 (soft delete on variants), VAR-F3 (multi-attribute selector), VAR-F7 (out-of-stock visual), VAR-F9 (loading state). Skipped: VAR-B7 (attribute ownership per-product has no model-level constraint), VAR-B8/F6 (image reorder/upload UI).
 
 ---
 

@@ -1,5 +1,5 @@
 // src/database/entities/product-variant.entity.ts
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index, DeleteDateColumn } from 'typeorm';
 import { BaseEntity } from '../base.entity';
 import { Product } from './product.entity';
 import { VariantAttributeValue } from './variant-attribute-value.entity';
@@ -68,4 +68,7 @@ export class ProductVariant extends BaseEntity {
 
   @OneToMany(() => InventoryLog, (log) => log.variant)
   inventory_logs: InventoryLog[];
+
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deleted_at: Date | null;
 }
