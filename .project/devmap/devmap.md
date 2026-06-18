@@ -60,7 +60,7 @@
 | tags | ✅ | ✅ | ✅ Fixed | [modules/tags.md](modules/tags.md) |
 | cart | ✅ | ✅ | ✅ Fixed | [modules/cart.md](modules/cart.md) |
 | coupons | ✅ | ✅ | ✅ Fixed | [modules/coupons.md](modules/coupons.md) |
-| orders | ✅ | ✅ | ✅ Explored | [modules/orders.md](modules/orders.md) |
+| orders | ✅ | ✅ | ✅ Fixed | [modules/orders.md](modules/orders.md) |
 | payments | ✅ stub | — | ✅ Explored | [modules/payments.md](modules/payments.md) |
 | shipments | ✅ | ✅ | ✅ Explored | [modules/shipments.md](modules/shipments.md) |
 | reviews | ✅ | ✅ | ✅ Explored | [modules/reviews.md](modules/reviews.md) |
@@ -96,7 +96,7 @@
 - [x] AUTH-B2: Fix `secure: false` on cookies
 - [x] AUTH-B3: Lock JWT `algorithms` to `['HS256']`
 - [x] AUTH-F1: Remove `refreshToken` from `localStorage`
-- [ ] F-1 / O-F1: Real address selection in checkout
+- [x] F-1 / O-F1: Real address selection in checkout
 - [x] C-F1: Allow guest add-to-cart (remove forced login in `AddToCartButton`)
 - [x] PRD-F1: Sanitize `dangerouslySetInnerHTML` (XSS) — isomorphic-dompurify
 - [x] PRD-F2/F3: Fix product detail crash + JSX syntax error

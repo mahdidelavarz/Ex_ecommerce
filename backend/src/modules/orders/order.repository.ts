@@ -93,10 +93,15 @@ export class OrderRepository {
         const totalAmount = unitPrice * cartItem.quantity;
         subtotal += totalAmount;
 
+        const attrTitle = variant.variant_attribute_values
+          ?.map((vav) => vav.attribute_value?.value)
+          .filter(Boolean)
+          .join(' / ');
+
         orderItemsData.push({
           variant_id: variant.id,
           product_title: variant.product?.title || '',
-          variant_title: variant.sku,
+          variant_title: attrTitle || variant.sku,
           sku: variant.sku,
           quantity: cartItem.quantity,
           unit_price: unitPrice,
@@ -126,20 +131,44 @@ export class OrderRepository {
           where: { code: dto.coupon_code.toUpperCase(), is_active: true },
         });
 
-        if (coupon) {
-          const now = new Date();
-          if (now >= coupon.starts_at && now <= coupon.expires_at) {
-            if (coupon.type === 'percentage') {
-              discountAmount = Math.round((subtotal * coupon.value) / 100);
-              if (coupon.max_discount && discountAmount > coupon.max_discount) {
-                discountAmount = coupon.max_discount;
-              }
-            } else if (coupon.type === 'fixed') {
-              discountAmount = Math.min(coupon.value, subtotal);
-            }
-            appliedCouponId = coupon.id;
+        if (!coupon) throw new BadRequestError('کد تخفیف نامعتبر است');
+
+        const now = new Date();
+        if (now < coupon.starts_at || now > coupon.expires_at) {
+          throw new BadRequestError('کد تخفیف منقضی شده است');
+        }
+
+        if (coupon.min_order_amount && subtotal < coupon.min_order_amount) {
+          throw new BadRequestError(`حداقل مبلغ سفارش برای این کد ${Number(coupon.min_order_amount).toLocaleString()} تومان است`);
+        }
+
+        if (coupon.usage_limit) {
+          const usedCount = await queryRunner.manager.count(Order, {
+            where: { coupon_id: coupon.id },
+          });
+          if (usedCount >= coupon.usage_limit) {
+            throw new BadRequestError('ظرفیت استفاده از این کد تخفیف به پایان رسیده است');
           }
         }
+
+        if (coupon.usage_per_user) {
+          const userUsed = await queryRunner.manager.count(Order, {
+            where: { coupon_id: coupon.id, user_id: userId },
+          });
+          if (userUsed >= coupon.usage_per_user) {
+            throw new BadRequestError('شما قبلاً از این کد تخفیف استفاده کرده‌اید');
+          }
+        }
+
+        if (coupon.type === 'percentage') {
+          discountAmount = Math.round((subtotal * Number(coupon.value)) / 100);
+          if (coupon.max_discount && discountAmount > coupon.max_discount) {
+            discountAmount = coupon.max_discount;
+          }
+        } else if (coupon.type === 'fixed') {
+          discountAmount = Math.min(Number(coupon.value), subtotal);
+        }
+        appliedCouponId = coupon.id;
       }
 
       const shippingAmount = 50000;
@@ -252,10 +281,6 @@ export class OrderRepository {
     const qb = this.orderRepo
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
-      .leftJoin('order.items', 'items')
-      .addSelect('COUNT(items.id)', 'items_count')
-      .groupBy('order.id')
-      .addGroupBy('user.id')
       .orderBy('order.created_at', 'DESC');
 
     if (options.search) {

@@ -24,7 +24,7 @@ export function useCreateOrder() {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success('سفارش با موفقیت ثبت شد');
-      router.push(`/orders/${data.id}`);
+      router.push(`/orders/${data.id}?success=true`);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'خطا در ثبت سفارش');
@@ -43,6 +43,29 @@ export function useCancelOrder() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'خطا در لغو سفارش');
+    },
+  });
+}
+
+export function useAdminOrders(params?: any) {
+  return useQuery({
+    queryKey: ['orders', 'admin', params],
+    queryFn: () => orderService.adminList(params),
+  });
+}
+
+export function useUpdateOrderStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => orderService.updateStatus(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['orders', id] });
+      queryClient.invalidateQueries({ queryKey: ['orders', 'admin'] });
+      toast.success('وضعیت سفارش به‌روز شد');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'خطا در به‌روزرسانی وضعیت');
     },
   });
 }

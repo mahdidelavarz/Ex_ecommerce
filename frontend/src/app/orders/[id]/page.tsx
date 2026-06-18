@@ -1,14 +1,15 @@
 // src/app/orders/[id]/page.tsx
 "use client";
 
-import { useParams } from "next/navigation";
+import { useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { useOrder, useCancelOrder } from "@/modules/orders/hooks/useOrders";
 import { formatPrice } from "@/utils/formatPrice";
 import { useQuery } from "@tanstack/react-query";
 import { paymentService } from "@/modules/payment/services/payment.service";
 import ShipmentTimeline from "@/modules/shipments/components/ShipmentTimeline";
 import { useShipments } from "@/modules/shipments/hooks/useShipments";
-import { MdiClipboardTextOff, SvgSpinnersRingResize } from "@/components/icons/Icons";
+import { MdiClipboardTextOff, MdiCheckCircle, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
 const statusLabels: Record<string, string> = {
   pending: "در انتظار",
@@ -40,9 +41,12 @@ const paymentStatusLabels: Record<string, string> = {
 
 export default function OrderDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const isSuccess = searchParams.get('success') === 'true';
   const orderId = params.id as string;
   const { data: order, isLoading } = useOrder(orderId);
   const cancelOrder = useCancelOrder();
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const { data: payments } = useQuery({
     queryKey: ["payments", orderId],
@@ -81,6 +85,14 @@ export default function OrderDetailPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Success banner */}
+        {isSuccess && (
+          <div className="bg-success-light border border-success/30 rounded-card p-4 mb-6 flex items-center gap-3">
+            <MdiCheckCircle className="text-success shrink-0" width={24} />
+            <span className="text-success font-medium">سفارش شما با موفقیت ثبت شد! منتظر تأیید باشید.</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -249,17 +261,34 @@ export default function OrderDetailPage() {
 
         {/* Cancel Button */}
         {["pending", "confirmed"].includes(order.order_status) && (
-          <div className="text-center">
-            <button
-              onClick={() => {
-                if (window.confirm("آیا از لغو سفارش اطمینان دارید؟")) {
-                  cancelOrder.mutate(order.id);
-                }
-              }}
-              className="text-error hover:text-red-700 text-sm font-medium"
-            >
-              لغو سفارش
-            </button>
+          <div className="bg-surface rounded-card shadow-card p-6 text-center">
+            {showCancelConfirm ? (
+              <div>
+                <p className="text-text-secondary text-sm mb-4">آیا از لغو این سفارش اطمینان دارید؟ این عملیات قابل برگشت نیست.</p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => setShowCancelConfirm(false)}
+                    className="px-6 py-2 text-sm font-medium border border-border rounded-button hover:bg-surface-raised transition-colors"
+                  >
+                    انصراف
+                  </button>
+                  <button
+                    onClick={() => { cancelOrder.mutate(order.id); setShowCancelConfirm(false); }}
+                    disabled={cancelOrder.isPending}
+                    className="px-6 py-2 text-sm font-medium bg-error text-white rounded-button hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {cancelOrder.isPending ? 'در حال لغو...' : 'تأیید لغو سفارش'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                className="text-error hover:text-red-700 text-sm font-medium"
+              >
+                لغو سفارش
+              </button>
+            )}
           </div>
         )}
       </div>
