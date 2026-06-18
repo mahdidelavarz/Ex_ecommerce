@@ -8,21 +8,29 @@ export class ReviewController {
   private service = new ReviewService();
 
   productReviews = asyncHandler(async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
     const result = await this.service.findByProduct(req.params.productId, {
-      page: req.query.page ? parseInt(req.query.page as string) : undefined,
-      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+      page,
+      limit,
       sort_by: req.query.sort_by as string,
+      userId: req.userId,
     });
     ApiResponseHelper.success(res, result.reviews, undefined, 200, {
-      page: 1, limit: 10, total: result.total, totalPages: Math.ceil(result.total / 10),
+      page, limit, total: result.total, totalPages: Math.ceil(result.total / limit),
       avg_rating: result.avg_rating,
       rating_distribution: result.rating_distribution,
     } as any);
   });
 
+  canReview = asyncHandler(async (req: Request, res: Response) => {
+    const result = await this.service.canReview(req.params.productId, req.userId!);
+    ApiResponseHelper.success(res, result);
+  });
+
   create = asyncHandler(async (req: Request, res: Response) => {
     const review = await this.service.create(req.userId!, req.body);
-    ApiResponseHelper.created(res, review, 'نظر شما ثبت شد');
+    ApiResponseHelper.created(res, review, 'نظر شما ثبت شد و پس از تایید نمایش داده می‌شود');
   });
 
   update = asyncHandler(async (req: Request, res: Response) => {
@@ -35,9 +43,14 @@ export class ReviewController {
     ApiResponseHelper.success(res, null, 'نظر حذف شد');
   });
 
+  adminDelete = asyncHandler(async (req: Request, res: Response) => {
+    await this.service.adminDelete(req.params.id);
+    ApiResponseHelper.success(res, null, 'نظر حذف شد');
+  });
+
   markHelpful = asyncHandler(async (req: Request, res: Response) => {
-    const review = await this.service.markHelpful(req.params.id);
-    ApiResponseHelper.success(res, { helpful_count: review.helpful_count });
+    const result = await this.service.markHelpful(req.params.id, req.userId!);
+    ApiResponseHelper.success(res, result);
   });
 
   adminList = asyncHandler(async (req: Request, res: Response) => {

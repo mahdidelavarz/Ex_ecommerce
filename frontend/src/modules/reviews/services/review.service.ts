@@ -1,15 +1,17 @@
 // src/modules/reviews/services/review.service.ts
 import { apiClient } from '@/lib/api-client';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
-import type { Review } from '../types/review.types';
+import type { Review, CanReviewResponse } from '../types/review.types';
 
 export const reviewService = {
   getProductReviews: async (productId: string, params?: { page?: number; limit?: number; sort_by?: string }) => {
     const r = await apiClient.get<ApiResponse<Review[]> & { meta: any }>(`/reviews/product/${productId}`, { params });
-    return {
-      reviews: r.data.data,
-      meta: r.data.meta,
-    };
+    return { reviews: r.data.data, meta: r.data.meta };
+  },
+
+  canReview: async (productId: string): Promise<CanReviewResponse> => {
+    const r = await apiClient.get<ApiResponse<CanReviewResponse>>(`/reviews/product/${productId}/can-review`);
+    return r.data.data;
   },
 
   create: async (data: { product_id: string; rating: number; title?: string; comment?: string }): Promise<Review> => {
@@ -26,8 +28,12 @@ export const reviewService = {
     await apiClient.delete(`/reviews/${id}`);
   },
 
-  markHelpful: async (id: string): Promise<{ helpful_count: number }> => {
-    const r = await apiClient.post<ApiResponse<{ helpful_count: number }>>(`/reviews/${id}/helpful`);
+  adminDelete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/reviews/admin/${id}`);
+  },
+
+  markHelpful: async (id: string): Promise<{ helpful_count: number; voted: boolean }> => {
+    const r = await apiClient.post<ApiResponse<{ helpful_count: number; voted: boolean }>>(`/reviews/${id}/helpful`);
     return r.data.data;
   },
 

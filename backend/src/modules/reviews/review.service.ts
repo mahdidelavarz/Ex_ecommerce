@@ -1,15 +1,18 @@
 // src/modules/reviews/review.service.ts
-
 import { ReviewRepository } from './review.repository';
 import { CreateReviewDto, UpdateReviewDto } from './review.types';
 
 export class ReviewService {
   private repo = new ReviewRepository();
 
-  async findByProduct(productId: string, options: { page?: number; limit?: number; sort_by?: string }) {
+  async findByProduct(productId: string, options: { page?: number; limit?: number; sort_by?: string; userId?: string }) {
     const page = options.page || 1;
     const limit = options.limit || 10;
-    return this.repo.findByProduct(productId, { page, limit, sort_by: options.sort_by });
+    return this.repo.findByProduct(productId, { page, limit, sort_by: options.sort_by, userId: options.userId });
+  }
+
+  async canReview(productId: string, userId: string) {
+    return this.repo.canReview(productId, userId);
   }
 
   async create(userId: string, dto: CreateReviewDto) {
@@ -24,14 +27,21 @@ export class ReviewService {
     return this.repo.delete(reviewId, userId);
   }
 
-  async markHelpful(reviewId: string) {
-    return this.repo.markHelpful(reviewId);
+  async adminDelete(reviewId: string) {
+    return this.repo.adminDelete(reviewId);
+  }
+
+  async markHelpful(reviewId: string, userId: string) {
+    return this.repo.markHelpful(reviewId, userId);
   }
 
   async findAllAdmin(options: any) {
-    const page = options.page || 1;
-    const limit = options.limit || 20;
-    const { data, total } = await this.repo.findAllAdmin({ ...options, page, limit });
+    const page = parseInt(options.page) || 1;
+    const limit = parseInt(options.limit) || 20;
+    let is_approved: boolean | undefined;
+    if (options.is_approved === 'true') is_approved = true;
+    else if (options.is_approved === 'false') is_approved = false;
+    const { data, total } = await this.repo.findAllAdmin({ ...options, page, limit, is_approved });
     return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 

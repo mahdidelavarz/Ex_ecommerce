@@ -2,60 +2,60 @@
 'use client';
 
 import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { reviewService } from '@/modules/reviews/services/review.service';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
 import StarRating from '@/components/ui/StarRating';
 import type { Review } from '@/modules/reviews/types/review.types';
+import {
+  useAdminReviews,
+  useApproveReview,
+  useReplyReview,
+  useAdminDeleteReview,
+} from '@/modules/reviews/hooks/useReviews';
 import { MdiChevronLeft, MdiChevronRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
+type ApprovalFilter = 'all' | 'pending' | 'approved';
+
 export default function AdminReviewsPage() {
-  const queryClient = useQueryClient();
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [page, setPage] = useState(1);
+  const [approvalFilter, setApprovalFilter] = useState<ApprovalFilter>('all');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['reviews', 'admin', { page }],
-    queryFn: () => reviewService.adminList({ page, limit: 20 }),
-  });
-
-  const handleApprove = async (review: Review) => {
-    try {
-      await reviewService.approve(review.id, !review.is_approved);
-      toast.success(review.is_approved ? 'نظر رد شد' : 'نظر تایید شد');
-      queryClient.invalidateQueries({ queryKey: ['reviews'] });
-    } catch (error: any) {
-      toast.error('خطا');
-    }
+  const queryParams = {
+    page,
+    limit: 20,
+    ...(approvalFilter !== 'all' && { is_approved: approvalFilter === 'approved' }),
   };
 
-  const handleReply = async (reviewId: string) => {
-    if (!replyText[reviewId]?.trim()) return;
-    try {
-      await reviewService.reply(reviewId, replyText[reviewId]);
-      toast.success('پاسخ ثبت شد');
-      setReplyingTo(null);
-      setReplyText({ ...replyText, [reviewId]: '' });
-      queryClient.invalidateQueries({ queryKey: ['reviews'] });
-    } catch (error: any) {
-      toast.error('خطا');
-    }
+  const { data, isLoading } = useAdminReviews(queryParams);
+  const approveReview = useApproveReview();
+  const replyReview = useReplyReview();
+  const deleteReview = useAdminDeleteReview();
+
+  const handleApprove = (review: Review) => {
+    approveReview.mutate({ id: review.id, is_approved: !review.is_approved });
   };
 
-  const handleDelete = async (review: Review) => {
+  const handleReply = (reviewId: string) => {
+    const text = replyText[reviewId]?.trim();
+    if (!text) return;
+    replyReview.mutate(
+      { id: reviewId, admin_reply: text },
+      {
+        onSuccess: () => {
+          setReplyingTo(null);
+          setReplyText((prev) => ({ ...prev, [reviewId]: '' }));
+        },
+      }
+    );
+  };
+
+  const handleDelete = (review: Review) => {
     if (!window.confirm('حذف نظر؟')) return;
-    try {
-      await reviewService.delete(review.id);
-      toast.success('نظر حذف شد');
-      queryClient.invalidateQueries({ queryKey: ['reviews'] });
-    } catch (error: any) {
-      toast.error('خطا');
-    }
+    deleteReview.mutate(review.id);
   };
 
   if (isAuthLoading) {
@@ -71,13 +71,36 @@ export default function AdminReviewsPage() {
       <AdminSidebar />
       <main className="flex-1 lg:mr-64 p-4 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-text-primary mb-8">نظرات</h1>
+          <h1 className="text-2xl font-bold text-text-primary mb-6">نظرات</h1>
+
+          {/* Approval Filter */}
+          <div className="flex gap-2 mb-6">
+            {(['all', 'pending', 'approved'] as ApprovalFilter[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => { setApprovalFilter(f); setPage(1); }}
+                className={`px-4 py-2 rounded-button text-sm font-medium transition-colors ${
+                  approvalFilter === f
+                    ? 'bg-primary text-white'
+                    : 'bg-surface border border-border text-text-secondary hover:bg-surface-raised'
+                }`}
+              >
+                {f === 'all' ? 'همه' : f === 'pending' ? 'در انتظار' : 'تایید شده'}
+              </button>
+            ))}
+          </div>
 
           <div className="space-y-4">
             {isLoading ? (
-              [...Array(3)].map((_, i) => <div key={i} className="bg-surface rounded-card p-6 animate-pulse-soft"><div className="h-16 bg-surface-raised rounded" /></div>)
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="bg-surface rounded-card p-6 animate-pulse-soft">
+                  <div className="h-16 bg-surface-raised rounded" />
+                </div>
+              ))
             ) : data?.data?.length === 0 ? (
-              <div className="text-center py-12"><p className="text-text-secondary">نظری یافت نشد</p></div>
+              <div className="text-center py-12">
+                <p className="text-text-secondary">نظری یافت نشد</p>
+              </div>
             ) : (
               data?.data?.map((review: Review) => (
                 <div key={review.id} className="bg-surface rounded-card shadow-card p-6">
@@ -87,21 +110,34 @@ export default function AdminReviewsPage() {
                       <StarRating rating={review.rating} size={14} />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${review.is_approved ? 'bg-success-light text-success' : 'bg-warning-light text-warning'}`}>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          review.is_approved
+                            ? 'bg-success-light text-success'
+                            : 'bg-warning-light text-warning'
+                        }`}
+                      >
                         {review.is_approved ? 'تایید شده' : 'در انتظار'}
                       </span>
                       {review.verified_purchase && (
-                        <span className="bg-info-light text-info text-xs px-2 py-1 rounded-full">خریدار</span>
+                        <span className="bg-info-light text-info text-xs px-2 py-1 rounded-full">
+                          خریدار
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  {review.title && <p className="font-medium text-sm mb-1">{review.title}</p>}
-                  {review.comment && <p className="text-text-secondary text-sm">{review.comment}</p>}
+                  {review.title && (
+                    <p className="font-medium text-sm mb-1">{review.title}</p>
+                  )}
+                  {review.comment && (
+                    <p className="text-text-secondary text-sm">{review.comment}</p>
+                  )}
 
                   {review.admin_reply && (
                     <div className="mt-3 bg-primary-light/50 p-3 rounded text-sm">
-                      <span className="text-xs text-primary font-medium">پاسخ:</span> {review.admin_reply}
+                      <span className="text-xs text-primary font-medium">پاسخ:</span>{' '}
+                      {review.admin_reply}
                     </div>
                   )}
 
@@ -110,23 +146,52 @@ export default function AdminReviewsPage() {
                     <div className="mt-3 flex gap-2">
                       <input
                         value={replyText[review.id] || ''}
-                        onChange={(e) => setReplyText({ ...replyText, [review.id]: e.target.value })}
+                        onChange={(e) =>
+                          setReplyText((prev) => ({ ...prev, [review.id]: e.target.value }))
+                        }
                         placeholder="پاسخ شما..."
                         className="flex-1 px-3 py-2 border rounded-input text-sm"
                       />
-                      <Button size="sm" onClick={() => handleReply(review.id)}>ارسال</Button>
-                      <Button size="sm" variant="outline" onClick={() => setReplyingTo(null)}>انصراف</Button>
+                      <Button
+                        size="sm"
+                        loading={replyReview.isPending}
+                        onClick={() => handleReply(review.id)}
+                      >
+                        ارسال
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setReplyingTo(null)}>
+                        انصراف
+                      </Button>
                     </div>
                   )}
 
                   <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-                    <Button size="sm" variant="outline" onClick={() => handleApprove(review)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      loading={approveReview.isPending}
+                      onClick={() => handleApprove(review)}
+                    >
                       {review.is_approved ? 'رد' : 'تایید'}
                     </Button>
                     {!replyingTo && (
-                      <Button size="sm" variant="ghost" onClick={() => setReplyingTo(review.id)}>پاسخ</Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setReplyingTo(review.id)}
+                      >
+                        پاسخ
+                      </Button>
                     )}
-                    <Button size="sm" variant="ghost" className="text-error" onClick={() => handleDelete(review)}>حذف</Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-error"
+                      loading={deleteReview.isPending}
+                      onClick={() => handleDelete(review)}
+                    >
+                      حذف
+                    </Button>
                   </div>
                 </div>
               ))
@@ -135,11 +200,21 @@ export default function AdminReviewsPage() {
 
           {data?.meta && data.meta.totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
+              >
                 <MdiChevronRight className="w-5 h-5" />
               </button>
-              <span className="px-4 py-2 text-sm">{page} از {data.meta.totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))} disabled={page === data.meta.totalPages} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
+              <span className="px-4 py-2 text-sm">
+                {page} از {data.meta.totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(data.meta.totalPages, p + 1))}
+                disabled={page === data.meta.totalPages}
+                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
+              >
                 <MdiChevronLeft className="w-5 h-5" />
               </button>
             </div>

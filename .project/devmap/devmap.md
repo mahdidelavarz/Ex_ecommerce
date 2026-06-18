@@ -63,7 +63,7 @@
 | orders | ✅ | ✅ | ✅ Fixed | [modules/orders.md](modules/orders.md) |
 | payments | ✅ | ✅ | ✅ Fixed | [modules/payments.md](modules/payments.md) |
 | shipments | ✅ | ✅ | ✅ Fixed | [modules/shipments.md](modules/shipments.md) |
-| reviews | ✅ | ✅ | ✅ Explored | [modules/reviews.md](modules/reviews.md) |
+| reviews | ✅ | ✅ | ✅ Fixed | [modules/reviews.md](modules/reviews.md) |
 | wishlist | ✅ | ✅ | ✅ Explored | [modules/wishlist.md](modules/wishlist.md) |
 | returns | ⚠️ partial | ✅ admin only | ✅ Explored | [modules/returns.md](modules/returns.md) |
 

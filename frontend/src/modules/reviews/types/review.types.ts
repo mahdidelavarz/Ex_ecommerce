@@ -12,11 +12,18 @@ export interface Review {
   comment: string | null;
   verified_purchase: boolean;
   helpful_count: number;
+  user_has_voted: boolean;
   is_approved: boolean;
   admin_reply: string | null;
   replied_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface CanReviewResponse {
+  can_review: boolean;
+  reason: 'already_reviewed' | 'not_purchased' | null;
+  review: Review | null;
 }
 
 export interface ProductReviewsData {

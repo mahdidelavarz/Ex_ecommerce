@@ -2,34 +2,60 @@
 'use client';
 
 import { useState } from 'react';
-import { useCreateReview } from '../hooks/useReviews';
+import { useCreateReview, useUpdateReview } from '../hooks/useReviews';
 import StarRating from '@/components/ui/StarRating';
 import Button from '@/components/ui/Button';
 
 interface ReviewFormProps {
   productId: string;
+  reviewId?: string;
+  initialRating?: number;
+  initialTitle?: string;
+  initialComment?: string;
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
+export default function ReviewForm({
+  productId,
+  reviewId,
+  initialRating = 0,
+  initialTitle = '',
+  initialComment = '',
+  onSuccess,
+  onCancel,
+}: ReviewFormProps) {
   const createReview = useCreateReview();
-  const [rating, setRating] = useState(0);
-  const [title, setTitle] = useState('');
-  const [comment, setComment] = useState('');
+  const updateReview = useUpdateReview(productId);
+  const [rating, setRating] = useState(initialRating);
+  const [title, setTitle] = useState(initialTitle);
+  const [comment, setComment] = useState(initialComment);
+
+  const isEditing = !!reviewId;
+  const isPending = isEditing ? updateReview.isPending : createReview.isPending;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) return;
 
-    createReview.mutate(
-      { product_id: productId, rating, title: title || undefined, comment: comment || undefined },
-      { onSuccess: () => { setRating(0); setTitle(''); setComment(''); onSuccess?.(); } }
-    );
+    if (isEditing) {
+      updateReview.mutate(
+        { id: reviewId, data: { rating, title: title || undefined, comment: comment || undefined } },
+        { onSuccess: () => { onSuccess?.(); } }
+      );
+    } else {
+      createReview.mutate(
+        { product_id: productId, rating, title: title || undefined, comment: comment || undefined },
+        { onSuccess: () => { setRating(0); setTitle(''); setComment(''); onSuccess?.(); } }
+      );
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="bg-surface rounded-card shadow-card p-6">
-      <h3 className="font-bold text-text-primary mb-4">ثبت نظر</h3>
+      <h3 className="font-bold text-text-primary mb-4">
+        {isEditing ? 'ویرایش نظر' : 'ثبت نظر'}
+      </h3>
 
       <div className="mb-4">
         <label className="text-sm text-text-secondary block mb-2">امتیاز شما</label>
@@ -55,9 +81,16 @@ export default function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
         />
       </div>
 
-      <Button type="submit" loading={createReview.isPending} disabled={rating === 0}>
-        ثبت نظر
-      </Button>
+      <div className="flex gap-3">
+        <Button type="submit" loading={isPending} disabled={rating === 0}>
+          {isEditing ? 'ذخیره تغییرات' : 'ثبت نظر'}
+        </Button>
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            انصراف
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

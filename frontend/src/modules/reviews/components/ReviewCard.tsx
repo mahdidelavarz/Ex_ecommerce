@@ -1,4 +1,7 @@
 // src/modules/reviews/components/ReviewCard.tsx
+'use client';
+
+import { useState } from 'react';
 import StarRating from '@/components/ui/StarRating';
 import { useMarkHelpful } from '../hooks/useReviews';
 import type { Review } from '../types/review.types';
@@ -6,10 +9,23 @@ import { MdiAccount, MdiCheckCircle, MdiThumbUpOutline } from '@/components/icon
 
 interface ReviewCardProps {
   review: Review;
+  isOwn?: boolean;
+  onEdit?: () => void;
 }
 
-export default function ReviewCard({ review }: ReviewCardProps) {
+export default function ReviewCard({ review, isOwn, onEdit }: ReviewCardProps) {
   const markHelpful = useMarkHelpful();
+  const [hasVoted, setHasVoted] = useState(review.user_has_voted ?? false);
+  const [helpfulCount, setHelpfulCount] = useState(review.helpful_count);
+
+  const handleHelpful = () => {
+    markHelpful.mutate(review.id, {
+      onSuccess: (data) => {
+        setHasVoted(data.voted);
+        setHelpfulCount(data.helpful_count);
+      },
+    });
+  };
 
   return (
     <div className="bg-surface rounded-card shadow-card p-6">
@@ -33,6 +49,14 @@ export default function ReviewCard({ review }: ReviewCardProps) {
               <MdiCheckCircle className="w-3 h-3" />
               خریدار
             </span>
+          )}
+          {isOwn && onEdit && (
+            <button
+              onClick={onEdit}
+              className="text-xs text-primary hover:underline"
+            >
+              ویرایش
+            </button>
           )}
         </div>
       </div>
@@ -58,11 +82,14 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       {/* Helpful Button */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
         <button
-          onClick={() => markHelpful.mutate(review.id)}
-          className="flex items-center gap-1 text-sm text-text-muted hover:text-primary transition-colors"
+          onClick={handleHelpful}
+          disabled={markHelpful.isPending}
+          className={`flex items-center gap-1 text-sm transition-colors ${
+            hasVoted ? 'text-primary font-medium' : 'text-text-muted hover:text-primary'
+          }`}
         >
           <MdiThumbUpOutline className="w-4 h-4" />
-          مفید بود؟ {review.helpful_count > 0 && <span>({review.helpful_count})</span>}
+          {hasVoted ? 'مفید بود ✓' : 'مفید بود؟'}{helpfulCount > 0 && <span>({helpfulCount})</span>}
         </button>
       </div>
     </div>

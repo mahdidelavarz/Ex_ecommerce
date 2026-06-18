@@ -1,6 +1,7 @@
 // src/modules/reviews/review.repository.ts
 import { AppDataSource } from '../../config/database';
 import { Review } from '../../database/entities/review.entity';
+import { ReviewHelpfulVote } from '../../database/entities/review-helpful-vote.entity';
 import { OrderItem } from '../../database/entities/order-item.entity';
 import { Order } from '../../database/entities/order.entity';
 import { NotFoundError, BadRequestError } from '../../shared/utils/errors';
@@ -8,10 +9,11 @@ import { CreateReviewDto, UpdateReviewDto } from './review.types';
 
 export class ReviewRepository {
   private repo = AppDataSource.getRepository(Review);
+  private helpfulVoteRepo = AppDataSource.getRepository(ReviewHelpfulVote);
   private orderItemRepo = AppDataSource.getRepository(OrderItem);
   private orderRepo = AppDataSource.getRepository(Order);
 
-  async findByProduct(productId: string, options: { page: number; limit: number; sort_by?: string }) {
+  async findByProduct(productId: string, options: { page: number; limit: number; sort_by?: string; userId?: string }) {
     const qb = this.repo
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.user', 'user')
@@ -27,6 +29,18 @@ export class ReviewRepository {
 
     qb.skip((options.page - 1) * options.limit).take(options.limit);
     const [data, total] = await qb.getManyAndCount();
+
+    // Determine which reviews the current user has voted on
+    let votedReviewIds = new Set<string>();
+    if (options.userId && data.length > 0) {
+      const reviewIds = data.map((r) => r.id);
+      const votes = await this.helpfulVoteRepo
+        .createQueryBuilder('vote')
+        .where('vote.user_id = :userId', { userId: options.userId })
+        .andWhere('vote.review_id IN (:...reviewIds)', { reviewIds })
+        .getMany();
+      votedReviewIds = new Set(votes.map((v) => v.review_id));
+    }
 
     // Get stats
     const stats = await this.repo
@@ -55,6 +69,7 @@ export class ReviewRepository {
         comment: r.comment,
         verified_purchase: r.verified_purchase,
         helpful_count: r.helpful_count,
+        user_has_voted: votedReviewIds.has(r.id),
         admin_reply: r.admin_reply,
         replied_at: r.replied_at,
         created_at: r.created_at,
@@ -72,14 +87,32 @@ export class ReviewRepository {
     return review;
   }
 
+  async canReview(productId: string, userId: string) {
+    const existing = await this.repo.findOne({ where: { user_id: userId, product_id: productId } });
+    if (existing) {
+      return { can_review: false, reason: 'already_reviewed' as const, review: existing };
+    }
+
+    const purchased = await this.orderItemRepo
+      .createQueryBuilder('item')
+      .leftJoin('item.order', 'order')
+      .where('order.user_id = :userId', { userId })
+      .andWhere('item.product_snapshot @> :snapshot', { snapshot: { product_id: productId } })
+      .getCount();
+
+    return {
+      can_review: purchased > 0,
+      reason: purchased > 0 ? null : ('not_purchased' as const),
+      review: null,
+    };
+  }
+
   async create(userId: string, dto: CreateReviewDto) {
-    // Check not already reviewed
     const existing = await this.repo.findOne({
       where: { user_id: userId, product_id: dto.product_id },
     });
     if (existing) throw new BadRequestError('شما قبلاً برای این محصول نظر ثبت کرده‌اید');
 
-    // Check verified purchase
     const purchased = await this.orderItemRepo
       .createQueryBuilder('item')
       .leftJoin('item.order', 'order')
@@ -96,7 +129,7 @@ export class ReviewRepository {
       title: dto.title || null,
       comment: dto.comment || null,
       verified_purchase: purchased > 0,
-      is_approved: true, // auto-approve for now
+      is_approved: false,
     });
 
     return this.repo.save(review);
@@ -119,11 +152,29 @@ export class ReviewRepository {
     await this.repo.remove(review);
   }
 
-  async markHelpful(reviewId: string) {
+  async adminDelete(reviewId: string) {
     const review = await this.repo.findOne({ where: { id: reviewId } });
     if (!review) throw new NotFoundError('نظر یافت نشد');
-    review.helpful_count += 1;
-    return this.repo.save(review);
+    await this.repo.remove(review);
+  }
+
+  async markHelpful(reviewId: string, userId: string): Promise<{ helpful_count: number; voted: boolean }> {
+    const review = await this.repo.findOne({ where: { id: reviewId } });
+    if (!review) throw new NotFoundError('نظر یافت نشد');
+
+    const existing = await this.helpfulVoteRepo.findOne({
+      where: { review_id: reviewId, user_id: userId },
+    });
+
+    if (existing) {
+      await this.helpfulVoteRepo.delete({ review_id: reviewId, user_id: userId });
+      await this.repo.decrement({ id: reviewId }, 'helpful_count', 1);
+      return { helpful_count: Math.max(0, review.helpful_count - 1), voted: false };
+    }
+
+    await this.helpfulVoteRepo.save({ review_id: reviewId, user_id: userId });
+    await this.repo.increment({ id: reviewId }, 'helpful_count', 1);
+    return { helpful_count: review.helpful_count + 1, voted: true };
   }
 
   async findAllAdmin(options: { page: number; limit: number; is_approved?: boolean; product_id?: string }) {

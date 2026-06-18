@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { useProductReviews } from "../hooks/useReviews";
+import { useProductReviews, useCanReview } from "../hooks/useReviews";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 import ReviewCard from "./ReviewCard";
 import ReviewForm from "./ReviewForm";
@@ -21,13 +21,21 @@ interface ReviewsSectionProps {
 export default function ReviewsSection({ productId }: ReviewsSectionProps) {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("newest");
-  const { isAuthenticated } = useAuthStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const { isAuthenticated, user } = useAuthStore();
 
   const { data, isLoading } = useProductReviews(productId, {
     page,
     limit: 5,
     sort_by: sortBy,
   });
+
+  const { data: canReviewData } = useCanReview(productId, isAuthenticated);
+
+  const canSubmitNew = canReviewData?.can_review === true;
+  const alreadyReviewed = canReviewData?.reason === 'already_reviewed';
+  const notPurchased = canReviewData?.reason === 'not_purchased';
+  const existingReview = canReviewData?.review;
 
   return (
     <section className="mt-12">
@@ -93,8 +101,52 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
             </select>
           </div>
 
-          {/* Review Form */}
-          {isAuthenticated && <ReviewForm productId={productId} />}
+          {/* Review Form / Status */}
+          {isAuthenticated && (
+            <>
+              {canSubmitNew && !alreadyReviewed && (
+                <ReviewForm productId={productId} />
+              )}
+
+              {notPurchased && (
+                <div className="bg-surface rounded-card shadow-card p-4 text-sm text-text-secondary text-center">
+                  برای ثبت نظر باید این محصول را خریداری کرده باشید
+                </div>
+              )}
+
+              {alreadyReviewed && existingReview && (
+                <div className="space-y-3">
+                  <div className="bg-primary-light/30 rounded-card p-3 text-sm text-primary flex items-center justify-between">
+                    <span>نظر شما در انتظار تایید است</span>
+                    <button
+                      onClick={() => setIsEditing(!isEditing)}
+                      className="text-xs underline"
+                    >
+                      {isEditing ? 'انصراف' : 'ویرایش نظر'}
+                    </button>
+                  </div>
+
+                  {isEditing ? (
+                    <ReviewForm
+                      productId={productId}
+                      reviewId={existingReview.id}
+                      initialRating={existingReview.rating}
+                      initialTitle={existingReview.title ?? ''}
+                      initialComment={existingReview.comment ?? ''}
+                      onSuccess={() => setIsEditing(false)}
+                      onCancel={() => setIsEditing(false)}
+                    />
+                  ) : (
+                    <ReviewCard
+                      review={existingReview}
+                      isOwn
+                      onEdit={() => setIsEditing(true)}
+                    />
+                  )}
+                </div>
+              )}
+            </>
+          )}
 
           {/* Reviews */}
           {isLoading ? (
