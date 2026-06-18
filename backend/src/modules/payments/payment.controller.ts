@@ -26,4 +26,15 @@ export class PaymentController {
     const payment = await this.service.update(req.params.id, req.body);
     ApiResponseHelper.success(res, payment, 'وضعیت پرداخت بروزرسانی شد');
   });
+
+  initiate = asyncHandler(async (req: Request, res: Response) => {
+    const result = await this.service.initiate(req.body.order_id, req.userId!);
+    ApiResponseHelper.success(res, result);
+  });
+
+  verify = asyncHandler(async (req: Request, res: Response) => {
+    const { Authority = '', Status = '', order_id = '' } = req.query as Record<string, string>;
+    const redirectUrl = await this.service.verify(Authority, Status, order_id);
+    return res.redirect(redirectUrl);
+  });
 }

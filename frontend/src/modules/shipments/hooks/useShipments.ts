@@ -3,6 +3,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { shipmentService } from '../services/shipment.service';
+import type { UpdateShipmentDto } from '../types/shipment.types';
 import toast from 'react-hot-toast';
 
 export function useShipments(orderId: string) {
@@ -33,9 +34,12 @@ export function useUpdateShipment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => shipmentService.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+    // SHP-F2: orderId in variables so we can narrow the invalidation key
+    // SHP-F5: typed data instead of any
+    mutationFn: ({ id, data }: { id: string; orderId: string; data: UpdateShipmentDto }) =>
+      shipmentService.update(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['shipments', variables.orderId] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.success('بروزرسانی شد');
     },

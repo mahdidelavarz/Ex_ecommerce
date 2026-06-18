@@ -3,7 +3,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../services/order.service';
-import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 export function useMyOrders(params?: any) {
@@ -16,15 +15,12 @@ export function useOrder(id: string) {
 
 export function useCreateOrder() {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   return useMutation({
     mutationFn: orderService.create,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast.success('سفارش با موفقیت ثبت شد');
-      router.push(`/orders/${data.id}?success=true`);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'خطا در ثبت سفارش');

@@ -1,7 +1,7 @@
 // src/modules/shipments/services/shipment.service.ts
 import { apiClient } from '@/lib/api-client';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
-import type { Shipment } from '../types/shipment.types';
+import type { Shipment, UpdateShipmentDto } from '../types/shipment.types';
 
 export const shipmentService = {
   findByOrder: async (orderId: string): Promise<Shipment[]> => {
@@ -26,13 +26,7 @@ export const shipmentService = {
     return r.data.data;
   },
 
-  update: async (id: string, data: {
-    status?: string;
-    tracking_url?: string;
-    shipped_at?: string;
-    delivered_at?: string;
-    notes?: string;
-  }): Promise<Shipment> => {
+  update: async (id: string, data: UpdateShipmentDto): Promise<Shipment> => {
     const r = await apiClient.patch<ApiResponse<Shipment>>(`/shipments/${id}`, data);
     return r.data.data;
   },

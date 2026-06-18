@@ -61,8 +61,8 @@
 | cart | ✅ | ✅ | ✅ Fixed | [modules/cart.md](modules/cart.md) |
 | coupons | ✅ | ✅ | ✅ Fixed | [modules/coupons.md](modules/coupons.md) |
 | orders | ✅ | ✅ | ✅ Fixed | [modules/orders.md](modules/orders.md) |
-| payments | ✅ stub | — | ✅ Explored | [modules/payments.md](modules/payments.md) |
-| shipments | ✅ | ✅ | ✅ Explored | [modules/shipments.md](modules/shipments.md) |
+| payments | ✅ | ✅ | ✅ Fixed | [modules/payments.md](modules/payments.md) |
+| shipments | ✅ | ✅ | ✅ Fixed | [modules/shipments.md](modules/shipments.md) |
 | reviews | ✅ | ✅ | ✅ Explored | [modules/reviews.md](modules/reviews.md) |
 | wishlist | ✅ | ✅ | ✅ Explored | [modules/wishlist.md](modules/wishlist.md) |
 | returns | ⚠️ partial | ✅ admin only | ✅ Explored | [modules/returns.md](modules/returns.md) |
@@ -102,5 +102,5 @@
 - [x] PRD-F2/F3: Fix product detail crash + JSX syntax error
 - [x] O-B1 / PRD-B1: Fix route ordering (admin/all and slug/related)
 - [x] CPN-B1: Validate category restrictions in coupon `validate()`
-- [ ] PAY-B1–B3 / PAY-F1–F2: Zarinpal gateway integration — initiate + verify endpoints + frontend redirect
+- [x] PAY-B1–B3 / PAY-F1–F2: Zarinpal gateway integration — initiate + verify endpoints + frontend redirect
 - [ ] All remaining module blockers resolved

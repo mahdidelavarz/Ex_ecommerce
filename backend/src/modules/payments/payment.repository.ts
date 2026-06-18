@@ -22,11 +22,14 @@ export class PaymentRepository {
     return payment;
   }
 
+  async findByTransactionId(transactionId: string) {
+    return this.repo.findOne({ where: { transaction_id: transactionId } });
+  }
+
   async create(dto: CreatePaymentDto) {
     const order = await this.orderRepo.findOne({ where: { id: dto.order_id } });
     if (!order) throw new NotFoundError("سفارش یافت نشد");
 
-    // Use insert instead of create+save
     const result = await this.repo.insert({
       order_id: dto.order_id,
       provider: dto.provider,
@@ -34,13 +37,13 @@ export class PaymentRepository {
       amount: dto.amount,
       currency_code: order.currency_code || "IRR",
       status: "pending" as any,
+      transaction_id: dto.transaction_id ?? null,
     } as any);
 
     const payment = await this.repo.findOne({
       where: { id: result.identifiers[0].id },
     });
 
-    // Update order
     await this.orderRepo.update(dto.order_id, {
       payment_status: "pending" as any,
     });
@@ -64,13 +67,16 @@ export class PaymentRepository {
 
     await this.repo.update(id, updateData);
 
-    // Sync order
     if (dto.status) {
       const orderUpdate: any = {};
       if (dto.status === "completed") {
+        // PAY-B4: accumulate paid_amount correctly instead of using stale snapshot
+        const order = await this.orderRepo.findOne({ where: { id: payment.order_id } });
+        const addedAmount = Number(dto.amount ?? payment.amount);
+        const newPaid = Number(order!.paid_amount ?? 0) + addedAmount;
         orderUpdate.payment_status = "paid";
-        orderUpdate.paid_amount = payment.amount;
-        orderUpdate.due_amount = 0;
+        orderUpdate.paid_amount = newPaid;
+        orderUpdate.due_amount = Math.max(0, Number(order!.total_amount) - newPaid);
       } else if (dto.status === "failed") {
         orderUpdate.payment_status = "failed";
       } else if (dto.status === "refunded") {

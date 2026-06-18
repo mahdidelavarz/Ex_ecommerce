@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { useCreateOrder } from '@/modules/orders/hooks/useOrders';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { paymentService } from '@/modules/payment/services/payment.service';
 import { useAddresses, useCreateAddress } from '@/modules/auth/hooks/useAddresses';
 import { couponService } from '@/modules/coupons/services/coupon.service';
 import type { CouponValidation } from '@/modules/coupons/types/coupon.types';
@@ -33,6 +34,7 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState('');
   const [couponResult, setCouponResult] = useState<CouponValidation | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   useEffect(() => {
     if (addresses?.length && !selectedAddressId) {
@@ -102,17 +104,27 @@ export default function CheckoutPage() {
     );
   }
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedAddressId) {
       toast.error('لطفاً یک آدرس ارسال انتخاب کنید');
       return;
     }
-    createOrder.mutate({
-      shipping_address_id: selectedAddressId,
-      billing_address_id: selectedAddressId,
-      coupon_code: couponResult ? couponCode : undefined,
-      customer_note: note || undefined,
-    });
+    setIsCheckingOut(true);
+    try {
+      const order = await createOrder.mutateAsync({
+        shipping_address_id: selectedAddressId,
+        billing_address_id: selectedAddressId,
+        coupon_code: couponResult ? couponCode : undefined,
+        customer_note: note || undefined,
+      });
+      const { gateway_url } = await paymentService.initiate(order.id);
+      window.location.href = gateway_url;
+    } catch (err: any) {
+      setIsCheckingOut(false);
+      if (!createOrder.isError) {
+        toast.error(err.response?.data?.message || 'خطا در پردازش پرداخت');
+      }
+    }
   };
 
   const discountAmount = couponResult?.discount_amount ?? 0;
@@ -296,12 +308,12 @@ export default function CheckoutPage() {
 
               <Button
                 onClick={handlePlaceOrder}
-                loading={createOrder.isPending}
+                loading={isCheckingOut}
                 disabled={!selectedAddressId}
                 className="w-full"
                 size="lg"
               >
-                ثبت سفارش
+                ثبت و پرداخت سفارش
               </Button>
             </div>
           </div>

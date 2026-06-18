@@ -10,6 +10,7 @@ import { paymentService } from "@/modules/payment/services/payment.service";
 import ShipmentTimeline from "@/modules/shipments/components/ShipmentTimeline";
 import { useShipments } from "@/modules/shipments/hooks/useShipments";
 import { MdiClipboardTextOff, MdiCheckCircle, SvgSpinnersRingResize } from "@/components/icons/Icons";
+import toast from "react-hot-toast";
 
 const statusLabels: Record<string, string> = {
   pending: "در انتظار",
@@ -42,18 +43,32 @@ const paymentStatusLabels: Record<string, string> = {
 export default function OrderDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const isSuccess = searchParams.get('success') === 'true';
+  const paymentResult = searchParams.get('payment');
   const orderId = params.id as string;
   const { data: order, isLoading } = useOrder(orderId);
   const cancelOrder = useCancelOrder();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const handleRetryPayment = async () => {
+    if (!order) return;
+    setIsRetrying(true);
+    try {
+      const { gateway_url } = await paymentService.initiate(order.id);
+      window.location.href = gateway_url;
+    } catch (err: any) {
+      setIsRetrying(false);
+      toast.error(err.response?.data?.message || 'خطا در پردازش پرداخت');
+    }
+  };
 
   const { data: payments } = useQuery({
     queryKey: ["payments", orderId],
     queryFn: () => paymentService.findByOrder(orderId),
   });
 
-  const { data: shipments } = useShipments(orderId);
+  const { data: shipments, isLoading: shipmentsLoading } = useShipments(orderId);
 
   if (isLoading) {
     return (
@@ -85,11 +100,23 @@ export default function OrderDetailPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Success banner */}
-        {isSuccess && (
+        {/* Payment result banners */}
+        {paymentResult === 'success' && (
           <div className="bg-success-light border border-success/30 rounded-card p-4 mb-6 flex items-center gap-3">
             <MdiCheckCircle className="text-success shrink-0" width={24} />
-            <span className="text-success font-medium">سفارش شما با موفقیت ثبت شد! منتظر تأیید باشید.</span>
+            <span className="text-success font-medium">پرداخت شما با موفقیت انجام شد. سفارش تأیید شد.</span>
+          </div>
+        )}
+        {paymentResult === 'cancelled' && (
+          <div className="bg-error-light border border-error/30 rounded-card p-4 mb-6 flex items-center justify-between gap-3">
+            <span className="text-error font-medium">پرداخت لغو شد. می‌توانید مجدداً تلاش کنید.</span>
+            <button
+              onClick={handleRetryPayment}
+              disabled={isRetrying}
+              className="shrink-0 px-4 py-2 text-sm font-medium bg-primary text-white rounded-button hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isRetrying ? 'در حال انتقال...' : 'پرداخت مجدد'}
+            </button>
           </div>
         )}
 
@@ -252,12 +279,15 @@ export default function OrderDetailPage() {
           </div>
         )}
 
-        {shipments && shipments.length > 0 && (
-          <div className="bg-surface rounded-card shadow-card p-6 mb-6">
-            <h2 className="font-bold text-text-primary mb-4">پیگیری ارسال</h2>
-            <ShipmentTimeline shipments={shipments} />
-          </div>
-        )}
+        {/* SHP-F4: always show shipments section with empty/loading state */}
+        <div className="bg-surface rounded-card shadow-card p-6 mb-6">
+          <h2 className="font-bold text-text-primary mb-4">پیگیری ارسال</h2>
+          {shipmentsLoading ? (
+            <p className="text-sm text-text-muted text-center py-4">در حال بارگذاری...</p>
+          ) : (
+            <ShipmentTimeline shipments={shipments ?? []} />
+          )}
+        </div>
 
         {/* Cancel Button */}
         {["pending", "confirmed"].includes(order.order_status) && (

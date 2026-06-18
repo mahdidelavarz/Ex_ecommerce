@@ -31,6 +31,11 @@ const envSchema = z.object({
   
   MAX_FILE_SIZE: z.string().default('5242880'),
   UPLOAD_PATH: z.string().default('./uploads'),
+
+  ZARINPAL_MERCHANT_ID: z.string().default(''),
+  ZARINPAL_SANDBOX: z.string().default('true'),
+  ZARINPAL_CALLBACK_URL: z.string().default('http://localhost:5000/api/v1/payments/verify'),
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -79,4 +84,11 @@ export const env = {
     maxFileSize: parseInt(parsed.data.MAX_FILE_SIZE),
     path: parsed.data.UPLOAD_PATH,
   },
+
+  zarinpal: {
+    merchantId: parsed.data.ZARINPAL_MERCHANT_ID,
+    sandbox: parsed.data.ZARINPAL_SANDBOX === 'true',
+    callbackUrl: parsed.data.ZARINPAL_CALLBACK_URL,
+  },
+  frontendUrl: parsed.data.FRONTEND_URL,
 };

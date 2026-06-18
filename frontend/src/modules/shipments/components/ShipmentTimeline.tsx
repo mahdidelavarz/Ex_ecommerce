@@ -10,7 +10,11 @@ interface ShipmentTimelineProps {
 }
 
 export default function ShipmentTimeline({ shipments }: ShipmentTimelineProps) {
-  if (!shipments || shipments.length === 0) return null;
+  if (!shipments || shipments.length === 0) {
+    return (
+      <p className="text-sm text-text-muted text-center py-4">هنوز اطلاعات ارسالی ثبت نشده است</p>
+    );
+  }
 
   return (
     <div className="space-y-4">

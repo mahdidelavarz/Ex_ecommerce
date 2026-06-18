@@ -1,5 +1,5 @@
 // src/database/entities/payment.entity.ts
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { BaseEntity } from '../base.entity';
 import { Order } from './order.entity';
 
@@ -14,6 +14,7 @@ export enum PaymentStatusEnum {
 }
 
 @Entity('payments')
+@Index('UQ_payments_transaction_id', ['transaction_id'], { unique: true, where: '"transaction_id" IS NOT NULL' })
 export class Payment extends BaseEntity {
   @Column({ type: 'uuid', primary: true, generated: 'uuid' })
   id: string;

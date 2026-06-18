@@ -35,6 +35,14 @@ export const shipmentStatusLabels: Record<ShipmentStatus, string> = {
   returned: 'بازگشت خورده',
 };
 
+export interface UpdateShipmentDto {
+  status?: ShipmentStatus;
+  tracking_url?: string;
+  shipped_at?: string;
+  delivered_at?: string;
+  notes?: string;
+}
+
 export const shipmentStatusColors: Record<ShipmentStatus, string> = {
   pending: 'bg-warning-light text-warning',
   processing: 'bg-info-light text-info',

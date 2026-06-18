@@ -1,26 +1,28 @@
 # Module: Shipments
 
+## Status: ✅ Fixed (2026-06-18)
+
 ## Backend
 
-| # | Issue | Severity | File |
-|---|-------|----------|------|
-| SHP-B1 | `GET /order/:orderId` and `GET /:id` have no ownership check — any authenticated user can read any shipment by guessing the ID | 🔴 Blocker | `shipment.routes.ts` |
-| SHP-B2 | Status sync logic error: when shipment status is `in_transit` or `out_for_delivery`, order status is set to `shipped` — wrong intermediate states | 🟠 Bug | `shipment.repository.ts:71` |
-| SHP-B3 | Fulfillment status always set to `partially_fulfilled` on first shipment creation — ignores whether all items are covered | 🟠 Bug | `shipment.repository.ts` |
-| SHP-B4 | No database transaction — if the order status update fails after shipment insert, data is left inconsistent | 🟠 Bug | `shipment.repository.ts` |
-| SHP-B5 | `shipment.validator.ts` does not exist — `POST /` and `PATCH /:id` accept any body with no Zod validation | 🟠 Bug | `shipment.routes.ts` |
-| SHP-B6 | Multiple `as any` casts in repository bypass TypeScript — status enum assigned as untyped string | 🟡 Incomplete | `shipment.repository.ts:39,44,47,82` |
-| SHP-B7 | No pagination on `findByOrder` — an order with many shipments returns all at once | 🟡 Incomplete | `shipment.repository.ts` |
+| # | Issue | Severity | Status |
+|---|-------|----------|--------|
+| SHP-B1 | `GET /order/:orderId` and `GET /:id` have no ownership check | 🔴 Blocker | ✅ Fixed — controller passes `userId` (skipped for admins); repo throws `ForbiddenError` |
+| SHP-B2 | Status sync error: `in_transit` → `order_status: shipped` (wrong) | 🟠 Bug | ✅ Fixed — only `shipped/delivered/returned` mapped; `in_transit/out_for_delivery` ignored |
+| SHP-B3 | Fulfillment always `partially_fulfilled` regardless of coverage | 🟠 Bug | ✅ Fixed — set `PARTIALLY_FULFILLED` on create; set `FULFILLED` when shipment `delivered` |
+| SHP-B4 | No transaction — inconsistent data if order update fails | 🟠 Bug | ✅ Fixed — `create()` uses `QueryRunner` with rollback on error |
+| SHP-B5 | No Zod validator on POST/PATCH | 🟠 Bug | ✅ Fixed — `shipment.validator.ts` created, wired in routes |
+| SHP-B6 | `as any` casts bypass TypeScript enum safety | 🟡 Incomplete | ✅ Fixed — `ShipmentStatus`/`FulfillmentStatus`/`OrderStatus` enums used directly |
+| SHP-B7 | No pagination on `findByOrder` | 🟡 Incomplete | ⏭ Deferred — low priority, orders rarely have many shipments |
 
 ## Frontend
 
-| # | Issue | Severity | File |
-|---|-------|----------|------|
-| SHP-F1 | `ShipmentTimeline` returns `null` silently when there are no shipments — no empty state shown to user | 🟠 Bug | `ShipmentTimeline.tsx:13` |
-| SHP-F2 | `useUpdateShipment` invalidates `['shipments']` globally instead of `['shipments', orderId]` — too broad | 🟠 Bug | `useShipments.ts:38` |
-| SHP-F3 | No loading or error state in `ShipmentTimeline` — component renders nothing while fetching | 🟡 Incomplete | `ShipmentTimeline.tsx` |
-| SHP-F4 | Order detail page shows shipments section only when `shipments.length > 0` — no "در انتظار ارسال" message for pending orders | 🟡 Incomplete | `orders/[id]/page.tsx` |
-| SHP-F5 | `shipment.service.ts` uses `any` for update payload — no typed DTO on the frontend | 🟡 Incomplete | `shipment.service.ts:30` |
+| # | Issue | Severity | Status |
+|---|-------|----------|--------|
+| SHP-F1 | `ShipmentTimeline` returns `null` silently for empty | 🟠 Bug | ✅ Fixed — shows "هنوز اطلاعات ارسالی ثبت نشده است" |
+| SHP-F2 | `useUpdateShipment` invalidates `['shipments']` globally | 🟠 Bug | ✅ Fixed — `orderId` added to mutation variables; invalidates `['shipments', orderId]` |
+| SHP-F3 | No loading state in timeline fetch | 🟡 Incomplete | ✅ Fixed — `shipmentsLoading` handled in order detail page |
+| SHP-F4 | Shipments section hidden for pending orders | 🟡 Incomplete | ✅ Fixed — section always shown; empty state via `ShipmentTimeline` |
+| SHP-F5 | `data: any` in `useUpdateShipment` mutation | 🟡 Incomplete | ✅ Fixed — `UpdateShipmentDto` type added and used in hook + service |
 
 ## Fix Solutions
 

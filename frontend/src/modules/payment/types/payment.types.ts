@@ -8,10 +8,14 @@ export interface Payment {
   amount: number;
   currency_code: string;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded' | 'partially_refunded' | 'cancelled';
-  gateway_response: any;
+  gateway_response: { authority?: string; ref_id?: string } | null;
   paid_at: string | null;
   refunded_at: string | null;
   refund_amount: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface InitiatePaymentResponse {
+  gateway_url: string;
 }

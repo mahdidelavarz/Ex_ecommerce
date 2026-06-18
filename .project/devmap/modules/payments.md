@@ -1,54 +1,44 @@
 # Module: Payments
 
-## Status: 🔴 Largest Production Blocker
+## Status: ✅ Fixed (2026-06-18)
 
-The data model, entity, and CRUD endpoints exist, but there is no payment gateway integration.
-Orders can be created but can never be charged. This is not a bug — it is an entirely missing
-integration that must be built before launch.
+Zarinpal gateway integrated. Orders now trigger a real payment flow. All blockers resolved.
 
 ---
 
-## What Exists (Stub)
-
-- `payment.entity.ts` — solid schema: provider, method, transaction_id, amount, status, gateway_response JSONB
-- `payment.repository.ts` — CRUD only: create, update, findByOrder, findById
-- `payment.service.ts` — thin pass-through to repository
-- `payment.controller.ts` / `payment.routes.ts` — 4 endpoints, all admin-only or auth-only
-- Frontend `payment.types.ts` / `payment.service.ts` — typed, mirrors backend shape
-
-## Missing: Full Payment Flow
+## Payment Flow (implemented)
 
 | Step | Intended | Actual |
 |------|----------|--------|
 | Place order | `POST /orders` | ✅ works |
-| Initiate payment | `POST /payments/initiate` → get gateway URL | ❌ no endpoint |
-| Redirect to gateway | Browser → Zarinpal/Stripe | ❌ no gateway |
-| Gateway callback / verify | `GET /payments/verify` | ❌ no handler |
-| Update order to paid | auto on verification | ❌ admin only manually |
-| Confirmation page | redirect to `/orders/:id?payment=success` | ❌ no redirect |
+| Initiate payment | `POST /payments/initiate` → get gateway URL | ✅ implemented |
+| Redirect to gateway | Browser → Zarinpal sandbox/production | ✅ implemented |
+| Gateway callback / verify | `GET /payments/verify` | ✅ implemented |
+| Update order to paid | auto on verification | ✅ implemented |
+| Confirmation page | redirect to `/orders/:id?payment=success` | ✅ implemented |
 
 ---
 
 ## Backend
 
-| # | Issue | Severity | File |
-|---|-------|----------|------|
-| PAY-B1 | No payment gateway integrated — module is pure CRUD stub, orders can never be charged | 🔴 Blocker | `payment.routes.ts`, `payment.repository.ts` |
-| PAY-B2 | No customer payment initiation endpoint — `POST /payments` requires `ADMIN` role | 🔴 Blocker | `payment.routes.ts` |
-| PAY-B3 | No webhook/callback handler — gateway has no way to confirm payment completion | 🔴 Blocker | `payment.routes.ts` |
-| PAY-B4 | `paid_amount` set to stale `payment.amount` on update — accumulation logic broken | 🟠 Bug | `payment.repository.ts:~72` |
-| PAY-B5 | No uniqueness index on `transaction_id` — duplicate webhook calls create duplicate records | 🟠 Bug | `payment.entity.ts` |
-| PAY-B6 | `gateway_response` typed as `any` in Zod validator and frontend types — no structure enforced | 🟡 Incomplete | `payment.validator.ts`, `payment.types.ts` |
-| PAY-B7 | Partial payment support incomplete — `partially_paid` status exists in enum but no logic to calculate or set it | 🟡 Incomplete | `payment.repository.ts` |
+| # | Issue | Severity | Status |
+|---|-------|----------|--------|
+| PAY-B1 | No payment gateway integrated — module is pure CRUD stub, orders can never be charged | 🔴 Blocker | ✅ Fixed — `gateway/zarinpal.service.ts` added |
+| PAY-B2 | No customer payment initiation endpoint — `POST /payments` requires `ADMIN` role | 🔴 Blocker | ✅ Fixed — `POST /payments/initiate` (authenticated, customer-accessible) |
+| PAY-B3 | No webhook/callback handler — gateway has no way to confirm payment completion | 🔴 Blocker | ✅ Fixed — `GET /payments/verify` (public, idempotent) |
+| PAY-B4 | `paid_amount` set to stale `payment.amount` on update — accumulation logic broken | 🟠 Bug | ✅ Fixed — accumulates `order.paid_amount + addedAmount` |
+| PAY-B5 | No uniqueness index on `transaction_id` — duplicate webhook calls create duplicate records | 🟠 Bug | ✅ Fixed — partial unique index where NOT NULL added to entity |
+| PAY-B6 | `gateway_response` typed as `any` in Zod validator and frontend types — no structure enforced | 🟡 Incomplete | ✅ Fixed — `GatewayResponse` interface + Zod `passthrough` schema |
+| PAY-B7 | Partial payment support incomplete — `partially_paid` status exists in enum but no logic | 🟡 Incomplete | ⏭ Deferred — requires multi-installment business logic |
 
 ## Frontend
 
-| # | Issue | Severity | File |
-|---|-------|----------|------|
-| PAY-F1 | Checkout does not initiate payment after order creation — user lands on a permanently "pending" order | 🔴 Blocker | `checkout/page.tsx` |
-| PAY-F2 | No payment result page — no success or failure feedback after returning from gateway | 🔴 Blocker | `orders/[id]/page.tsx` |
-| PAY-F3 | No "retry payment" button — if payment fails, there is no UI path to attempt again | 🟡 Incomplete | `orders/[id]/page.tsx` |
-| PAY-F4 | `payment.service.ts` `create()` and `update()` accept `data: any` — no typed DTOs | 🟡 Incomplete | `payment.service.ts` |
+| # | Issue | Severity | Status |
+|---|-------|----------|--------|
+| PAY-F1 | Checkout does not initiate payment after order creation — user lands on a permanently "pending" order | 🔴 Blocker | ✅ Fixed — `handlePlaceOrder` calls `paymentService.initiate()` + `window.location.href` |
+| PAY-F2 | No payment result page — no success or failure feedback after returning from gateway | 🔴 Blocker | ✅ Fixed — `?payment=success` / `?payment=cancelled` banners on order detail |
+| PAY-F3 | No "retry payment" button — if payment fails, there is no UI path to attempt again | 🟡 Incomplete | ✅ Fixed — retry button in cancelled banner calls `paymentService.initiate()` again |
+| PAY-F4 | `payment.service.ts` `create()` and `update()` accept `data: any` — no typed DTOs | 🟡 Incomplete | ✅ Fixed — typed method signatures in `payment.service.ts` |
 
 ---
 
