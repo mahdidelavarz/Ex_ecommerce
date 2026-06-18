@@ -6,9 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { useCreateOrder } from '@/modules/orders/hooks/useOrders';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { couponService } from '@/modules/coupons/services/coupon.service';
+import type { CouponValidation } from '@/modules/coupons/types/coupon.types';
 import Button from '@/components/ui/Button';
 import { formatPrice } from '@/utils/formatPrice';
 import { MdiCartOff, MdiStore } from '@/components/icons/Icons';
+import toast from 'react-hot-toast';
 
 // Temporary - will be replaced with real address management
 const tempAddress = {
@@ -25,7 +28,34 @@ export default function CheckoutPage() {
   const createOrder = useCreateOrder();
   const [note, setNote] = useState('');
   const [couponCode, setCouponCode] = useState('');
+  const [couponResult, setCouponResult] = useState<CouponValidation | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
   const [addressId] = useState('temp-address-id'); // Replace with real address selection
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim() || !cart) return;
+    setIsValidating(true);
+    try {
+      const productIds = cart.items.map((i) => i.variant.product?.id).filter(Boolean) as string[];
+      const result = await couponService.validate({
+        code: couponCode,
+        cart_total: cart.subtotal,
+        product_ids: productIds,
+      });
+      setCouponResult(result);
+      toast.success(`کد تخفیف اعمال شد: ${formatPrice(result.discount_amount)} تومان`);
+    } catch (err: any) {
+      setCouponResult(null);
+      toast.error(err.response?.data?.message || 'کد تخفیف نامعتبر است');
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponResult(null);
+    setCouponCode('');
+  };
 
   if (!isAuthenticated) {
     router.push('/login');
@@ -51,10 +81,13 @@ export default function CheckoutPage() {
     createOrder.mutate({
       shipping_address_id: addressId,
       billing_address_id: addressId,
-      coupon_code: couponCode || undefined,
+      coupon_code: couponResult ? couponCode : undefined,
       customer_note: note || undefined,
     });
   };
+
+  const discountAmount = couponResult?.discount_amount ?? 0;
+  const totalAmount = Math.max(0, cart?.subtotal ?? 0) - discountAmount + 50000;
 
   return (
     <main className="min-h-screen bg-background">
@@ -127,28 +160,50 @@ export default function CheckoutPage() {
                   <span className="text-text-secondary">جمع سبد خرید:</span>
                   <span>{formatPrice(cart.subtotal)}</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-success">
+                    <span>تخفیف ({couponResult?.coupon?.code}):</span>
+                    <span>- {formatPrice(discountAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-text-secondary">هزینه ارسال:</span>
-                  <span>{formatPrice(50000)}</span>
+                  <span>{couponResult?.coupon?.type === 'free_shipping' ? <span className="text-success line-through">{formatPrice(50000)}</span> : formatPrice(50000)}</span>
                 </div>
                 <hr className="border-border" />
                 <div className="flex justify-between text-lg font-bold">
                   <span>مبلغ قابل پرداخت:</span>
-                  <span>{formatPrice(cart.subtotal + 50000)}</span>
+                  <span>{formatPrice(totalAmount)}</span>
                 </div>
               </div>
 
               {/* Coupon */}
               <div className="mb-6">
                 <label className="text-sm font-medium text-text-secondary block mb-2">کد تخفیف</label>
-                <div className="flex gap-2">
-                  <input
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="کد تخفیف"
-                    className="flex-1 px-3 py-2 bg-surface border border-border rounded-input text-sm uppercase focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
+                {couponResult ? (
+                  <div className="flex items-center justify-between bg-success-light rounded-input px-3 py-2">
+                    <span className="text-sm text-success font-medium">{couponCode}</span>
+                    <button onClick={removeCoupon} className="text-xs text-error hover:underline">حذف</button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      value={couponCode}
+                      onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); }}
+                      placeholder="کد تخفیف"
+                      className="flex-1 px-3 py-2 bg-surface border border-border rounded-input text-sm uppercase focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={applyCoupon}
+                      loading={isValidating}
+                      disabled={!couponCode.trim()}
+                    >
+                      اعمال
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <Button

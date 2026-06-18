@@ -1,15 +1,15 @@
 // src/app/(admin)/admin/coupons/[id]/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
+import { useCreateCoupon, useUpdateCoupon } from '@/modules/coupons/hooks/useCoupons';
 import { couponService } from '@/modules/coupons/services/coupon.service';
-
 import { useCategories } from '@/modules/categories/hooks/useCategories';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
@@ -38,9 +38,11 @@ export default function AdminCouponFormPage() {
   const params = useParams();
   const isEdit = params.id !== 'new';
   const { isLoading: isAuthLoading } = useAdminRoute();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createCoupon = useCreateCoupon();
+  const updateCoupon = useUpdateCoupon();
+  const isSubmitting = createCoupon.isPending || updateCoupon.isPending;
 
-  const { data: productsData } = useProducts?.() || { data: [] };
+  const { data: productsData } = useProducts({ limit: 200 });
   const { data: categoriesData } = useCategories({ limit: 200 });
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<FormData>({
@@ -66,28 +68,29 @@ export default function AdminCouponFormPage() {
           starts_at: c.starts_at?.split('T')[0], expires_at: c.expires_at?.split('T')[0],
           is_active: c.is_active,
           product_ids: c.products?.map((p) => p.id) || [],
-          category_ids: c.categories?.map((c) => c.id) || [],
+          category_ids: c.categories?.map((cat) => cat.id) || [],
         });
       }).catch(() => { toast.error('خطا'); router.back(); });
     }
   }, [params.id]);
 
   const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
+    const payload = {
+      ...data,
+      min_order_amount: data.min_order_amount || null,
+      max_discount: data.max_discount || null,
+      usage_limit: data.usage_limit || null,
+      usage_per_user: data.usage_per_user || null,
+    };
     try {
-      const payload = { ...data, min_order_amount: data.min_order_amount || null, max_discount: data.max_discount || null, usage_limit: data.usage_limit || null, usage_per_user: data.usage_per_user || null };
       if (isEdit) {
-        await couponService.update(params.id as string, payload);
-        toast.success('بروزرسانی شد');
+        await updateCoupon.mutateAsync({ id: params.id as string, data: payload });
       } else {
-        await couponService.create(payload);
-        toast.success('ایجاد شد');
+        await createCoupon.mutateAsync(payload);
       }
       router.push('/admin/coupons');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'خطا');
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      // toast handled by mutation hook
     }
   };
 
@@ -158,6 +161,76 @@ export default function AdminCouponFormPage() {
                 <input type="checkbox" {...register('is_active')} className="rounded" />
                 <span className="text-sm">فعال</span>
               </label>
+            </div>
+
+            {/* Product Restrictions */}
+            <div className="bg-surface rounded-card shadow-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium text-text-primary">محدودیت محصول</h3>
+                {selectedProducts.length > 0 && (
+                  <button type="button" onClick={() => setValue('product_ids', [])} className="text-xs text-error hover:underline">
+                    حذف همه
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-text-muted mb-3">اگر انتخاب نشود، کد برای همه محصولات معتبر است.</p>
+              <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-input p-2">
+                {(productsData?.data ?? []).map((p: any) => (
+                  <label key={p.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface-raised cursor-pointer">
+                    <input
+                      type="checkbox"
+                      value={p.id}
+                      checked={selectedProducts.includes(p.id)}
+                      onChange={(e) => {
+                        const next = e.target.checked
+                          ? [...selectedProducts, p.id]
+                          : selectedProducts.filter((id) => id !== p.id);
+                        setValue('product_ids', next);
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-sm">{p.title}</span>
+                  </label>
+                ))}
+              </div>
+              {selectedProducts.length > 0 && (
+                <p className="text-xs text-primary mt-2">{selectedProducts.length} محصول انتخاب شده</p>
+              )}
+            </div>
+
+            {/* Category Restrictions */}
+            <div className="bg-surface rounded-card shadow-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium text-text-primary">محدودیت دسته‌بندی</h3>
+                {selectedCategories.length > 0 && (
+                  <button type="button" onClick={() => setValue('category_ids', [])} className="text-xs text-error hover:underline">
+                    حذف همه
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-text-muted mb-3">اگر انتخاب نشود، کد برای همه دسته‌بندی‌ها معتبر است.</p>
+              <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-input p-2">
+                {(categoriesData?.data ?? []).map((c: any) => (
+                  <label key={c.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface-raised cursor-pointer">
+                    <input
+                      type="checkbox"
+                      value={c.id}
+                      checked={selectedCategories.includes(c.id)}
+                      onChange={(e) => {
+                        const next = e.target.checked
+                          ? [...selectedCategories, c.id]
+                          : selectedCategories.filter((id) => id !== c.id);
+                        setValue('category_ids', next);
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-sm">{c.name}</span>
+                  </label>
+                ))}
+              </div>
+              {selectedCategories.length > 0 && (
+                <p className="text-xs text-primary mt-2">{selectedCategories.length} دسته‌بندی انتخاب شده</p>
+              )}
             </div>
 
             <div className="flex gap-4">

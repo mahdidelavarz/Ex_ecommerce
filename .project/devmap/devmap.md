@@ -59,7 +59,7 @@
 | variants | ✅ | ✅ | ✅ Fixed | [modules/variants.md](modules/variants.md) |
 | tags | ✅ | ✅ | ✅ Fixed | [modules/tags.md](modules/tags.md) |
 | cart | ✅ | ✅ | ✅ Fixed | [modules/cart.md](modules/cart.md) |
-| coupons | ✅ | ✅ | ✅ Explored | [modules/coupons.md](modules/coupons.md) |
+| coupons | ✅ | ✅ | ✅ Fixed | [modules/coupons.md](modules/coupons.md) |
 | orders | ✅ | ✅ | ✅ Explored | [modules/orders.md](modules/orders.md) |
 | payments | ✅ stub | — | ✅ Explored | [modules/payments.md](modules/payments.md) |
 | shipments | ✅ | ✅ | ✅ Explored | [modules/shipments.md](modules/shipments.md) |
@@ -101,6 +101,6 @@
 - [x] PRD-F1: Sanitize `dangerouslySetInnerHTML` (XSS) — isomorphic-dompurify
 - [x] PRD-F2/F3: Fix product detail crash + JSX syntax error
 - [x] O-B1 / PRD-B1: Fix route ordering (admin/all and slug/related)
-- [ ] CPN-B1: Validate category restrictions in coupon `validate()`
+- [x] CPN-B1: Validate category restrictions in coupon `validate()`
 - [ ] PAY-B1–B3 / PAY-F1–F2: Zarinpal gateway integration — initiate + verify endpoints + frontend redirect
 - [ ] All remaining module blockers resolved

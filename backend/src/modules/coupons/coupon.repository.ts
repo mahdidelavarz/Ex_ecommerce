@@ -4,6 +4,7 @@ import { Coupon } from "../../database/entities/coupon.entity";
 import { CouponProduct } from "../../database/entities/coupon-product.entity";
 import { CouponCategory } from "../../database/entities/coupon-category.entity";
 import { Order } from "../../database/entities/order.entity";
+import { Product } from "../../database/entities/product.entity";
 import {
   NotFoundError,
   ConflictError,
@@ -22,6 +23,7 @@ export class CouponRepository {
   private couponProductRepo = AppDataSource.getRepository(CouponProduct);
   private couponCategoryRepo = AppDataSource.getRepository(CouponCategory);
   private orderRepo = AppDataSource.getRepository(Order);
+  private productRepo = AppDataSource.getRepository(Product);
 
   async findAll(options: {
     search?: string;
@@ -246,7 +248,7 @@ export class CouponRepository {
       );
     }
 
-    // Check product/category restrictions
+    // Check product restrictions
     if (coupon.coupon_products?.length > 0) {
       const validProductIds = coupon.coupon_products.map((cp) => cp.product_id);
       const hasValidProduct = dto.product_ids.some((pid) =>
@@ -255,6 +257,21 @@ export class CouponRepository {
       if (!hasValidProduct) {
         throw new BadRequestError(
           "این کد تخفیف برای محصولات سبد خرید شما معتبر نیست",
+        );
+      }
+    }
+
+    // Check category restrictions
+    if (coupon.coupon_categories?.length > 0) {
+      const allowedCategoryIds = coupon.coupon_categories.map((cc) => cc.category_id);
+      const products = dto.product_ids.length
+        ? await this.productRepo.findBy({ id: In(dto.product_ids) })
+        : [];
+      const itemCategoryIds = products.map((p) => p.category_id);
+      const hasMatch = itemCategoryIds.some((id) => allowedCategoryIds.includes(id));
+      if (!hasMatch) {
+        throw new BadRequestError(
+          "این کد تخفیف برای دسته‌بندی‌های انتخاب‌شده معتبر نیست",
         );
       }
     }

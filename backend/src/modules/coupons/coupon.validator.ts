@@ -23,8 +23,11 @@ export const createCouponSchema = couponBaseSchema.refine(
   { message: 'درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد', path: ['value'] }
 );
 
-// Update بدون refine
-export const updateCouponSchema = couponBaseSchema.partial();
+// Update با همان refine درصد
+export const updateCouponSchema = couponBaseSchema.partial().refine(
+  (data) => !(data.type === 'percentage' && data.value !== undefined && data.value > 100),
+  { message: 'درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد', path: ['value'] },
+);
 
 export const validateCouponSchema = z.object({
   code: z.string().min(1).transform((v) => v.toUpperCase()),

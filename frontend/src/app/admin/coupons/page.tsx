@@ -3,9 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { useCoupons } from "@/modules/coupons/hooks/useCoupons";
-import { couponService } from "@/modules/coupons/services/coupon.service";
+import { useCoupons, useDeleteCoupon } from "@/modules/coupons/hooks/useCoupons";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import Button from "@/components/ui/Button";
@@ -28,17 +26,12 @@ export default function AdminCouponsPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, refetch } = useCoupons({ page, limit: 20 });
+  const { data, isLoading } = useCoupons({ page, limit: 20 });
+  const deleteCoupon = useDeleteCoupon();
 
   const handleDelete = async (coupon: Coupon) => {
     if (!window.confirm(`حذف کد "${coupon.code}"؟`)) return;
-    try {
-      await couponService.delete(coupon.id);
-      toast.success("کد تخفیف حذف شد");
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا");
-    }
+    deleteCoupon.mutate(coupon.id);
   };
 
   if (isAuthLoading) {
@@ -82,6 +75,9 @@ export default function AdminCouponsPage() {
                     <th className="text-right px-4 py-3 text-sm">کد</th>
                     <th className="text-center px-4 py-3 text-sm">نوع</th>
                     <th className="text-center px-4 py-3 text-sm">مقدار</th>
+                    <th className="text-center px-4 py-3 text-sm hidden xl:table-cell">حداقل سفارش</th>
+                    <th className="text-center px-4 py-3 text-sm hidden xl:table-cell">حداکثر تخفیف</th>
+                    <th className="text-center px-4 py-3 text-sm hidden lg:table-cell">هر کاربر</th>
                     <th className="text-center px-4 py-3 text-sm hidden md:table-cell">
                       مصرف
                     </th>
@@ -96,7 +92,7 @@ export default function AdminCouponsPage() {
                   {isLoading ? (
                     [...Array(3)].map((_, i) => (
                       <tr key={i} className="border-b border-border">
-                        <td colSpan={7} className="px-4 py-4">
+                        <td colSpan={10} className="px-4 py-4">
                           <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
                         </td>
                       </tr>
@@ -104,7 +100,7 @@ export default function AdminCouponsPage() {
                   ) : data?.data?.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={10}
                         className="text-center py-12 text-text-secondary"
                       >
                         کد تخفیفی یافت نشد
@@ -130,6 +126,15 @@ export default function AdminCouponsPage() {
                             : coupon.type === "percentage"
                               ? `${coupon.value}٪`
                               : `${coupon.value.toLocaleString()} تومان`}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm hidden xl:table-cell">
+                          {coupon.min_order_amount ? `${coupon.min_order_amount.toLocaleString()} تومان` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm hidden xl:table-cell">
+                          {coupon.max_discount ? `${coupon.max_discount.toLocaleString()} تومان` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-center text-sm hidden lg:table-cell">
+                          {coupon.usage_per_user ?? '—'}
                         </td>
                         <td className="px-4 py-3 text-center text-sm hidden md:table-cell">
                           {coupon.used_count}
