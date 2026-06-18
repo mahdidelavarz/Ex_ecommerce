@@ -28,11 +28,12 @@ export function useCart() {
 
   // Merge guest cart when user logs in
   useEffect(() => {
-    if (isAuthenticated) {
-      cartService.mergeCart().then(() => {
-        queryClient.invalidateQueries({ queryKey: ['cart'] });
-      });
-    }
+    if (!isAuthenticated) return;
+    const merge = async () => {
+      await cartService.mergeCart();
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    };
+    merge();
   }, [isAuthenticated, queryClient]);
 
   const addItem = useMutation({

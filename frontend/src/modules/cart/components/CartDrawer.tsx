@@ -86,7 +86,7 @@ export default function CartDrawer() {
                     <div className="flex flex-wrap gap-1 mt-1">
                       {item.variant.attributes?.map((attr, i) => (
                         <span key={i} className="text-xs text-text-muted bg-surface px-1.5 py-0.5 rounded">
-                          {attr.value}
+                          {attr.name}: {attr.value}
                         </span>
                       ))}
                     </div>
@@ -109,7 +109,14 @@ export default function CartDrawer() {
                           <LucidePlus className="w-3 h-3" />
                         </button>
                       </div>
-                      <span className="text-sm font-bold">{formatPrice(item.variant.price * item.quantity)}</span>
+                      <div className="text-right">
+                        {item.variant.compare_at_price && item.variant.compare_at_price > item.variant.price && (
+                          <span className="text-xs text-text-muted line-through block">
+                            {formatPrice(item.variant.compare_at_price * item.quantity)}
+                          </span>
+                        )}
+                        <span className="text-sm font-bold">{formatPrice(item.variant.price * item.quantity)}</span>
+                      </div>
                     </div>
                   </div>
 

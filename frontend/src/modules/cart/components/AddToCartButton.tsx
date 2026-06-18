@@ -3,8 +3,6 @@
 
 import { useState } from "react";
 import { useCart } from "../hooks/useCart";
-import { useAuthStore } from "@/modules/auth/store/auth.store";
-import { useRouter } from "next/navigation";
 import {
   LucidePlus,
   MdiCartPlus,
@@ -27,16 +25,10 @@ export default function AddToCartButton({
 }: AddToCartButtonProps) {
   const [qty, setQty] = useState(quantity);
   const { addItem, isAdding } = useCart();
-  const { isAuthenticated } = useAuthStore();
-  const router = useRouter();
 
   const isOutOfStock = stockQuantity === 0;
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
     addItem({ variant_id: variantId, quantity: qty });
   };
 
@@ -50,7 +42,7 @@ export default function AddToCartButton({
         >
           <MdiMinus className="w-4 h-4" />
         </button>
-        <span className="px-4 text-sm font-medium min-w-[40px] text-center">
+        <span className="px-4 text-sm font-medium min-w-10 text-center">
           {qty}
         </span>
         <button

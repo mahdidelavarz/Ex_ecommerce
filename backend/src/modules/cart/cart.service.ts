@@ -17,7 +17,8 @@ export class CartService {
   }
 
   async updateItem(itemId: string, dto: UpdateCartItemDto) {
-    return this.repo.updateItem(itemId, dto);
+    const item = await this.repo.updateItem(itemId, dto);
+    return this.repo.getCartWithDetails(item.cart_id);
   }
 
   async removeItem(itemId: string) {

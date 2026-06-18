@@ -42,72 +42,59 @@ export class CartRepository {
   }
 
   async getCartWithDetails(cartId: string): Promise<any> {
-    const cart = await this.cartRepo.findOne({
-      where: { id: cartId },
-      relations: ['items', 'items.variant', 'items.variant.product'],
-    });
-
+    const cart = await this.cartRepo.findOne({ where: { id: cartId } });
     if (!cart) throw new NotFoundError('سبد خرید یافت نشد');
 
-    // Get variant details for each item
-    const itemsWithDetails = await Promise.all(
-      (cart.items || []).map(async (item) => {
-        const variant = await this.variantRepo.findOne({
-          where: { id: item.variant_id },
-          relations: [
-            'product',
-            'variant_attribute_values',
-            'variant_attribute_values.attribute_value',
-            'variant_attribute_values.attribute_value.attribute',
-            'images',
-          ],
-        });
+    const items = await this.cartItemRepo
+      .createQueryBuilder('item')
+      .leftJoinAndSelect('item.variant', 'variant')
+      .leftJoinAndSelect('variant.product', 'product')
+      .leftJoinAndSelect('variant.images', 'images')
+      .leftJoinAndSelect('variant.variant_attribute_values', 'vav')
+      .leftJoinAndSelect('vav.attribute_value', 'attrVal')
+      .leftJoinAndSelect('attrVal.attribute', 'attr')
+      .where('item.cart_id = :cartId', { cartId })
+      .getMany();
 
-        if (!variant) return null;
+    const mappedItems = items.map((item) => {
+      const variant = item.variant;
+      const thumbnail = variant.images?.find((img) => img.sort_order === 0) || variant.images?.[0];
+      return {
+        id: item.id,
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        variant: {
+          id: variant.id,
+          sku: variant.sku,
+          price: variant.price,
+          compare_at_price: variant.compare_at_price,
+          stock_quantity: variant.stock_quantity,
+          is_active: variant.is_active,
+          attributes: variant.variant_attribute_values?.map((vav) => ({
+            name: vav.attribute_value?.attribute?.name || '',
+            value: vav.attribute_value?.value || '',
+            color_code: vav.attribute_value?.color_code || null,
+          })) || [],
+          image: thumbnail?.image_url || null,
+          product: variant.product
+            ? {
+                id: variant.product.id,
+                title: variant.product.title,
+                slug: variant.product.slug,
+                is_active: variant.product.is_active,
+              }
+            : null,
+        },
+      };
+    });
 
-        const thumbnail = variant.images?.find((img) => img.sort_order === 0) || variant.images?.[0];
-
-        return {
-          id: item.id,
-          variant_id: item.variant_id,
-          quantity: item.quantity,
-          variant: {
-            id: variant.id,
-            sku: variant.sku,
-            price: variant.price,
-            compare_at_price: variant.compare_at_price,
-            stock_quantity: variant.stock_quantity,
-            is_active: variant.is_active,
-            attributes: variant.variant_attribute_values?.map((vav) => ({
-              name: vav.attribute_value?.attribute?.name || '',
-              value: vav.attribute_value?.value || '',
-              color_code: vav.attribute_value?.color_code || null,
-            })) || [],
-            image: thumbnail?.image_url || null,
-            product: variant.product
-              ? {
-                  id: variant.product.id,
-                  title: variant.product.title,
-                  slug: variant.product.slug,
-                  is_active: variant.product.is_active,
-                }
-              : null,
-          },
-        };
-      })
-    );
-
-    const validItems = itemsWithDetails.filter(Boolean);
-    const totalQuantity = validItems.reduce((sum, item) => sum + item!.quantity, 0);
-    const subtotal = validItems.reduce(
-      (sum, item) => sum + item!.variant.price * item!.quantity,
-      0
-    );
+    const totalQuantity = mappedItems.reduce((sum, item) => sum + item.quantity, 0);
+    const subtotal = mappedItems.reduce((sum, item) => sum + item.variant.price * item.quantity, 0);
 
     return {
       id: cart.id,
-      items: validItems,
-      total_items: validItems.length,
+      items: mappedItems,
+      total_items: mappedItems.length,
       total_quantity: totalQuantity,
       subtotal,
       created_at: cart.created_at,
@@ -201,15 +188,28 @@ export class CartRepository {
         existing.quantity += guestItem.quantity;
         await this.cartItemRepo.save(existing);
       } else {
-        await this.cartItemRepo.save({
-          cart_id: userCart.id,
-          variant_id: guestItem.variant_id,
-          quantity: guestItem.quantity,
-        });
+        await this.cartItemRepo.save(
+          this.cartItemRepo.create({
+            cart_id: userCart.id,
+            variant_id: guestItem.variant_id,
+            quantity: guestItem.quantity,
+          })
+        );
       }
     }
 
     // Delete guest cart
     await this.cartRepo.remove(guestCart);
+  }
+
+  async cleanupExpiredGuestCarts(olderThanDays = 30): Promise<void> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - olderThanDays);
+    await this.cartRepo
+      .createQueryBuilder()
+      .delete()
+      .where('user_id IS NULL')
+      .andWhere('updated_at < :cutoff', { cutoff })
+      .execute();
   }
 }

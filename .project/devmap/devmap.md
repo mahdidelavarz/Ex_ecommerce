@@ -58,7 +58,7 @@
 | attributes | ✅ | ✅ | ✅ Fixed | [modules/attributes.md](modules/attributes.md) |
 | variants | ✅ | ✅ | ✅ Fixed | [modules/variants.md](modules/variants.md) |
 | tags | ✅ | ✅ | ✅ Fixed | [modules/tags.md](modules/tags.md) |
-| cart | ✅ | ✅ | ✅ Explored | [modules/cart.md](modules/cart.md) |
+| cart | ✅ | ✅ | ✅ Fixed | [modules/cart.md](modules/cart.md) |
 | coupons | ✅ | ✅ | ✅ Explored | [modules/coupons.md](modules/coupons.md) |
 | orders | ✅ | ✅ | ✅ Explored | [modules/orders.md](modules/orders.md) |
 | payments | ✅ stub | — | ✅ Explored | [modules/payments.md](modules/payments.md) |
@@ -97,7 +97,7 @@
 - [x] AUTH-B3: Lock JWT `algorithms` to `['HS256']`
 - [x] AUTH-F1: Remove `refreshToken` from `localStorage`
 - [ ] F-1 / O-F1: Real address selection in checkout
-- [ ] C-F1: Allow guest add-to-cart (remove forced login in `AddToCartButton`)
+- [x] C-F1: Allow guest add-to-cart (remove forced login in `AddToCartButton`)
 - [x] PRD-F1: Sanitize `dangerouslySetInnerHTML` (XSS) — isomorphic-dompurify
 - [x] PRD-F2/F3: Fix product detail crash + JSX syntax error
 - [x] O-B1 / PRD-B1: Fix route ordering (admin/all and slug/related)

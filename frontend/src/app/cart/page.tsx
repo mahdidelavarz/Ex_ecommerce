@@ -69,7 +69,7 @@ export default function CartPage() {
                   <div className="flex flex-wrap gap-1 mt-1">
                     {item.variant.attributes?.map((attr, i) => (
                       <span key={i} className="text-xs text-text-muted bg-surface-raised px-2 py-0.5 rounded">
-                        {attr.value}
+                        {attr.name}: {attr.value}
                       </span>
                     ))}
                   </div>
@@ -93,6 +93,11 @@ export default function CartPage() {
                     </div>
 
                     <div className="text-left">
+                      {item.variant.compare_at_price && item.variant.compare_at_price > item.variant.price && (
+                        <p className="text-xs text-text-muted line-through">
+                          {formatPrice(item.variant.compare_at_price * item.quantity)}
+                        </p>
+                      )}
                       <span className="font-bold text-text-primary">{formatPrice(item.variant.price * item.quantity)}</span>
                       {item.quantity > 1 && (
                         <p className="text-xs text-text-muted">{formatPrice(item.variant.price)} هر عدد</p>
@@ -115,11 +120,11 @@ export default function CartPage() {
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-text-secondary">تعداد اقلام:</span>
+                  <span className="text-text-secondary">تعداد محصولات مختلف:</span>
                   <span>{cart.total_items}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-secondary">تعداد کل:</span>
+                  <span className="text-text-secondary">تعداد واحد:</span>
                   <span>{cart.total_quantity}</span>
                 </div>
                 <hr className="border-border" />
