@@ -55,15 +55,17 @@ export class OrderRepository {
       const orderItemsData: any[] = [];
 
       for (const cartItem of cart.items) {
-        const variant = await queryRunner.manager.findOne(ProductVariant, {
-          where: { id: cartItem.variant_id },
-          relations: [
-            'product',
-            'variant_attribute_values',
-            'variant_attribute_values.attribute_value',
-            'variant_attribute_values.attribute_value.attribute',
-          ],
-        });
+        // Pessimistic write lock prevents two concurrent orders from both seeing
+        // sufficient stock and both decrementing past zero.
+        const variant = await queryRunner.manager
+          .createQueryBuilder(ProductVariant, 'v')
+          .setLock('pessimistic_write')
+          .leftJoinAndSelect('v.product', 'product')
+          .leftJoinAndSelect('v.variant_attribute_values', 'vav')
+          .leftJoinAndSelect('vav.attribute_value', 'av')
+          .leftJoinAndSelect('av.attribute', 'attr')
+          .where('v.id = :id', { id: cartItem.variant_id })
+          .getOne();
 
         if (!variant || !variant.is_active || !variant.product?.is_active) {
           throw new BadRequestError(`محصول در دسترس نیست`);
@@ -175,9 +177,9 @@ export class OrderRepository {
       const taxAmount = 0;
       const totalAmount = Math.max(0, subtotal - discountAmount + shippingAmount + taxAmount);
 
-      // Generate order number
-      const orderCount = await queryRunner.manager.count(Order);
-      const orderNumber = `NZS-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(orderCount + 1).padStart(5, '0')}`;
+      // Generate order number — timestamp + 4-char random avoids count() race condition
+      const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+      const orderNumber = `NZS-${new Date().getFullYear()}-${Date.now()}-${rand}`;
 
       // Create order with direct insert
       const orderInsert = {
