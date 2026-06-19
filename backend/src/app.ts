@@ -5,9 +5,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { env } from './config/env';
 import { corsConfig } from './config/cors';
-import { generalLimiter } from './middleware/rateLimiter';
+import { generalLimiter, apiLimiter } from './middleware/rateLimiter';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
+import { csrfProtection } from './middleware/csrf';
 import { initializeDatabase } from './config/database';
 import authRoutes from './modules/auth/auth.routes';
 import cookieParser from 'cookie-parser';
@@ -40,7 +41,8 @@ app.use(corsConfig);
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser()); // ← اضافه کن قبل از routes
+app.use(cookieParser());
+app.use(csrfProtection);
 
 
 // Logging
@@ -64,6 +66,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 const apiPrefix = env.apiPrefix;
+app.use(apiPrefix, apiLimiter);
 
 // In the routes section:
 app.use(`${apiPrefix}/auth`, authRoutes);
