@@ -3,7 +3,7 @@ import cors from 'cors';
 import { env } from './env';
 
 export const corsConfig = cors({
-  origin: 'http://localhost:3000',  // ← دقیق باشه، نه *
+  origin: env.cors.origin,
   credentials: true,  // ← حتماً true
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
