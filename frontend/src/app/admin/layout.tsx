@@ -1,5 +1,6 @@
-// src/app/(admin)/layout.tsx
+// src/app/admin/layout.tsx
 import type { Metadata } from "next";
+import AdminGuard from "./AdminGuard";
 
 export const metadata: Metadata = {
   title: "پنل مدیریت | نازی شاپ",
@@ -11,5 +12,9 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="min-h-screen bg-background">{children}</div>;
+  return (
+    <div className="min-h-screen bg-background">
+      <AdminGuard>{children}</AdminGuard>
+    </div>
+  );
 }
