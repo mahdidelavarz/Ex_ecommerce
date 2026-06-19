@@ -21,6 +21,8 @@ export default function WishlistButton({ variantId, className = '', size = 24 }:
   const removeFromWishlist = useRemoveFromWishlist();
   const { data: wishlist } = useWishlist();
 
+  const isPending = addToWishlist.isPending || removeFromWishlist.isPending;
+
   useEffect(() => {
     if (wishlist) {
       setIsWishlisted(wishlist.some((item) => item.variant_id === variantId));
@@ -28,6 +30,7 @@ export default function WishlistButton({ variantId, className = '', size = 24 }:
   }, [wishlist, variantId]);
 
   const handleToggle = () => {
+    if (isPending) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -39,18 +42,18 @@ export default function WishlistButton({ variantId, className = '', size = 24 }:
     } else {
       addToWishlist.mutate(variantId);
     }
-    setIsWishlisted(!isWishlisted);
   };
 
   return (
     <button
       onClick={handleToggle}
+      disabled={isPending}
       className={`p-2 rounded-button transition-colors ${
         isWishlisted
           ? 'bg-error-light text-error hover:bg-error-light/80'
           : 'hover:bg-surface-raised text-text-secondary'
-      } ${className}`}
-      title={isWishlisted ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
+      } ${isPending ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+      aria-label={isWishlisted ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
     >
       {isWishlisted ? <MdiHeart width={size}/> : <MdiHeartOutline width={size}/>}
     </button>

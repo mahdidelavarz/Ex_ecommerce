@@ -8,13 +8,15 @@ export class WishlistController {
   private service = new WishlistService();
 
   list = asyncHandler(async (req: Request, res: Response) => {
-    const items = await this.service.list(req.userId!);
-    ApiResponseHelper.success(res, items);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await this.service.list(req.userId!, page, limit);
+    ApiResponseHelper.paginated(res, result.items, result.total, page, limit);
   });
 
   add = asyncHandler(async (req: Request, res: Response) => {
-    await this.service.add(req.userId!, req.body);
-    ApiResponseHelper.created(res, null, 'به علاقه‌مندی‌ها اضافه شد');
+    const item = await this.service.add(req.userId!, req.body);
+    ApiResponseHelper.created(res, item, 'به علاقه‌مندی‌ها اضافه شد');
   });
 
   remove = asyncHandler(async (req: Request, res: Response) => {

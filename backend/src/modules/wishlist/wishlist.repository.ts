@@ -9,14 +9,16 @@ export class WishlistRepository {
   private repo = AppDataSource.getRepository(Wishlist);
   private variantRepo = AppDataSource.getRepository(ProductVariant);
 
-  async findByUser(userId: string) {
-    const items = await this.repo.find({
+  async findByUser(userId: string, page = 1, limit = 20) {
+    const [rows, total] = await this.repo.findAndCount({
       where: { user_id: userId },
       relations: ['variant', 'variant.product', 'variant.variant_attribute_values', 'variant.variant_attribute_values.attribute_value', 'variant.variant_attribute_values.attribute_value.attribute', 'variant.images'],
       order: { created_at: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
-    return items.map((item) => ({
+    const items = rows.map((item) => ({
       id: item.id,
       variant_id: item.variant_id,
       variant: {
@@ -41,6 +43,8 @@ export class WishlistRepository {
       },
       created_at: item.created_at,
     }));
+
+    return { items, total, page, limit };
   }
 
   async add(userId: string, dto: AddToWishlistDto) {

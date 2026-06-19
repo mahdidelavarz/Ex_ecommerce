@@ -29,5 +29,6 @@ export function useRemoveFromWishlist() {
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
       toast.success('از علاقه‌مندی‌ها حذف شد');
     },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در حذف از علاقه‌مندی‌ها'),
   });
 }

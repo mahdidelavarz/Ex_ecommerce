@@ -8,9 +8,5 @@
 - [Frontend Patterns](frontend-patterns.md) — Module structure, React Query hooks, Zustand stores, API client
 - [Database Entities](database-entities.md) — 30+ TypeORM entities grouped by domain
 
-## Roadmap & Issues
-- [Dev Map](devmap/devmap.md) — Prioritized issues list: blockers, bugs, incomplete features, hardening — updated module by module
-- [Incomplete Modules](incomplete-modules.md) — Modules missing files vs the standard pattern
-
-## Questions & Hypotheses
-- [Open Questions](open-questions.md) — Unresolved design questions and things to verify
+## Remaining Work
+- [Remaining](remaining.md) — All open issues: infra, security, checkout, backend bugs, products, reviews, admin pages, SEO, open questions

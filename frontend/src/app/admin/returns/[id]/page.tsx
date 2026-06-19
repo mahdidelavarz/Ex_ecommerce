@@ -172,8 +172,11 @@ export default function AdminReturnDetailPage() {
                 )}
 
                 {ret.status === 'approved' && (
+                  <Button onClick={() => updateStatus('received')}>دریافت شد</Button>
+                )}
+
+                {ret.status === 'received' && (
                   <div className="flex items-center gap-3">
-                    <Button onClick={() => updateStatus('received')}>دریافت شد</Button>
                     <input
                       type="number"
                       value={refundAmount || ''}

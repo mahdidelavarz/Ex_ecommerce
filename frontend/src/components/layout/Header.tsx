@@ -17,12 +17,15 @@ import {
 } from "../icons/Icons";
 import { useCartStore } from "@/modules/cart/store/cart.store";
 import { useCart } from "@/modules/cart/hooks/useCart";
+import { useWishlist } from "@/modules/wishlist/hooks/useWishlist";
 
 export default function Header() {
   const { user, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { openCart } = useCartStore();
   const { cart } = useCart();
+  const { data: wishlist } = useWishlist();
+  const wishlistCount = wishlist?.length ?? 0;
 
   return (
     <header className="sticky top-0 z-30 bg-surface border-b border-border shadow-sm">
@@ -59,10 +62,15 @@ export default function Header() {
             {/* Wishlist */}
             <Link
               href="/wishlist"
-              className="p-2 hover:bg-surface-raised rounded-button transition-colors"
+              className="p-2 hover:bg-surface-raised rounded-button transition-colors relative"
               aria-label="علاقه‌مندی‌ها"
             >
               <MdiHeartOutline className="w-5 h-5 text-text-secondary" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-error text-white text-xs rounded-full flex items-center justify-center font-medium">
+                  {wishlistCount > 99 ? '99+' : wishlistCount}
+                </span>
+              )}
             </Link>
 
             <Link

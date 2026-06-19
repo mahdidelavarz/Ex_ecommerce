@@ -4,17 +4,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import { MdiChevronLeft, MdiChevronRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const statusLabels: Record<string, string> = {
-  pending: 'در انتظار',
+  pending:  'در انتظار',
   approved: 'تایید شده',
   rejected: 'رد شده',
   received: 'دریافت شده',
@@ -22,7 +21,7 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-warning-light text-warning',
+  pending:  'bg-warning-light text-warning',
   approved: 'bg-info-light text-info',
   rejected: 'bg-error-light text-error',
   received: 'bg-primary-light text-primary',
@@ -35,6 +34,7 @@ export default function AdminReturnsPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const [refundAmounts, setRefundAmounts] = useState<Record<string, string>>({});
 
   const { data, isLoading } = useQuery({
     queryKey: ['returns', 'admin', { page, status: statusFilter }],
@@ -46,14 +46,28 @@ export default function AdminReturnsPage() {
     },
   });
 
-  const updateStatus = async (id: string, status: string, refundAmount?: number) => {
-    try {
-      await apiClient.patch(`/returns/${id}/status`, { status, refund_amount: refundAmount });
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status, refundAmount }: { id: string; status: string; refundAmount?: number }) =>
+      apiClient.patch(`/returns/${id}/status`, { status, refund_amount: refundAmount }),
+    onSuccess: () => {
       toast.success('وضعیت بروزرسانی شد');
       queryClient.invalidateQueries({ queryKey: ['returns'] });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'خطا');
+    },
+    onError: (error: any) => toast.error(error.response?.data?.message || 'خطا'),
+  });
+
+  const handleUpdateStatus = (id: string, status: string, refundAmount?: number) => {
+    if (updateStatusMutation.isPending) return;
+    updateStatusMutation.mutate({ id, status, refundAmount });
+  };
+
+  const handleRefund = (id: string) => {
+    const amount = parseInt(refundAmounts[id] || '');
+    if (!amount || amount <= 0) {
+      toast.error('مبلغ معتبر وارد کنید');
+      return;
     }
+    handleUpdateStatus(id, 'refunded', amount);
   };
 
   if (isAuthLoading) {
@@ -104,11 +118,15 @@ export default function AdminReturnsPage() {
                 {isLoading ? (
                   [...Array(5)].map((_, i) => (
                     <tr key={i} className="border-b border-border">
-                      <td colSpan={6} className="px-4 py-4"><div className="h-4 bg-surface-raised rounded animate-pulse-soft" /></td>
+                      <td colSpan={6} className="px-4 py-4">
+                        <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
+                      </td>
                     </tr>
                   ))
                 ) : data?.data?.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-12 text-text-secondary">مرجوعی یافت نشد</td></tr>
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-text-secondary">مرجوعی یافت نشد</td>
+                  </tr>
                 ) : (
                   data?.data?.map((ret: any) => (
                     <tr key={ret.id} className="border-b border-border hover:bg-surface-raised/50">
@@ -133,41 +151,53 @@ export default function AdminReturnsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex justify-center gap-1">
+                        <div className="flex flex-col justify-center gap-1 items-center">
                           {ret.status === 'pending' && (
-                            <>
+                            <div className="flex gap-1">
                               <button
-                                onClick={() => updateStatus(ret.id, 'approved')}
-                                className="px-3 py-1 bg-success-light text-success rounded text-xs hover:bg-success/20"
+                                onClick={() => handleUpdateStatus(ret.id, 'approved')}
+                                disabled={updateStatusMutation.isPending}
+                                className="px-3 py-1 bg-success-light text-success rounded text-xs hover:bg-success/20 disabled:opacity-50"
                               >
                                 تایید
                               </button>
                               <button
-                                onClick={() => updateStatus(ret.id, 'rejected')}
-                                className="px-3 py-1 bg-error-light text-error rounded text-xs hover:bg-error/20"
+                                onClick={() => handleUpdateStatus(ret.id, 'rejected')}
+                                disabled={updateStatusMutation.isPending}
+                                className="px-3 py-1 bg-error-light text-error rounded text-xs hover:bg-error/20 disabled:opacity-50"
                               >
                                 رد
                               </button>
-                            </>
+                            </div>
                           )}
                           {ret.status === 'approved' && (
-                            <>
+                            <button
+                              onClick={() => handleUpdateStatus(ret.id, 'received')}
+                              disabled={updateStatusMutation.isPending}
+                              className="px-3 py-1 bg-primary-light text-primary rounded text-xs hover:bg-primary/20 disabled:opacity-50"
+                            >
+                              دریافت شد
+                            </button>
+                          )}
+                          {ret.status === 'received' && (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                placeholder="مبلغ (تومان)"
+                                className="border border-border rounded px-2 py-1 w-28 text-xs"
+                                value={refundAmounts[ret.id] ?? ''}
+                                onChange={(e) =>
+                                  setRefundAmounts((prev) => ({ ...prev, [ret.id]: e.target.value }))
+                                }
+                              />
                               <button
-                                onClick={() => updateStatus(ret.id, 'received')}
-                                className="px-3 py-1 bg-primary-light text-primary rounded text-xs"
-                              >
-                                دریافت شد
-                              </button>
-                              <button
-                                onClick={() => {
-                                  const amount = prompt('مبلغ بازگشتی (تومان):');
-                                  if (amount) updateStatus(ret.id, 'refunded', parseInt(amount));
-                                }}
-                                className="px-3 py-1 bg-info-light text-info rounded text-xs"
+                                onClick={() => handleRefund(ret.id)}
+                                disabled={updateStatusMutation.isPending}
+                                className="px-3 py-1 bg-info-light text-info rounded text-xs hover:bg-info/20 disabled:opacity-50"
                               >
                                 بازگشت وجه
                               </button>
-                            </>
+                            </div>
                           )}
                           <button
                             onClick={() => router.push(`/admin/returns/${ret.id}`)}
@@ -187,11 +217,19 @@ export default function AdminReturnsPage() {
           {/* Pagination */}
           {data?.meta && data.meta.totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
+              >
                 <MdiChevronRight className="w-5 h-5" />
               </button>
               <span className="px-4 py-2 text-sm">{page} از {data.meta.totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))} disabled={page === data.meta.totalPages} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
+              <button
+                onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))}
+                disabled={page === data.meta.totalPages}
+                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
+              >
                 <MdiChevronLeft className="w-5 h-5" />
               </button>
             </div>
