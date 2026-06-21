@@ -69,6 +69,7 @@ const menuItems = [
   },
   { title: "مرجوعی‌ها", icon: "mdi:keyboard-return", href: "/admin/returns" },
   { title: "نظرات", icon: "mdi:comment-text-multiple", href: "/admin/reviews" },
+  { title: "تنظیمات", icon: "mdi:cog", href: "/admin/settings" },
   {
     title: "بازگشت به سایت",
     icon: MdiArrowRight,

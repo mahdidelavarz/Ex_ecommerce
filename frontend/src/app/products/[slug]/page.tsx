@@ -45,21 +45,50 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const product = await fetchProduct(params.slug);
 
-  const jsonLd = product
-    ? buildProductJsonLd(product)
-    : null;
+  const productJsonLd = product ? buildProductJsonLd(product) : null;
+  const breadcrumbJsonLd = product ? buildBreadcrumbJsonLd(product) : null;
 
   return (
     <>
-      {jsonLd && (
+      {productJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        />
+      )}
+      {breadcrumbJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
       )}
       <ProductPageClient />
     </>
   );
+}
+
+function buildBreadcrumbJsonLd(product: ProductDetail) {
+  const items: Array<{ '@type': string; position: number; name: string; item: string }> = [
+    { '@type': 'ListItem', position: 1, name: 'خانه', item: SITE_URL },
+  ];
+
+  if (product.category) {
+    items.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: product.category.name,
+      item: `${SITE_URL}/categories/${product.category.slug}`,
+    });
+  }
+
+  items.push({
+    '@type': 'ListItem',
+    position: items.length + 1,
+    name: product.title,
+    item: `${SITE_URL}/products/${product.slug}`,
+  });
+
+  return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items };
 }
 
 function buildProductJsonLd(product: ProductDetail) {

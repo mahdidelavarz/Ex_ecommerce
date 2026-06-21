@@ -13,6 +13,7 @@ import type { CouponValidation } from '@/modules/coupons/types/coupon.types';
 import Button from '@/components/ui/Button';
 import { formatPrice } from '@/utils/formatPrice';
 import { MdiCartOff, MdiStore } from '@/components/icons/Icons';
+import { useSetting } from '@/modules/settings/hooks/useSettings';
 import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
@@ -35,6 +36,9 @@ export default function CheckoutPage() {
   const [couponResult, setCouponResult] = useState<CouponValidation | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const { data: shippingCostSetting } = useSetting('shipping_cost');
+  const shippingCost = parseInt(shippingCostSetting?.value ?? '50000');
 
   useEffect(() => {
     if (addresses?.length && !selectedAddressId) {
@@ -128,7 +132,8 @@ export default function CheckoutPage() {
   };
 
   const discountAmount = couponResult?.discount_amount ?? 0;
-  const totalAmount = Math.max(0, cart?.subtotal ?? 0) - discountAmount + 50000;
+  const effectiveShipping = couponResult?.coupon?.type === 'free_shipping' ? 0 : shippingCost;
+  const totalAmount = Math.max(0, cart?.subtotal ?? 0) - discountAmount + effectiveShipping;
 
   return (
     <main className="min-h-screen bg-background">
@@ -272,8 +277,8 @@ export default function CheckoutPage() {
                   <span className="text-text-secondary">هزینه ارسال:</span>
                   <span>
                     {couponResult?.coupon?.type === 'free_shipping'
-                      ? <span className="text-success line-through">{formatPrice(50000)}</span>
-                      : formatPrice(50000)}
+                      ? <><span className="text-success line-through">{formatPrice(shippingCost)}</span> <span className="text-success">رایگان</span></>
+                      : formatPrice(shippingCost)}
                   </span>
                 </div>
                 <hr className="border-border" />

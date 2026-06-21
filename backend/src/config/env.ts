@@ -14,7 +14,7 @@ const envSchema = z.object({
   DB_USERNAME: z.string().default('postgres'),
   DB_PASSWORD: z.string().default('password'),
   DB_NAME: z.string().default('ecommerce'),
-  DB_SSL: z.string().default('false'),
+  DB_SSL: z.string().optional(),
   
   JWT_ACCESS_SECRET: z.string().min(10),
   JWT_REFRESH_SECRET: z.string().min(10),
@@ -31,6 +31,14 @@ const envSchema = z.object({
   
   MAX_FILE_SIZE: z.string().default('5242880'),
   UPLOAD_PATH: z.string().default('./uploads'),
+
+  S3_BUCKET: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_ENDPOINT: z.string().optional(),
+
+  EXPOSE_OTP: z.string().default('false'),
 
   ZARINPAL_MERCHANT_ID: z.string().default(''),
   ZARINPAL_SANDBOX: z.string().default('true'),
@@ -56,7 +64,9 @@ export const env = {
     username: parsed.data.DB_USERNAME,
     password: parsed.data.DB_PASSWORD,
     database: parsed.data.DB_NAME,
-    ssl: parsed.data.DB_SSL === 'true',
+    ssl: parsed.data.DB_SSL !== undefined
+      ? parsed.data.DB_SSL === 'true'
+      : parsed.data.NODE_ENV === 'production',
   },
   
   jwt: {
@@ -85,10 +95,20 @@ export const env = {
     path: parsed.data.UPLOAD_PATH,
   },
 
+  s3: {
+    bucket: parsed.data.S3_BUCKET,
+    region: parsed.data.S3_REGION ?? 'us-east-1',
+    accessKeyId: parsed.data.S3_ACCESS_KEY_ID,
+    secretAccessKey: parsed.data.S3_SECRET_ACCESS_KEY,
+    endpoint: parsed.data.S3_ENDPOINT,
+    enabled: !!parsed.data.S3_BUCKET,
+  },
+
   zarinpal: {
     merchantId: parsed.data.ZARINPAL_MERCHANT_ID,
     sandbox: parsed.data.ZARINPAL_SANDBOX === 'true',
     callbackUrl: parsed.data.ZARINPAL_CALLBACK_URL,
   },
   frontendUrl: parsed.data.FRONTEND_URL,
+  exposeOtp: parsed.data.EXPOSE_OTP === 'true',
 };

@@ -44,6 +44,16 @@ export const metadata: Metadata = {
   },
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://yoursite.com';
+
+const orgJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'نازی شاپ',
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.png`,
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -57,6 +67,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background text-text-primary antialiased flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        />
         <ThemeProvider
           attribute="data-theme"
           defaultTheme="system"

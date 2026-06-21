@@ -137,77 +137,72 @@ Unblocked by C-7. `/categories/[slug]` now exists so breadcrumb links resolve co
 
 ---
 
-### H-15 — `generateMetadata` Missing on Category + Brand Pages
-**File:** `frontend/src/app/categories/[slug]/`, `frontend/src/app/brands/[slug]/`
-Blocked by C-7 and H-12. Add once those pages exist.
+### ~~H-15 — `generateMetadata` Missing on Category + Brand Pages~~ ✅ Fixed
+Both pages split into server shell + client component:
+- `categories/[slug]/page.tsx` — server component; fetches `CategoryDetail` (1h revalidate); `generateMetadata` uses `seo.title/description` with fallback to `name/description`; `openGraph` includes category image. Interactive logic extracted to `CategoryPageClient.tsx`.
+- `brands/[slug]/page.tsx` — same pattern; `generateMetadata` uses `brand.name/description/logo`; interactive logic extracted to `BrandPageClient.tsx`.
 
 ---
 
-### H-16 — `BreadcrumbList` JSON-LD Missing
-**File:** `frontend/src/app/products/[slug]/page.tsx`, `frontend/src/app/categories/[slug]/`
-No structured breadcrumb data — search snippets show no path.
+### ~~H-16 — `BreadcrumbList` JSON-LD Missing~~ ✅ Fixed
+`BreadcrumbList` injected as a `<script type="application/ld+json">` in all three server components:
+- `products/[slug]/page.tsx` — Home → Category (if present) → Product; sits alongside the existing `Product` schema.
+- `categories/[slug]/page.tsx` — Home → Parent category (if present) → Category; `CategoryPage` converted to `async` to reuse the already-fetched `CategoryDetail`.
+- `brands/[slug]/page.tsx` — Home → برندها → Brand; `BrandPage` converted to `async` similarly. Next.js deduplicates the `fetch()` calls shared with `generateMetadata`.
 
 ---
 
-### H-17 — `Organization` JSON-LD Missing in Root Layout
-**File:** `frontend/src/app/layout.tsx`
-No brand identity signal for Google's knowledge panel.
-**Fix:**
-```tsx
-const orgJsonLd = {
-  '@context': 'https://schema.org', '@type': 'Organization',
-  name: 'نام فروشگاه', url: 'https://yoursite.com', logo: 'https://yoursite.com/logo.png',
-};
-<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
-```
+### ~~H-17 — `Organization` JSON-LD Missing in Root Layout~~ ✅ Fixed
+`frontend/src/app/layout.tsx` — `Organization` schema (`name: 'نازی شاپ'`, `url`, `logo`) injected as the first element inside `<body>`, using `NEXT_PUBLIC_SITE_URL` with `https://yoursite.com` fallback (consistent with `sitemap.ts` and `robots.ts`).
 
 ---
 
-### H-18 — Related Products Not Rendered on Product Detail
-**File:** `frontend/src/app/products/[slug]/page.tsx`
-Backend `GET /:slug/related` works (route order fixed), but frontend does not fetch or render it.
+### ~~H-18 — Related Products Not Rendered on Product Detail~~ ✅ Fixed
+`ProductPageClient.tsx:22` — `useRelatedProducts(slug)` fetches `GET /products/:slug/related`. `ProductPageClient.tsx:288-294` — section renders `<ProductGrid products={relatedProducts} />` when the array is non-empty.
 
 ---
 
-### H-19 — Tag Chips on Product Detail Don't Link to Filter URL
-**File:** `frontend/src/app/products/[slug]/page.tsx`
-Tags render as visual chips only — no link to `/products?tag=slug`.
+### ~~H-19 — Tag Chips on Product Detail Don't Link to Filter URL~~ ✅ Fixed
+`ProductPageClient.tsx:246-258` — each tag renders as `<a href={`/products?tag=${tag.slug}`}>`, linking to the filtered product listing.
 
 ---
 
-### H-20 — Brand Name on Product Detail Has No Link
-**File:** `frontend/src/app/products/[slug]/page.tsx`
-Brand name should link to `/brands/[slug]`. Blocked by H-12.
+### ~~H-20 — Brand Name on Product Detail Has No Link~~ ✅ Fixed
+`ProductPageClient.tsx:117` — brand `<a>` `href` changed from `/products?brand=${product.brand.id}` to `/brands/${product.brand.slug}`, now linking to the brand detail page (unblocked by H-12).
 
 ---
 
 ## 🟡 Medium
 
-### M-1 — `DB_SSL=false` Default
-**File:** `backend/src/config/env.ts`
-Set `DB_SSL=true` in production `.env`.
+### ~~M-1 — `DB_SSL=false` Default~~ ✅ Fixed
+`backend/src/config/env.ts` — `DB_SSL` changed from `z.string().default('false')` to `z.string().optional()`. `env.db.ssl` now resolves to `true` when `NODE_ENV=production` and `DB_SSL` is not set, and to the explicit value otherwise. This makes SSL the safe default in production without requiring ops to remember to set it.
 
 ---
 
-### M-2 — File Uploads Not S3-Ready
-**File:** `backend/src/config/env.ts`
-Uploads go to `./uploads` — single-instance restarts are safe (volume-mounted), but multi-instance deploys will not share the folder. Migrate to S3/object storage before scaling.
+### ~~M-2 — File Uploads Not S3-Ready~~ ✅ Fixed
+- `env.ts` — five optional S3 vars added (`S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_ENDPOINT`); `env.s3.enabled` is `true` when `S3_BUCKET` is set.
+- `backend/src/middleware/upload.ts` — `uploadMiddleware` (multer) uses `multer-s3` + `@aws-sdk/client-s3` when S3 is enabled, falls back to `diskStorage` otherwise. `getFileUrl(file)` returns `file.location` (S3) or `/uploads/${file.filename}` (local). Image-only `fileFilter` and `maxFileSize` enforced in both modes. Upload routes (M-9/M-10) import this middleware.
+- `app.ts` — `express.static` serves `./uploads` only when `!env.s3.enabled` (no dead static route in production).
 
 ---
 
-### M-3 — OTP Code Exposed in Dev API Response
-**File:** `backend/src/modules/auth/auth.service.ts:61`
-OTP returned in response body in `development` mode. Safe only if `NODE_ENV` is strictly controlled; remove or gate behind an explicit `EXPOSE_OTP=true` env flag.
+### ~~M-3 — OTP Code Exposed in Dev API Response~~ ✅ Fixed
+`env.ts` — `EXPOSE_OTP` env var added (`default: 'false'`); `env.exposeOtp` boolean exported. `auth.service.ts:75` — guard changed from `env.nodeEnv === 'development'` to `env.exposeOtp`. OTP is now never leaked unless `EXPOSE_OTP=true` is explicitly set in `.env`, regardless of `NODE_ENV`.
 
 ---
 
-### M-4 — Shipping Cost Hardcoded
-**Files:** `backend/src/modules/orders/order.repository.ts`, `frontend/src/app/checkout/page.tsx`
-`50000` Toman hardcoded in two places. Make it a config value or a per-region setting.
+### ~~M-4 — Shipping Cost Hardcoded~~ ✅ Fixed
+Full settings system added:
+- `AppSetting` entity (`app_settings` table, `key` PK + `value` + `label`).
+- `backend/src/modules/settings/` — `SettingService` with in-code defaults (`shipping_cost=50000`), upsert, list. `GET /settings/:key` (public), `GET /settings` + `PATCH /settings/:key` (admin). Registered in `app.ts`.
+- `order.repository.ts:176` — reads `shipping_cost` from `app_settings` at order creation (falls back to 50000 if row absent).
+- `frontend/src/modules/settings/` — `settingService`, `useSetting`, `useAdminSettings`, `useUpdateSetting`.
+- `checkout/page.tsx` — `useSetting('shipping_cost')` replaces hardcoded 50000; `effectiveShipping=0` on free_shipping coupon.
+- `frontend/src/app/admin/settings/page.tsx` — editable settings list; save button per row enabled only when value is dirty. Linked from admin sidebar.
 
 ---
 
-### M-5 — Tax Hardcoded to Zero
+### M-5 — Tax Hardcoded to Zero  ---not needed
 **File:** `backend/src/modules/orders/order.repository.ts`
 No tax calculation or config. Add a `TAX_RATE` env variable and apply it during order totalling.
 
@@ -483,16 +478,16 @@ Low-priority structured data for product list rich results.
 | ~~H-12~~ | ~~Create `/brands/[slug]` page~~ ✅ | 🟠 | Medium |
 | ~~H-13~~ | ~~Create `/brands` listing page~~ ✅ | 🟠 | Low |
 | ~~H-14~~ | ~~`app/robots.ts`~~ ✅ | 🟠 | Low |
-| H-15 | Metadata on category + brand pages | 🟠 | Low |
-| H-16 | BreadcrumbList JSON-LD | 🟠 | Low |
-| H-17 | Organization JSON-LD in root layout | 🟠 | Low |
-| H-18 | Render related products on detail page | 🟠 | Low |
-| H-19 | Tag chips link to filter URL | 🟠 | Low |
-| H-20 | Brand name links to brand page | 🟠 | Low |
-| M-1 | DB_SSL=true in production | 🟡 | Low |
-| M-2 | S3 for uploads (multi-instance) | 🟡 | High |
-| M-3 | Remove OTP from dev API response | 🟡 | Low |
-| M-4 | Configurable shipping cost | 🟡 | Low |
+| ~~H-15~~ | ~~Metadata on category + brand pages~~ ✅ | 🟠 | Low |
+| ~~H-16~~ | ~~BreadcrumbList JSON-LD~~ ✅ | 🟠 | Low |
+| ~~H-17~~ | ~~Organization JSON-LD in root layout~~ ✅ | 🟠 | Low |
+| ~~H-18~~ | ~~Render related products on detail page~~ ✅ | 🟠 | Low |
+| ~~H-19~~ | ~~Tag chips link to filter URL~~ ✅ | 🟠 | Low |
+| ~~H-20~~ | ~~Brand name links to brand page~~ ✅ | 🟠 | Low |
+| ~~M-1~~ | ~~DB_SSL=true in production~~ ✅ | 🟡 | Low |
+| ~~M-2~~ | ~~S3 for uploads (multi-instance)~~ ✅ | 🟡 | High |
+| ~~M-3~~ | ~~Remove OTP from dev API response~~ ✅ | 🟡 | Low |
+| ~~M-4~~ | ~~Configurable shipping cost~~ ✅ | 🟡 | Low |
 | M-5 | Tax calculation / config | 🟡 | Medium |
 | M-6 | Order confirmation page | 🟡 | Low |
 | M-7 | Coupon validation feedback in checkout | 🟡 | Low |

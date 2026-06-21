@@ -72,7 +72,7 @@ export class AuthService {
 
     await SMSService.sendOTP(phoneNumber, otpCode);
 
-    if (env.nodeEnv === "development") {
+    if (env.exposeOtp) {
       return {
         message: "کد تایید با موفقیت ارسال شد",
         otpCode,

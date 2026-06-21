@@ -114,7 +114,7 @@ export default function ProductPageClient() {
                     <Image src={product.brand.logo} alt={product.brand.name} fill className="object-contain" sizes="32px" />
                   </div>
                 )}
-                <a href={`/products?brand=${product.brand.id}`} className="text-text-secondary hover:text-primary text-sm">
+                <a href={`/brands/${product.brand.slug}`} className="text-text-secondary hover:text-primary text-sm">
                   {product.brand.name}
                 </a>
               </div>

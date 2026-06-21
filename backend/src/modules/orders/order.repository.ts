@@ -11,6 +11,7 @@ import { User } from '../../database/entities/user.entity';
 import { InventoryLog } from '../../database/entities/inventory-log.entity';
 import { NotFoundError, BadRequestError } from '../../shared/utils/errors';
 import { CreateOrderDto } from './order.types';
+import { AppSetting } from '../../database/entities/app-setting.entity';
 
 export class OrderRepository {
   private orderRepo = AppDataSource.getRepository(Order);
@@ -173,7 +174,9 @@ export class OrderRepository {
         appliedCouponId = coupon.id;
       }
 
-      const shippingAmount = 50000;
+      const settingRepo = AppDataSource.getRepository(AppSetting);
+      const shippingSetting = await settingRepo.findOne({ where: { key: 'shipping_cost' } });
+      const shippingAmount = shippingSetting ? parseInt(shippingSetting.value) : 50000;
       const taxAmount = 0;
       const totalAmount = Math.max(0, subtotal - discountAmount + shippingAmount + taxAmount);
 

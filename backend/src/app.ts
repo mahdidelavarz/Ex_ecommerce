@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
 import { env } from './config/env';
 import { corsConfig } from './config/cors';
 import { generalLimiter, apiLimiter } from './middleware/rateLimiter';
@@ -26,6 +27,7 @@ import shipmentRoutes from './modules/shipments/shipment.routes';
 import reviewRoutes from './modules/reviews/review.routes';
 import wishlistRoutes from './modules/wishlist/wishlist.routes';
 import returnRoutes from './modules/returns/return.routes';
+import settingRoutes from './modules/settings/setting.routes';
 
 
 
@@ -64,6 +66,11 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Serve local uploads in non-S3 mode
+if (!env.s3.enabled) {
+  app.use('/uploads', express.static(path.resolve(env.upload.path)));
+}
+
 // API routes
 const apiPrefix = env.apiPrefix;
 app.use(apiPrefix, apiLimiter);
@@ -84,6 +91,7 @@ app.use(`${apiPrefix}/shipments`, shipmentRoutes);
 app.use(`${apiPrefix}/reviews`, reviewRoutes);
 app.use(`${apiPrefix}/wishlist`, wishlistRoutes);
 app.use(`${apiPrefix}/returns`, returnRoutes);
+app.use(`${apiPrefix}/settings`, settingRoutes);
 
 
 
