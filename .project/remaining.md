@@ -97,88 +97,43 @@ Unblocked by C-7. `/categories/[slug]` now exists so breadcrumb links resolve co
 
 ---
 
-### H-7 — All Reviews Auto-Approved on Creation
-**File:** `backend/src/modules/reviews/review.repository.ts:99`
-`is_approved: true` on create bypasses the entire moderation system.
-**Fix:** Change to `is_approved: false`. Filter `is_approved === true` in `ReviewsSection.tsx` (fixes H-11 simultaneously).
+### ~~H-7 — All Reviews Auto-Approved on Creation~~ ✅ Fixed
+`review.repository.ts:132` — `is_approved: false` on create; `findByProduct()` already filters `.andWhere('review.is_approved = true')` so unapproved reviews never reach customers. `review.controller.ts:33` — success message tells the user "پس از تایید نمایش داده می‌شود". `ReviewsSection.tsx:117-147` — pending state shows "نظر شما در انتظار تایید است" with edit option.
 
 ---
 
-### H-8 — No Zod Validators for `approve` / `reply` Endpoints
-**File:** `backend/src/modules/reviews/review.validator.ts`
-`PATCH /:id/approve` and `PATCH /:id/reply` accept raw request bodies with no validation.
-**Fix:**
-```ts
-export const approveReviewSchema = z.object({ is_approved: z.boolean() });
-export const replyReviewSchema   = z.object({ admin_reply: z.string().min(1).max(1000) });
-// wire via validate() middleware on both routes
-```
+### ~~H-8 — No Zod Validators for `approve` / `reply` Endpoints~~ ✅ Fixed
+`review.validator.ts:17-23` — `approveReviewSchema` (`is_approved: z.boolean()`) and `replyReviewSchema` (`admin_reply: z.string().min(1).max(1000)`) both defined. `review.routes.ts:30-31` — both wired via `validate({ body: ... })` middleware on `PATCH /:id/approve` and `POST /:id/reply`.
 
 ---
 
-### H-9 — `getProductReviews` Hardcodes Pagination Meta
-**File:** `backend/src/modules/reviews/review.controller.ts:17`
-Response always returns `page: 1, limit: 10` regardless of actual query params.
-**Fix:**
-```ts
-const page  = parseInt(req.query.page  as string) || 1;
-const limit = parseInt(req.query.limit as string) || 10;
-return ApiResponseHelper.paginated(res, reviews, total, page, limit);
-```
+### ~~H-9 — `getProductReviews` Hardcodes Pagination Meta~~ ✅ Fixed
+`review.controller.ts:11-12` — `page` and `limit` read from `req.query` with `parseInt(...) || default`; both values forwarded into the `ApiResponseHelper.success` meta object so the response reflects actual query params.
 
 ---
 
-### H-10 — Helpful Vote Button Has No "Already Voted" State
-**File:** `frontend/src/modules/reviews/components/ReviewCard.tsx:60`
-User gets no feedback and can keep clicking.
-**Fix:**
-```tsx
-const hasVoted = userVotedReviewIds?.includes(review.id) ?? false;
-<button onClick={() => markHelpful(review.id)} className={hasVoted ? 'text-blue-600' : 'text-gray-500'}>
-  {hasVoted ? 'مفید بود ✓' : 'مفید بود'} ({review.helpful_count})
-</button>
-```
+### ~~H-10 — Helpful Vote Button Has No "Already Voted" State~~ ✅ Fixed
+`ReviewCard.tsx:18-27` — `hasVoted` local state initialised from `review.user_has_voted`; `handleHelpful` updates both `hasVoted` and `helpfulCount` from server response. Button applies `text-primary font-medium` when voted and shows `مفید بود ✓` vs `مفید بود؟`; disabled during mutation (`markHelpful.isPending`).
 
 ---
 
-### H-11 — Admin Review Actions Use Raw Service Calls
-**File:** `frontend/src/app/admin/reviews/page.tsx:27`
-Approve / reply / delete use direct `reviewService.*` calls with manual `invalidateQueries`. No loading state, no typed error detail.
-**Fix:** Replace with `useMutation` hooks (pattern used in every other module):
-```tsx
-const { mutate: approveReview } = useMutation({
-  mutationFn: ({ id, is_approved }: { id: string; is_approved: boolean }) => reviewService.approve(id, is_approved),
-  onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-reviews'] }); toast.success('وضعیت به‌روز شد'); },
-  onError: (e: any) => toast.error(e.response?.data?.message || 'خطا'),
-});
-```
+### ~~H-11 — Admin Review Actions Use Raw Service Calls~~ ✅ Fixed
+`useReviews.ts:68-104` — `useApproveReview`, `useReplyReview`, `useAdminDeleteReview` `useMutation` hooks with `onSuccess` toast + `invalidateQueries` and `onError` typed message. `admin/reviews/page.tsx:34-36` — all three hooks consumed; buttons pass `loading={hook.isPending}` for in-flight state.
 
 ---
 
-### H-12 — `/brands/[slug]` Page Missing
-**File:** `frontend/src/app/brands/[slug]/` (does not exist)
-Brand name on product detail links here — currently 404.
+### ~~H-12 — `/brands/[slug]` Page Missing~~ ✅ Fixed
+`frontend/src/app/brands/[slug]/page.tsx` — brand header (logo/initial fallback/description/product count), breadcrumb (خانه → برندها → brand), URL-based sort bar (newest/oldest/price asc-desc/alpha), `ProductGrid`, and windowed pagination. Sort and page state live in URL search params via `updateParams()`, consistent with the category page pattern.
 
 ---
 
-### H-13 — `/brands` Listing Page Missing
-**File:** `frontend/src/app/brands/` (does not exist)
-No entry point to browse brands.
+### ~~H-13 — `/brands` Listing Page Missing~~ ✅ Fixed
+`frontend/src/app/brands/page.tsx` — responsive grid (2→6 columns) of brand cards with logo/initial fallback, product count, and link to `/brands/[slug]`. Paginated via `useBrands({ page, limit: 24, is_active: true })` with prev/next + numbered controls.
 
 ---
 
-### H-14 — No `robots.txt`
-**File:** `frontend/src/app/robots.ts` (does not exist)
-**Fix:**
-```ts
-export default function robots(): MetadataRoute.Robots {
-  const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://yoursite.com';
-  return {
-    rules: [{ userAgent: '*', allow: '/', disallow: ['/admin/', '/checkout/', '/api/'] }],
-    sitemap: `${BASE}/sitemap.xml`,
-  };
-}
-```
+### ~~H-14 — No `robots.txt`~~ ✅ Fixed
+`frontend/src/app/robots.ts` — Next.js `MetadataRoute.Robots` export; allows `/`, disallows `/admin/`, `/checkout/`, `/profile/`, `/orders/`; points `sitemap` at `${NEXT_PUBLIC_SITE_URL}/sitemap.xml`.
 
 ---
 
@@ -301,9 +256,8 @@ Change to `.min(1)` so empty-string submissions are rejected.
 
 ---
 
-### M-13 — Admin Reviews: No Approval Status Filter
-**File:** `frontend/src/app/admin/reviews/page.tsx`
-Backend supports `?is_approved=false` but the admin UI has no filter tabs. All reviews shown in one list.
+### ~~M-13 — Admin Reviews: No Approval Status Filter~~ ✅ Fixed
+`admin/reviews/page.tsx:18-30` — `ApprovalFilter` type (`'all' | 'pending' | 'approved'`) with `approvalFilter` state; three tab buttons reset page on change; `queryParams` maps filter to `is_approved` boolean passed to `useAdminReviews`.
 
 ---
 
@@ -313,9 +267,8 @@ Backend `PATCH /reviews/:id` exists and works.
 
 ---
 
-### M-15 — `ReviewsSection` Shows Unapproved Reviews
-**File:** `frontend/src/modules/reviews/components/ReviewsSection.tsx`
-No `is_approved` filter — pending/rejected reviews visible to customers. Fixed automatically once H-7 sets `is_approved: false` on create and a filter is added here.
+### ~~M-15 — `ReviewsSection` Shows Unapproved Reviews~~ ✅ Fixed
+Resolved by H-7. `review.repository.ts:21,52` — `findByProduct()` applies `.andWhere('review.is_approved = true')` in both the reviews query and the stats query, so the API never returns unapproved reviews to customers. No client-side filter needed.
 
 ---
 
@@ -522,14 +475,14 @@ Low-priority structured data for product list rich results.
 | ~~H-4~~ | ~~Per-user coupon usage limit~~ ✅ | 🟠 | Medium |
 | ~~H-5~~ | ~~Order number race condition~~ ✅ | 🟠 | Low |
 | ~~H-6~~ | ~~Atomic stock decrement on order~~ ✅ | 🟠 | Medium |
-| H-7 | Disable review auto-approval | 🟠 | Low |
-| H-8 | Zod validators for approve/reply | 🟠 | Low |
-| H-9 | Fix review pagination meta | 🟠 | Low |
-| H-10 | Helpful vote "already voted" state | 🟠 | Low |
-| H-11 | Admin reviews → useMutation hooks | 🟠 | Low |
-| H-12 | Create `/brands/[slug]` page | 🟠 | Medium |
-| H-13 | Create `/brands` listing page | 🟠 | Low |
-| H-14 | `app/robots.ts` | 🟠 | Low |
+| ~~H-7~~ | ~~Disable review auto-approval~~ ✅ | 🟠 | Low |
+| ~~H-8~~ | ~~Zod validators for approve/reply~~ ✅ | 🟠 | Low |
+| ~~H-9~~ | ~~Fix review pagination meta~~ ✅ | 🟠 | Low |
+| ~~H-10~~ | ~~Helpful vote "already voted" state~~ ✅ | 🟠 | Low |
+| ~~H-11~~ | ~~Admin reviews → useMutation hooks~~ ✅ | 🟠 | Low |
+| ~~H-12~~ | ~~Create `/brands/[slug]` page~~ ✅ | 🟠 | Medium |
+| ~~H-13~~ | ~~Create `/brands` listing page~~ ✅ | 🟠 | Low |
+| ~~H-14~~ | ~~`app/robots.ts`~~ ✅ | 🟠 | Low |
 | H-15 | Metadata on category + brand pages | 🟠 | Low |
 | H-16 | BreadcrumbList JSON-LD | 🟠 | Low |
 | H-17 | Organization JSON-LD in root layout | 🟠 | Low |
@@ -548,9 +501,9 @@ Low-priority structured data for product list rich results.
 | M-10 | Variant image management in admin | 🟡 | Medium |
 | M-11 | Specification field editor in admin | 🟡 | Low |
 | M-12 | Review title/comment `.min(1)` | 🟡 | Low |
-| M-13 | Admin reviews approval filter | 🟡 | Low |
+| ~~M-13~~ | ~~Admin reviews approval filter~~ ✅ | 🟡 | Low |
 | M-14 | Customer edit-review UI | 🟡 | Low |
-| M-15 | Filter unapproved reviews in section | 🟡 | Low |
+| ~~M-15~~ | ~~Filter unapproved reviews in section~~ ✅ | 🟡 | Low |
 | M-16 | Admin dashboard page | 🟡 | Medium |
 | M-17 | Admin users management page | 🟡 | High |
 | M-18 | Admin shipments list page | 🟡 | Medium |
