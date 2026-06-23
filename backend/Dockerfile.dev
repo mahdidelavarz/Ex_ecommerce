@@ -3,7 +3,8 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN sed -i 's|https://mirror2.chabokan.net/npm/|https://registry.npmmirror.com/|g' package-lock.json && \
+    npm ci
 
 COPY tsconfig.json ./
 
