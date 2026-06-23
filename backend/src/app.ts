@@ -28,6 +28,9 @@ import reviewRoutes from './modules/reviews/review.routes';
 import wishlistRoutes from './modules/wishlist/wishlist.routes';
 import returnRoutes from './modules/returns/return.routes';
 import settingRoutes from './modules/settings/setting.routes';
+import uploadRoutes from './modules/uploads/upload.routes';
+import dashboardRoutes from './modules/dashboard/dashboard.routes';
+import userRoutes from './modules/users/user.routes';
 
 
 
@@ -37,7 +40,9 @@ const app = express();
 initializeDatabase();
 
 // Security middleware
-app.use(helmet());
+// HSTS forces browsers to upgrade http→https. On localhost (plain HTTP) this
+// "poisons" the browser and breaks all API calls, so only enable it in prod.
+app.use(helmet({ hsts: env.nodeEnv === 'production' }));
 app.use(corsConfig);
 
 // Body parsing
@@ -92,6 +97,9 @@ app.use(`${apiPrefix}/reviews`, reviewRoutes);
 app.use(`${apiPrefix}/wishlist`, wishlistRoutes);
 app.use(`${apiPrefix}/returns`, returnRoutes);
 app.use(`${apiPrefix}/settings`, settingRoutes);
+app.use(`${apiPrefix}/uploads`, uploadRoutes);
+app.use(`${apiPrefix}/dashboard`, dashboardRoutes);
+app.use(`${apiPrefix}/users`, userRoutes);
 
 
 

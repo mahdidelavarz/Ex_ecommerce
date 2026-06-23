@@ -276,14 +276,14 @@ async function main() {
     await imageRepo.save([
       imageRepo.create({
         product_id: product.id,
-        image_url: `https://picsum.photos/seed/${def.slug}-1/600/600`,
+        image_url: `https://placehold.co/600x600/png?text=${def.slug}-1`,
         alt_text: def.title,
         sort_order: 0,
         is_thumbnail: true,
       }),
       imageRepo.create({
         product_id: product.id,
-        image_url: `https://picsum.photos/seed/${def.slug}-2/600/600`,
+        image_url: `https://placehold.co/600x600/png?text=${def.slug}-2`,
         alt_text: def.title,
         sort_order: 1,
       }),
@@ -320,7 +320,7 @@ async function main() {
       await variantImageRepo.save(
         variantImageRepo.create({
           variant_id: variant.id,
-          image_url: `https://picsum.photos/seed/${v.sku}/400/400`,
+          image_url: `https://placehold.co/400x400/png?text=${v.sku}`,
           sort_order: 0,
         }),
       );

@@ -215,31 +215,27 @@ After a successful order, there is no redirect to a confirmation page — user i
 
 ---
 
-### M-7 — Coupon Validation Feedback Missing in Checkout
-**File:** `frontend/src/app/checkout/page.tsx`
-The coupon field has no success/error display after the user applies a code.
+### ~~M-7 — Coupon Validation Feedback Missing in Checkout~~ ✅ Fixed
+`checkout/page.tsx` — added a persistent `couponError` state. Invalid codes now show an inline red message under the field (with red border) instead of only a transient toast; the success box displays the actual discount amount; the error clears when the code is edited.
 
 ---
 
-### M-8 — `bulkStatus()` Not Transactional
-**File:** `backend/src/modules/products/product.service.ts`
-Bulk status update has no transaction — partial failure leaves some products updated and others not.
+### ~~M-8 — `bulkStatus()` Not Transactional~~ ✅ Fixed
+`product.repository.ts` — `bulkStatus()` now runs inside `AppDataSource.transaction(...)` and verifies `result.affected === ids.length`, throwing `NotFoundError` (rolling back) if any id doesn't match. The batch is now strictly all-or-nothing, including validation that every product exists.
 
 ---
 
-### M-9 — Admin Product: No File Upload UI
-**File:** `frontend/src/app/admin/products/[id]/page.tsx`
-Image management accepts URL strings only. Backend supports `multipart/form-data` via multer. Add a file `<input>` with upload-on-select.
+### ~~M-9 — Admin Product: No File Upload UI~~ ✅ Fixed
+`uploadMiddleware` existed but was never wired to a route. Added backend `modules/uploads/upload.routes.ts` — `POST /api/v1/uploads` (admin, multer single file) returning an **absolute** URL (disk mode stores `/uploads/...` which would break on the frontend origin). Frontend: `productService.uploadImage()` + per-row file `<input>` with thumbnail preview and upload spinner in the product images tab.
 
 ---
 
-### M-10 — Variant Images Not Manageable in Admin
-**File:** `frontend/src/app/admin/products/[id]/variants/page.tsx`
-No UI to add or remove variant-specific images.
+### ~~M-10 — Variant Images Not Manageable in Admin~~ ✅ Fixed
+Backend endpoints + service methods already existed but had no UI. Added a "تصاویر واریانت" section to `admin/products/variants/[variantId]/page.tsx` — gallery of current images with hover-to-delete plus an upload tile (reuses the `/uploads` endpoint then attaches via `variantService.addImage`). Shown in edit mode only, since images need an existing variant id.
 
 ---
 
-### M-11 — Product `specification` Field Has No Editor in Admin
+### M-11 — Product `specification` Field Has No Editor in Admin  //need to research
 **File:** `frontend/src/app/admin/products/[id]/page.tsx`
 The field is not present in the admin form.
 
@@ -256,9 +252,8 @@ Change to `.min(1)` so empty-string submissions are rejected.
 
 ---
 
-### M-14 — No Customer UI to Edit an Existing Review
-**File:** missing component in `frontend/src/modules/reviews/components/`
-Backend `PATCH /reviews/:id` exists and works.
+### ~~M-14 — No Customer UI to Edit an Existing Review~~ ✅ Fixed
+The edit infra existed (`ReviewForm` edit mode, `useUpdateReview`) but the trigger UI was incomplete/buggy. `ReviewsSection.tsx` — the "pending approval" box now only renders for genuinely **unapproved** reviews (fixes wrong label + duplication, since `findByProduct` is approved-only). The **main list** now detects the user's own review (`review.user.id === user.id`) and shows an "ویرایش" button that swaps to an inline `ReviewForm` (tracked via `editingReviewId`) — the missing path for editing approved reviews. `ReviewCard.tsx` made author name defensive (`review.user?.full_name ?? 'شما'`) since the `canReview` entity has no `user` relation.
 
 ---
 
@@ -267,13 +262,13 @@ Resolved by H-7. `review.repository.ts:21,52` — `findByProduct()` applies `.an
 
 ---
 
-### M-16 — Admin Panel: Dashboard / Overview Missing
-`/admin` has no landing page — no stats, KPIs, or quick links. Admin is dropped directly into a blank route.
+### ~~M-16 — Admin Panel: Dashboard / Overview Missing~~ ✅ Fixed
+New backend `modules/dashboard` — `GET /api/v1/dashboard/stats` (admin) returns revenue (paid orders), order/product/customer counts, pending-order & low-stock counts, status breakdown, and 5 recent orders. New frontend `modules/dashboard` (service/hook/types) + `app/admin/page.tsx` — KPI cards, quick links, and a recent-orders table. Verified end-to-end with a real admin token.
 
 ---
 
-### M-17 — Admin Panel: Users Management Missing
-No UI to list users, view profiles, search, or change roles.
+### ~~M-17 — Admin Panel: Users Management Missing~~ ✅ Fixed
+New backend `modules/users` — admin-only `GET /users` (search by name/phone/email, role + active filters, pagination), `GET /users/:id` (with orders_count), `PATCH /users/:id/role`, `PATCH /users/:id/status`; service guards against an admin demoting/deactivating their own account. New frontend `modules/users` (service/hook/types) + `app/admin/users/page.tsx` — debounced search, role-filter tabs, inline role `<select>`, and a clickable active/inactive status toggle. Verified end-to-end with a real admin token.
 
 ---
 
@@ -282,18 +277,13 @@ Shipments are only accessible inside individual order detail. No `/admin/shipmen
 
 ---
 
-### M-19 — Magic Numbers Scattered Across Codebase
-**Files:** `backend/src/modules/auth/auth.service.ts`, `backend/src/middleware/rateLimiter.ts`
-OTP expiry, token TTLs, and rate-limit windows are hardcoded inline.
-**Fix:** `backend/src/shared/constants/config.constants.ts`:
-```ts
-export const AUTH = {
-  OTP_EXPIRY_MS: 10 * 60 * 1000,
-  OTP_MAX_ATTEMPTS: 3,
-  ACCESS_TOKEN_TTL: '45m',
-  REFRESH_TOKEN_TTL: '120d',
-};
-```
+### ~~M-19 — Magic Numbers Scattered Across Codebase~~ ✅ Fixed (token TTLs)
+Added `backend/src/shared/constants/config.constants.ts` exporting `AUTH` with **`ACCESS_TOKEN_TTL: '30m'`** and **`REFRESH_TOKEN_TTL: '30d'`** (plus derived `*_TTL_MS` so the string TTL and ms values can't drift). Wired the token lifetime everywhere it was duplicated:
+- `env.ts` — JWT access/refresh expiration defaults now reference `AUTH.*` (and OTP defaults too); `.env` updated `JWT_ACCESS_EXPIRATION=30m`, `JWT_REFRESH_EXPIRATION=30d` (was 45m/120d, which overrode the defaults).
+- `shared/utils/cookies.ts` — access/refresh cookie `maxAge` now use `AUTH.ACCESS_TOKEN_TTL_MS` / `AUTH.REFRESH_TOKEN_TTL_MS` (were hardcoded 15m/7d).
+- `auth.service.ts` — DB refresh-token `expires_at` uses `AUTH.REFRESH_TOKEN_TTL_MS` (was hardcoded 7d).
+
+Result: JWT signing, both auth cookies, and the DB refresh-token expiry are all consistently 30m / 30d. Rate-limit window constants in `rateLimiter.ts` are still inline (not part of this change).
 
 ---
 

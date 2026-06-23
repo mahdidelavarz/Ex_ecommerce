@@ -9,10 +9,12 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { variantService } from '@/modules/variants/services/variant.service';
+import { productService } from '@/modules/products/services/product.service';
 import { useAllAttributes } from '@/modules/attributes/hooks/useAttributes';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import Button from '@/components/ui/Button';
-import { MdiArrowRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import type { VariantImage } from '@/modules/variants/types/variant.types';
+import { MdiArrowRight, MdiClose, MdiImageMultiple, MdiImageOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const variantFormSchema = z.object({
   sku: z.string().min(1, 'کد محصول الزامی است'),
@@ -53,6 +55,8 @@ export default function AdminVariantFormPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingVariant, setIsLoadingVariant] = useState(isEdit);
+  const [variantImages, setVariantImages] = useState<VariantImage[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const { data: attributes } = useAllAttributes();
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<VariantFormData>({
@@ -93,11 +97,39 @@ export default function AdminVariantFormPage() {
         is_active: variant.is_active,
         attribute_value_ids: variant.attributes?.map((a) => a.id) || [],
       });
+      setVariantImages(variant.images || []);
     } catch {
       toast.error('خطا در دریافت اطلاعات');
       router.back();
     } finally {
       setIsLoadingVariant(false);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setIsUploadingImage(true);
+    try {
+      const url = await productService.uploadImage(file);
+      const image = await variantService.addImage(params.variantId as string, {
+        image_url: url,
+        sort_order: variantImages.length,
+      });
+      setVariantImages((prev) => [...prev, image]);
+      toast.success('تصویر اضافه شد');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'خطا در بارگذاری تصویر');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleImageDelete = async (imageId: string) => {
+    try {
+      await variantService.deleteImage(imageId);
+      setVariantImages((prev) => prev.filter((img) => img.id !== imageId));
+      toast.success('تصویر حذف شد');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'خطا در حذف تصویر');
     }
   };
 
@@ -208,6 +240,58 @@ export default function AdminVariantFormPage() {
                   <span className="text-sm text-text-secondary">{isActive ? 'فعال' : 'غیرفعال'}</span>
                 </label>
               </div>
+
+              {/* Images — only available once the variant exists */}
+              {isEdit && (
+                <div className="bg-surface rounded-card shadow-card p-6">
+                  <h2 className="text-lg font-bold text-text-primary mb-6">تصاویر واریانت</h2>
+                  <div className="flex flex-wrap gap-3">
+                    {variantImages.map((img) => (
+                      <div key={img.id} className="relative w-24 h-24 rounded-card overflow-hidden border border-border group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img.image_url} alt="variant" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleImageDelete(img.id)}
+                          className="absolute top-1 left-1 p-1 bg-error text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="حذف تصویر"
+                        >
+                          <MdiClose className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Upload tile */}
+                    <label className="w-24 h-24 rounded-card border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary text-text-muted hover:text-primary transition-colors">
+                      {isUploadingImage ? (
+                        <SvgSpinnersRingResize className="w-6 h-6" />
+                      ) : (
+                        <>
+                          <MdiImageMultiple className="w-6 h-6" />
+                          <span className="text-xs">افزودن</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="hidden"
+                        disabled={isUploadingImage}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageUpload(file);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {variantImages.length === 0 && !isUploadingImage && (
+                    <p className="flex items-center gap-2 text-sm text-text-muted mt-4">
+                      <MdiImageOff className="w-4 h-4" />
+                      هنوز تصویری برای این واریانت اضافه نشده است
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Attributes */}
               {attributes && attributes.length > 0 && (

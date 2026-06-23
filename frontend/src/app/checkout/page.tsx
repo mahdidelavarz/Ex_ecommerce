@@ -34,6 +34,7 @@ export default function CheckoutPage() {
   const [note, setNote] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [couponResult, setCouponResult] = useState<CouponValidation | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
@@ -53,6 +54,7 @@ export default function CheckoutPage() {
   const applyCoupon = async () => {
     if (!couponCode.trim() || !cart) return;
     setIsValidating(true);
+    setCouponError(null);
     try {
       const productIds = cart.items.map((i) => i.variant.product?.id).filter(Boolean) as string[];
       const result = await couponService.validate({
@@ -61,10 +63,11 @@ export default function CheckoutPage() {
         product_ids: productIds,
       });
       setCouponResult(result);
+      setCouponError(null);
       toast.success(`کد تخفیف اعمال شد: ${formatPrice(result.discount_amount)} تومان`);
     } catch (err: any) {
       setCouponResult(null);
-      toast.error(err.response?.data?.message || 'کد تخفیف نامعتبر است');
+      setCouponError(err.response?.data?.message || 'کد تخفیف نامعتبر یا منقضی شده است');
     } finally {
       setIsValidating(false);
     }
@@ -72,6 +75,7 @@ export default function CheckoutPage() {
 
   const removeCoupon = () => {
     setCouponResult(null);
+    setCouponError(null);
     setCouponCode('');
   };
 
@@ -292,22 +296,37 @@ export default function CheckoutPage() {
               <div className="mb-6">
                 <label className="text-sm font-medium text-text-secondary block mb-2">کد تخفیف</label>
                 {couponResult ? (
-                  <div className="flex items-center justify-between bg-success-light rounded-input px-3 py-2">
-                    <span className="text-sm text-success font-medium">{couponCode}</span>
-                    <button onClick={removeCoupon} className="text-xs text-error hover:underline">حذف</button>
+                  <div className="bg-success-light rounded-input px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-success font-medium">{couponCode}</span>
+                      <button onClick={removeCoupon} className="text-xs text-error hover:underline">حذف</button>
+                    </div>
+                    <p className="text-xs text-success mt-1">
+                      کد تخفیف اعمال شد — {formatPrice(couponResult.discount_amount)} تومان تخفیف
+                    </p>
                   </div>
                 ) : (
-                  <div className="flex gap-2">
-                    <input
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      placeholder="کد تخفیف"
-                      className="flex-1 px-3 py-2 bg-surface border border-border rounded-input text-sm uppercase focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <Button type="button" variant="outline" onClick={applyCoupon} loading={isValidating} disabled={!couponCode.trim()}>
-                      اعمال
-                    </Button>
-                  </div>
+                  <>
+                    <div className="flex gap-2">
+                      <input
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          if (couponError) setCouponError(null);
+                        }}
+                        placeholder="کد تخفیف"
+                        className={`flex-1 px-3 py-2 bg-surface border rounded-input text-sm uppercase focus:outline-none focus:ring-2 ${
+                          couponError ? 'border-error focus:ring-error' : 'border-border focus:ring-primary'
+                        }`}
+                      />
+                      <Button type="button" variant="outline" onClick={applyCoupon} loading={isValidating} disabled={!couponCode.trim()}>
+                        اعمال
+                      </Button>
+                    </div>
+                    {couponError && (
+                      <p className="text-xs text-error mt-2">{couponError}</p>
+                    )}
+                  </>
                 )}
               </div>
 

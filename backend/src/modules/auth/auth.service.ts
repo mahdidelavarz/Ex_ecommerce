@@ -15,6 +15,7 @@ import {
   TooManyRequestsError,
 } from "../../shared/utils/errors";
 import { AuthUser, TokenPair } from "./auth.types";
+import { AUTH } from "../../shared/constants/config.constants";
 
 export class AuthService {
   private userRepository = AppDataSource.getRepository(User);
@@ -444,7 +445,7 @@ export class AuthService {
     const refreshToken = JWTService.generateRefreshToken(payload);
 
     const tokenHash = await bcrypt.hash(refreshToken, 10);
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + AUTH.REFRESH_TOKEN_TTL_MS);
 
     await this.refreshTokenRepository.save({
       user_id: user.id,

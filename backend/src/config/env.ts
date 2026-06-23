@@ -1,6 +1,7 @@
 // src/config/env.ts
 import dotenv from 'dotenv';
 import { z } from 'zod';
+import { AUTH } from '../shared/constants/config.constants';
 
 dotenv.config();
 
@@ -18,11 +19,11 @@ const envSchema = z.object({
   
   JWT_ACCESS_SECRET: z.string().min(10),
   JWT_REFRESH_SECRET: z.string().min(10),
-  JWT_ACCESS_EXPIRATION: z.string().default('15m'),
-  JWT_REFRESH_EXPIRATION: z.string().default('7d'),
-  
-  OTP_EXPIRATION_MINUTES: z.string().default('10'),
-  OTP_MAX_ATTEMPTS: z.string().default('3'),
+  JWT_ACCESS_EXPIRATION: z.string().default(AUTH.ACCESS_TOKEN_TTL),
+  JWT_REFRESH_EXPIRATION: z.string().default(AUTH.REFRESH_TOKEN_TTL),
+
+  OTP_EXPIRATION_MINUTES: z.string().default(String(AUTH.OTP_EXPIRY_MS / 60000)),
+  OTP_MAX_ATTEMPTS: z.string().default(String(AUTH.OTP_MAX_ATTEMPTS)),
   
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   

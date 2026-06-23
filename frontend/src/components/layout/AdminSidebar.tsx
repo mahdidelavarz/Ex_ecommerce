@@ -13,6 +13,9 @@ import {
   MdiChevronLeft,
   MdiChevronRight,
   MdiClose,
+  MdiCog,
+  MdiCommentTextOutline,
+  MdiKeyboardReturn,
   MdiMenu,
   MdiPackageVariant,
   MdiShape,
@@ -49,7 +52,7 @@ const menuItems = [
   },
   {
     title: "تگ‌ها",
-    icon: "mdi:tag-multiple",
+    icon: MdiTagMultiple,
     href: "/admin/tags",
   },
   {
@@ -67,9 +70,9 @@ const menuItems = [
     icon: MdiTicketPercent,
     href: "/admin/coupons",
   },
-  { title: "مرجوعی‌ها", icon: "mdi:keyboard-return", href: "/admin/returns" },
-  { title: "نظرات", icon: "mdi:comment-text-multiple", href: "/admin/reviews" },
-  { title: "تنظیمات", icon: "mdi:cog", href: "/admin/settings" },
+  { title: "مرجوعی‌ها", icon: MdiKeyboardReturn, href: "/admin/returns" },
+  { title: "نظرات", icon: MdiCommentTextOutline, href: "/admin/reviews" },
+  { title: "تنظیمات", icon: MdiCog, href: "/admin/settings" },
   {
     title: "بازگشت به سایت",
     icon: MdiArrowRight,

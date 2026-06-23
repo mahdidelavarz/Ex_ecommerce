@@ -36,7 +36,7 @@ export default function ReviewCard({ review, isOwn, onEdit }: ReviewCardProps) {
               <MdiAccount className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="font-medium text-text-primary">{review.user.full_name}</p>
+              <p className="font-medium text-text-primary">{review.user?.full_name ?? 'شما'}</p>
               <p className="text-xs text-text-muted">
                 {new Date(review.created_at).toLocaleDateString('fa-IR')}
               </p>

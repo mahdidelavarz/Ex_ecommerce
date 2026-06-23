@@ -1,6 +1,7 @@
 // src/shared/utils/cookies.ts
 import { CookieOptions, Response } from 'express';
 import { env } from '../../config/env';
+import { AUTH } from '../constants/config.constants';
 
 export const ACCESS_TOKEN_COOKIE = 'accessToken';
 export const REFRESH_TOKEN_COOKIE = 'refreshToken';
@@ -23,14 +24,14 @@ const refreshCookieOptions: CookieOptions = {
 export function setAccessTokenCookie(res: Response, token: string): void {
   res.cookie(ACCESS_TOKEN_COOKIE, token, {
     ...baseCookieOptions,
-    maxAge: 15 * 60 * 1000,
+    maxAge: AUTH.ACCESS_TOKEN_TTL_MS,
   });
 }
 
 export function setRefreshTokenCookie(res: Response, token: string): void {
   res.cookie(REFRESH_TOKEN_COOKIE, token, {
     ...refreshCookieOptions,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: AUTH.REFRESH_TOKEN_TTL_MS,
   });
 }
 

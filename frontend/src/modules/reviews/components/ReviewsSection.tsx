@@ -22,6 +22,7 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("newest");
   const [isEditing, setIsEditing] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const { isAuthenticated, user } = useAuthStore();
 
   const { data, isLoading } = useProductReviews(productId, {
@@ -114,7 +115,9 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
                 </div>
               )}
 
-              {alreadyReviewed && existingReview && (
+              {/* Pending review: not shown in the public list (which is approved-only),
+                  so surface it here with an inline editor. */}
+              {alreadyReviewed && existingReview && !existingReview.is_approved && (
                 <div className="space-y-3">
                   <div className="bg-primary-light/30 rounded-card p-3 text-sm text-primary flex items-center justify-between">
                     <span>نظر شما در انتظار تایید است</span>
@@ -180,9 +183,31 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {data?.reviews?.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
+              {data?.reviews?.map((review) => {
+                const isOwn = !!user && review.user?.id === user.id;
+                if (isOwn && editingReviewId === review.id) {
+                  return (
+                    <ReviewForm
+                      key={review.id}
+                      productId={productId}
+                      reviewId={review.id}
+                      initialRating={review.rating}
+                      initialTitle={review.title ?? ''}
+                      initialComment={review.comment ?? ''}
+                      onSuccess={() => setEditingReviewId(null)}
+                      onCancel={() => setEditingReviewId(null)}
+                    />
+                  );
+                }
+                return (
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                    isOwn={isOwn}
+                    onEdit={isOwn ? () => setEditingReviewId(review.id) : undefined}
+                  />
+                );
+              })}
             </div>
           )}
 

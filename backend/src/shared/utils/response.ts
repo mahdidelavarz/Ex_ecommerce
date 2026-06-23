@@ -13,6 +13,7 @@ interface ApiResponse<T = any> {
     totalPages?: number;
     hasNextPage?: boolean;
     hasPreviousPage?: boolean;
+    [key: string]: unknown;
   };
   errors?: Record<string, string[]>;
 }

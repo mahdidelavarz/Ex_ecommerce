@@ -43,7 +43,7 @@ export default function AdminCouponFormPage() {
   const isSubmitting = createCoupon.isPending || updateCoupon.isPending;
 
   const { data: productsData } = useProducts({ limit: 200 });
-  const { data: categoriesData } = useCategories({ limit: 200 });
+  const { data: categoriesData } = useCategories({ limit: 100 });
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),

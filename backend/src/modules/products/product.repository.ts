@@ -358,7 +358,14 @@ export class ProductRepository {
   }
 
   async bulkStatus(ids: string[], is_active: boolean) {
-    await this.repo.update({ id: In(ids) }, { is_active });
+    // Run in a transaction so the batch is all-or-nothing: if any id does not
+    // match an existing product, roll back rather than leaving a partial update.
+    await AppDataSource.transaction(async (manager) => {
+      const result = await manager.update(Product, { id: In(ids) }, { is_active });
+      if (result.affected !== ids.length) {
+        throw new NotFoundError("برخی از محصولات یافت نشدند");
+      }
+    });
   }
 
   async addImage(
@@ -455,6 +462,7 @@ export class ProductRepository {
         is_active: v.is_active,
         attributes:
           v.variant_attribute_values?.map((vav) => ({
+            id: vav.attribute_value?.id || "",
             name: vav.attribute_value?.attribute?.name || "",
             value: vav.attribute_value?.value || "",
             color_code: vav.attribute_value?.color_code || null,

@@ -58,7 +58,7 @@ export default function AdminProductFormPage() {
   const [activeTab, setActiveTab] = useState<Tab>("basic");
 
   // Data
-  const { data: categoriesData } = useCategories({ limit: 200 });
+  const { data: categoriesData } = useCategories({ limit: 100 });
   const { data: brandsData } = useAllBrands();
   const { data: attributes } = useAllAttributes();
   const { data: tags } = useAllTags();
@@ -97,8 +97,24 @@ export default function AdminProductFormPage() {
     remove: removeImage,
   } = useFieldArray({ control, name: "images" });
 
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+
+  const handleImageUpload = async (index: number, file: File) => {
+    setUploadingIndex(index);
+    try {
+      const url = await productService.uploadImage(file);
+      setValue(`images.${index}.image_url`, url, { shouldValidate: true, shouldDirty: true });
+      toast.success("تصویر بارگذاری شد");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "خطا در بارگذاری تصویر");
+    } finally {
+      setUploadingIndex(null);
+    }
+  };
+
   const isActive = watch("is_active");
   const isPublic = watch("is_public");
+  const watchedImages = watch("images");
   const selectedTags = watch("tag_ids") || [];
 
   // Variant form state (separate from product form)
@@ -515,6 +531,19 @@ export default function AdminProductFormPage() {
                       key={field.id}
                       className="flex items-start gap-4 p-4 bg-surface-raised rounded-card"
                     >
+                      {/* Preview */}
+                      <div className="w-20 h-20 flex-shrink-0 rounded-card border border-border bg-surface overflow-hidden flex items-center justify-center">
+                        {watchedImages?.[index]?.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={watchedImages[index].image_url}
+                            alt="preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <MdiImageMultiple className="w-6 h-6 text-text-muted" />
+                        )}
+                      </div>
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="sm:col-span-2">
                           <label className="text-xs text-text-secondary block mb-1">
@@ -525,6 +554,30 @@ export default function AdminProductFormPage() {
                             placeholder="https://..."
                             className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                           />
+                          <label className="inline-flex items-center gap-2 mt-2 cursor-pointer text-xs text-primary hover:underline">
+                            {uploadingIndex === index ? (
+                              <>
+                                <SvgSpinnersRingResize className="w-4 h-4" />
+                                در حال بارگذاری...
+                              </>
+                            ) : (
+                              <>
+                                <MdiImageMultiple className="w-4 h-4" />
+                                بارگذاری فایل
+                              </>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/gif"
+                              className="hidden"
+                              disabled={uploadingIndex !== null}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleImageUpload(index, file);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
                         </div>
                         <div>
                           <label className="text-xs text-text-secondary block mb-1">
