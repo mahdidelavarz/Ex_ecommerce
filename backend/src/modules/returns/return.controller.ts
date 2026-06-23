@@ -38,7 +38,7 @@ export class ReturnController {
   });
 
   updateStatus = asyncHandler(async (req: Request, res: Response) => {
-    const result = await this.service.updateStatus(req.params.id, req.body);
+    const result = await this.service.updateStatus(req.params.id, req.body, req.userId);
     ApiResponseHelper.success(res, result);
   });
 }

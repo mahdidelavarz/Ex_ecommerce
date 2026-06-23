@@ -309,22 +309,26 @@ No more white-screen crashes. To scope errors to other segments (cart, checkout,
 
 ---
 
-### M-23 — Cart Quantity Bounds Not Validated
-**File:** `backend/src/modules/cart/cart.validator.ts`
-A user can add `quantity: -1` or `quantity: 99999`.
-**Fix:** `z.number().int().min(1).max(100)` in the cart Zod schema. Also validate against `variant.stock_quantity`.
+### ~~M-23 — Cart Quantity Bounds Not Validated~~ ✅ Fixed
+`cart.validator.ts` — both `addToCartSchema` and `updateCartItemSchema` now use `z.number().int().min(1).max(100)` with Persian messages, so `quantity: -1` and `quantity: 99999` are rejected with 422 before hitting the DB. Stock validation against `variant.stock_quantity` already existed in `cart.repository.ts` (`addItem` and `updateItem` throw when the requested quantity exceeds stock). Verified: `99999` → "حداکثر تعداد مجاز ۱۰۰ است", `-1` → "حداقل تعداد ۱ است".
 
 ---
 
-### M-24 — No Optimistic UI for Cart
-**File:** `frontend/src/modules/cart/hooks/`
-Add-to-cart waits for a full server round-trip. Use `onMutate` + `onError` rollback pattern for instant feedback.
+### ~~M-24 — No Optimistic UI for Cart~~ ✅ Fixed
+`useCart.ts` — converted the cart mutations to the `onMutate`/`onError`/`onSettled` optimistic pattern against the `['cart']` query cache (which `CartDrawer`/cart page read via `useCart`):
+- **updateItem** (quantity steppers) and **removeItem** — fully optimistic with snapshot rollback on error; a `recalcCart()` helper recomputes `total_items` / `total_quantity` / `subtotal` instantly.
+- **addItem** — optimistically increments the quantity when the variant is already in the cart; brand-new line items are reconciled from the authoritative server response in `onSuccess` (they can't be rendered optimistically without variant details, which `AddToCartButton` doesn't carry).
+- All three `cancelQueries` first, roll back to the snapshot on error, and `invalidateQueries` on settle. The store stays in sync via the existing query→store `useEffect`.
 
 ---
 
-### M-25 — `InventoryLog` Entity Is Dead Code
-**File:** `backend/src/database/entities/inventory-log.entity.ts`
-Entity is registered with TypeORM but never written to. Wire it into every stock change: order placed, order cancelled, return received, manual adjustment.
+### ~~M-25 — `InventoryLog` Entity Is Dead Code~~ ✅ Fixed
+Added a shared `shared/utils/inventory-log.ts` `writeInventoryLog(manager, …)` helper (transaction-safe) and wired it into **every** stock change:
+- **order placed / cancelled** — already logged, but refactored to the helper with proper `InventoryLogType` enum members (removed the `'order_placed' as any` casts and an unused `inventoryLogRepo` field).
+- **return received** (`return.repository.updateStatus`) — previously did **nothing** to stock. Now, on the `approved → received` transition, it restocks each returned item's variant inside a transaction and writes a `RETURN_RECEIVED` log (referenceId = return id, createdBy = admin). User id threaded controller→service→repo.
+- **manual adjustment** (`variant.repository.bulkStock`) — now reads before/after, writes a `STOCK_ADJUSTMENT` log when the quantity changes (skips no-ops); user id threaded controller→service→repo.
+
+**Bonus bug found & fixed:** `PATCH /products/variants/stock` was registered *after* `/:variantId`, so the param route captured `"stock"` and failed UUID parsing — the manual-stock endpoint was effectively broken. Moved the static route before the param routes. Verified end-to-end: manual adjust → `stock_adjustment` log; return received → stock +1 and `return_received` log.
 
 ---
 
@@ -337,17 +341,13 @@ When a return is approved the system does not restore stock or trigger a refund.
 
 ---
 
-### M-27 — `lang="fa" dir="rtl"` Missing on `<html>`
-**File:** `frontend/src/app/layout.tsx`
-```tsx
-<html lang="fa" dir="rtl">
-```
+### ~~M-27 — `lang="fa" dir="rtl"` Missing on `<html>`~~ ✅ Fixed
+`layout.tsx` already renders `<html lang="fa" dir="rtl" …>` (plus `suppressHydrationWarning` for the theme). Verified present — no change needed.
 
 ---
 
-### M-28 — Missing `alt` Text on Images
-**Files:** `frontend/src/modules/products/components/ProductCard.tsx`, `frontend/src/app/products/[slug]/page.tsx`
-`alt=""` or missing entirely. Add `alt={product.title}`, `alt={`لوگوی ${brand.name}`}`, etc.
+### ~~M-28 — Missing `alt` Text on Images~~ ✅ Fixed
+Audited all `<Image>`/`<img>` in product/brand/category components. Most already had meaningful alt (`product.title`, `brand.name`, `لوگوی ${brand.name}`, etc.) from the earlier next/image pass. The one violation was the product-detail thumbnail gallery using `alt={img.alt_text || ''}` — changed to `alt={img.alt_text || \`${product.title} - تصویر ${idx + 1}\`}`. Admin-only previews keep their non-empty alts.
 
 ---
 
@@ -484,12 +484,12 @@ Low-priority structured data for product list rich results.
 | ~~M-20~~ | ~~Fix req.user module augmentation~~ ✅ | 🟡 | Low |
 | ~~M-21~~ | ~~React error boundaries~~ ✅ | 🟡 | Low |
 | ~~M-22~~ | ~~React Query staleTime~~ ✅ | 🟡 | Low |
-| M-23 | Cart quantity bounds validation | 🟡 | Low |
-| M-24 | Optimistic UI for cart | 🟡 | Medium |
-| M-25 | Wire InventoryLog | 🟡 | Medium |
+| ~~M-23~~ | ~~Cart quantity bounds validation~~ ✅ | 🟡 | Low |
+| ~~M-24~~ | ~~Optimistic UI for cart~~ ✅ | 🟡 | Medium |
+| ~~M-25~~ | ~~Wire InventoryLog~~ ✅ | 🟡 | Medium |
 | M-26 | Return: stock restore + refund trigger | 🟡 | High |
-| M-27 | `lang="fa" dir="rtl"` on `<html>` | 🟡 | Low |
-| M-28 | Alt text on all images | 🟡 | Low |
+| ~~M-27~~ | ~~`lang="fa" dir="rtl"` on `<html>`~~ ✅ | 🟡 | Low |
+| ~~M-28~~ | ~~Alt text on all images~~ ✅ | 🟡 | Low |
 | M-29 | `generateStaticParams` + ISR | 🟡 | Low |
 | M-30 | WebSite + SearchAction JSON-LD | 🟡 | Low |
 | L-1 | OpenAPI / Swagger docs | 🔵 | Medium |

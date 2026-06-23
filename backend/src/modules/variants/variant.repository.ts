@@ -12,6 +12,8 @@ import {
   BadRequestError,
 } from "../../shared/utils/errors";
 import { CreateVariantDto, UpdateVariantDto } from "./variant.types";
+import { InventoryLogType } from "../../database/entities/inventory-log.entity";
+import { writeInventoryLog } from "../../shared/utils/inventory-log";
 import { In } from "typeorm";
 
 export class VariantRepository {
@@ -172,16 +174,38 @@ export class VariantRepository {
     await this.repo.softDelete(id);
   }
 
-  async bulkStock(dtos: { id: string; stock_quantity: number }[]) {
+  async bulkStock(dtos: { id: string; stock_quantity: number }[], userId?: string) {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       for (const item of dtos) {
+        const variant = await queryRunner.manager.findOne(ProductVariant, {
+          where: { id: item.id },
+        });
+        if (!variant) throw new NotFoundError("واریانت یافت نشد");
+
+        const before = variant.stock_quantity;
+        const change = item.stock_quantity - before;
+
         await queryRunner.manager.update(ProductVariant, item.id, {
           stock_quantity: item.stock_quantity,
         });
+
+        // Only log when the quantity actually changed
+        if (change !== 0) {
+          await writeInventoryLog(queryRunner.manager, {
+            variantId: item.id,
+            type: InventoryLogType.STOCK_ADJUSTMENT,
+            quantityBefore: before,
+            quantityChange: change,
+            quantityAfter: item.stock_quantity,
+            referenceType: "manual",
+            note: "تنظیم دستی موجودی توسط مدیر",
+            createdBy: userId ?? null,
+          });
+        }
       }
       await queryRunner.commitTransaction();
     } catch (error) {

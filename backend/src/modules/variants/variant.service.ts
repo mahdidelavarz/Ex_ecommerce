@@ -29,8 +29,8 @@ export class VariantService {
     await this.repo.delete(id);
   }
 
-  async bulkStock(dto: BulkStockDto): Promise<void> {
-    await this.repo.bulkStock(dto.items);
+  async bulkStock(dto: BulkStockDto, userId?: string): Promise<void> {
+    await this.repo.bulkStock(dto.items, userId);
   }
 
   async addImage(variantId: string, dto: { image_url: string; sort_order?: number }) {

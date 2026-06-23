@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useCart } from "../hooks/useCart";
+import type { CartVariant } from "../types/cart.types";
 import {
   LucidePlus,
   MdiCartPlus,
@@ -15,6 +16,8 @@ interface AddToCartButtonProps {
   stockQuantity: number;
   quantity?: number;
   className?: string;
+  /** Optional snapshot so a brand-new line item renders optimistically. */
+  variantSnapshot?: CartVariant;
 }
 
 export default function AddToCartButton({
@@ -22,6 +25,7 @@ export default function AddToCartButton({
   stockQuantity,
   quantity = 1,
   className = "",
+  variantSnapshot,
 }: AddToCartButtonProps) {
   const [qty, setQty] = useState(quantity);
   const { addItem, isAdding } = useCart();
@@ -29,7 +33,7 @@ export default function AddToCartButton({
   const isOutOfStock = stockQuantity === 0;
 
   const handleAddToCart = () => {
-    addItem({ variant_id: variantId, quantity: qty });
+    addItem({ variant_id: variantId, quantity: qty, variant: variantSnapshot });
   };
 
   return (

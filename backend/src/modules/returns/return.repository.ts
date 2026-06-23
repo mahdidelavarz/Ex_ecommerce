@@ -2,6 +2,9 @@
 import { AppDataSource } from '../../config/database';
 import { Return, ReturnStatus } from '../../database/entities/return.entity';
 import { ReturnItem } from '../../database/entities/return-item.entity';
+import { ProductVariant } from '../../database/entities/product-variant.entity';
+import { InventoryLogType } from '../../database/entities/inventory-log.entity';
+import { writeInventoryLog } from '../../shared/utils/inventory-log';
 import { NotFoundError } from '../../shared/utils/errors';
 
 export class ReturnRepository {
@@ -94,14 +97,65 @@ export class ReturnRepository {
     return ret;
   }
 
-  async updateStatus(id: string, dto: { status: string; refund_amount?: number; admin_note?: string }) {
-    const ret = await this.repo.findOne({ where: { id } });
-    if (!ret) throw new NotFoundError('مرجوعی یافت نشد');
+  async updateStatus(
+    id: string,
+    dto: { status: string; refund_amount?: number; admin_note?: string },
+    userId?: string,
+  ) {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    (ret as any).status = dto.status;
-    if (dto.refund_amount !== undefined) ret.refund_amount = dto.refund_amount;
-    if (dto.admin_note) ret.admin_note = dto.admin_note;
+    try {
+      const ret = await queryRunner.manager.findOne(Return, {
+        where: { id },
+        relations: ['items', 'items.order_item'],
+      });
+      if (!ret) throw new NotFoundError('مرجوعی یافت نشد');
 
-    return this.repo.save(ret);
+      const wasReceived = ret.status === ReturnStatus.RECEIVED;
+
+      ret.status = dto.status as ReturnStatus;
+      if (dto.refund_amount !== undefined) ret.refund_amount = dto.refund_amount;
+      if (dto.admin_note) ret.admin_note = dto.admin_note;
+      await queryRunner.manager.save(ret);
+
+      // Restock returned items the first time the return is marked "received"
+      if (dto.status === ReturnStatus.RECEIVED && !wasReceived) {
+        for (const item of ret.items) {
+          const variantId = item.order_item?.variant_id;
+          if (!variantId) continue; // variant was deleted — nothing to restock
+
+          const variant = await queryRunner.manager.findOne(ProductVariant, {
+            where: { id: variantId },
+          });
+          if (!variant) continue;
+
+          const before = variant.stock_quantity;
+          variant.stock_quantity += item.quantity;
+          await queryRunner.manager.save(variant);
+
+          await writeInventoryLog(queryRunner.manager, {
+            variantId,
+            type: InventoryLogType.RETURN_RECEIVED,
+            quantityBefore: before,
+            quantityChange: item.quantity,
+            quantityAfter: variant.stock_quantity,
+            referenceType: 'return',
+            referenceId: ret.id,
+            note: `مرجوعی ${ret.return_number}`,
+            createdBy: userId ?? null,
+          });
+        }
+      }
+
+      await queryRunner.commitTransaction();
+      return ret;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

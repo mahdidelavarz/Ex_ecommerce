@@ -97,7 +97,7 @@ export default function ProductPageClient() {
                       idx === selectedImage ? 'border-primary' : 'border-border'
                     }`}
                   >
-                    <Image src={img.image_url} alt={img.alt_text || ''} fill className="object-cover" sizes="80px" />
+                    <Image src={img.image_url} alt={img.alt_text || `${product.title} - تصویر ${idx + 1}`} fill className="object-cover" sizes="80px" />
                   </button>
                 ))}
               </div>
@@ -168,6 +168,30 @@ export default function ProductPageClient() {
                     <AddToCartButton
                       variantId={currentVariant.id}
                       stockQuantity={currentVariant.stock_quantity}
+                      variantSnapshot={{
+                        id: currentVariant.id,
+                        sku: currentVariant.sku,
+                        price: currentVariant.price,
+                        compare_at_price: currentVariant.compare_at_price,
+                        stock_quantity: currentVariant.stock_quantity,
+                        is_active: currentVariant.is_active,
+                        attributes: currentVariant.attributes.map((a) => ({
+                          name: a.name,
+                          value: a.value,
+                          color_code: a.color_code,
+                        })),
+                        image:
+                          currentVariant.images?.find((img) => img.sort_order === 0)?.image_url ??
+                          currentVariant.images?.[0]?.image_url ??
+                          product.images?.[0]?.image_url ??
+                          null,
+                        product: {
+                          id: product.id,
+                          title: product.title,
+                          slug: product.slug,
+                          is_active: true,
+                        },
+                      }}
                       className="flex-1"
                     />
                     <WishlistButton variantId={currentVariant.id} />

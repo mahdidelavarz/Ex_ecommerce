@@ -8,10 +8,11 @@ import { ProductVariant } from '../../database/entities/product-variant.entity';
 import { UserAddress } from '../../database/entities/user-address.entity';
 import { Coupon } from '../../database/entities/coupon.entity';
 import { User } from '../../database/entities/user.entity';
-import { InventoryLog } from '../../database/entities/inventory-log.entity';
+import { InventoryLogType } from '../../database/entities/inventory-log.entity';
 import { NotFoundError, BadRequestError } from '../../shared/utils/errors';
 import { CreateOrderDto } from './order.types';
 import { AppSetting } from '../../database/entities/app-setting.entity';
+import { writeInventoryLog } from '../../shared/utils/inventory-log';
 
 export class OrderRepository {
   private orderRepo = AppDataSource.getRepository(Order);
@@ -22,7 +23,6 @@ export class OrderRepository {
   private addressRepo = AppDataSource.getRepository(UserAddress);
   private couponRepo = AppDataSource.getRepository(Coupon);
   private userRepo = AppDataSource.getRepository(User);
-  private inventoryLogRepo = AppDataSource.getRepository(InventoryLog);
 
   async createOrder(userId: string, dto: CreateOrderDto) {
     const cart = await this.cartRepo.findOne({
@@ -80,16 +80,15 @@ export class OrderRepository {
         variant.stock_quantity -= cartItem.quantity;
         await queryRunner.manager.save(variant);
 
-        // Inventory log - use direct insert
-        await queryRunner.manager.insert(InventoryLog, {
-          variant_id: variant.id,
-          type: 'order_placed' as any,
-          quantity_before: qtyBefore,
-          quantity_change: -cartItem.quantity,
-          quantity_after: variant.stock_quantity,
-          reference_type: 'order',
+        await writeInventoryLog(queryRunner.manager, {
+          variantId: variant.id,
+          type: InventoryLogType.ORDER_PLACED,
+          quantityBefore: qtyBefore,
+          quantityChange: -cartItem.quantity,
+          quantityAfter: variant.stock_quantity,
+          referenceType: 'order',
           note: `سفارش توسط کاربر ${userId}`,
-          created_by: userId,
+          createdBy: userId,
         });
 
         const unitPrice = variant.price;
@@ -344,14 +343,14 @@ export class OrderRepository {
             variant.stock_quantity += item.quantity;
             await queryRunner.manager.save(variant);
 
-            await queryRunner.manager.insert(InventoryLog, {
-              variant_id: variant.id,
-              type: 'order_cancelled' as any,
-              quantity_before: qtyBefore,
-              quantity_change: item.quantity,
-              quantity_after: variant.stock_quantity,
-              reference_type: 'order',
-              reference_id: orderId,
+            await writeInventoryLog(queryRunner.manager, {
+              variantId: variant.id,
+              type: InventoryLogType.ORDER_CANCELLED,
+              quantityBefore: qtyBefore,
+              quantityChange: item.quantity,
+              quantityAfter: variant.stock_quantity,
+              referenceType: 'order',
+              referenceId: orderId,
               note: 'لغو سفارش',
             });
           }

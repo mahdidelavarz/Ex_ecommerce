@@ -56,7 +56,7 @@ export class ReturnService {
     return this.repo.findByIdWithRelations(id);
   }
 
-  async updateStatus(id: string, dto: { status: string; admin_note?: string; refund_amount?: number }) {
+  async updateStatus(id: string, dto: { status: string; admin_note?: string; refund_amount?: number }, userId?: string) {
     const ret = await this.repo.findByIdWithRelations(id);
 
     const allowed = ALLOWED_TRANSITIONS[ret.status] ?? [];
@@ -70,6 +70,6 @@ export class ReturnService {
         throw new BadRequestError('مبلغ بازگشتی نمی‌تواند از مبلغ سفارش بیشتر باشد');
     }
 
-    return this.repo.updateStatus(id, dto);
+    return this.repo.updateStatus(id, dto, userId);
   }
 }

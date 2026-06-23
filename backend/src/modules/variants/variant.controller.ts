@@ -33,7 +33,7 @@ export class VariantController {
   });
 
   bulkStock = asyncHandler(async (req: Request, res: Response) => {
-    await this.service.bulkStock(req.body);
+    await this.service.bulkStock(req.body, req.userId);
     ApiResponseHelper.success(res, null, 'موجودی بروزرسانی شد');
   });
 
