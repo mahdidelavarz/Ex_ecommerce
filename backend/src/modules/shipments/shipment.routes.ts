@@ -4,11 +4,12 @@ import { ShipmentController } from './shipment.controller';
 import { validate } from '../../middleware/validate';
 import { authenticate, authorize } from '../../middleware/auth';
 import { UserRole } from '../../shared/constants/enums';
-import { createShipmentSchema, updateShipmentSchema } from './shipment.validator';
+import { createShipmentSchema, updateShipmentSchema, shipmentQuerySchema } from './shipment.validator';
 
 const router = Router();
 const controller = new ShipmentController();
 
+router.get('/', authenticate, authorize(UserRole.ADMIN), validate({ query: shipmentQuerySchema }), controller.list);
 router.get('/order/:orderId', authenticate, controller.findByOrder);
 router.get('/:id', authenticate, controller.getById);
 router.post('/', authenticate, authorize(UserRole.ADMIN), validate({ body: createShipmentSchema }), controller.create);

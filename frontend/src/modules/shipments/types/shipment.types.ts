@@ -14,6 +14,18 @@ export interface Shipment {
   updated_at: string;
 }
 
+export interface AdminShipment extends Shipment {
+  order_number: string | null;
+  customer_name: string | null;
+}
+
+export interface AdminShipmentListParams {
+  status?: ShipmentStatus;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
 export type ShipmentStatus =
   | 'pending'
   | 'processing'

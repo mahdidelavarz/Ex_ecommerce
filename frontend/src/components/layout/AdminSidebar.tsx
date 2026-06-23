@@ -21,6 +21,7 @@ import {
   MdiShape,
   MdiTagMultiple,
   MdiTicketPercent,
+  MdiTruckDelivery,
   MdiViewDashboard,
 } from "../icons/Icons";
 
@@ -59,6 +60,11 @@ const menuItems = [
     title: "سفارشات",
     icon: MdiCart,
     href: "/admin/orders",
+  },
+  {
+    title: "مرسولات",
+    icon: MdiTruckDelivery,
+    href: "/admin/shipments",
   },
   {
     title: "کاربران",

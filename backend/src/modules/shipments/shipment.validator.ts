@@ -10,6 +10,16 @@ export const createShipmentSchema = z.object({
   notes:                  z.string().optional(),
 });
 
+export const shipmentQuerySchema = z.object({
+  status: z.enum([
+    'pending', 'processing', 'shipped', 'in_transit',
+    'out_for_delivery', 'delivered', 'failed', 'returned',
+  ]).optional(),
+  search: z.string().optional(),
+  page: z.string().optional(),
+  limit: z.string().optional(),
+});
+
 export const updateShipmentSchema = z.object({
   status: z.enum([
     'pending', 'processing', 'shipped', 'in_transit',

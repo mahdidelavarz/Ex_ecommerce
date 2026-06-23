@@ -272,8 +272,9 @@ New backend `modules/users` — admin-only `GET /users` (search by name/phone/em
 
 ---
 
-### M-18 — Admin Panel: Shipments Standalone Page Missing
-Shipments are only accessible inside individual order detail. No `/admin/shipments` list for dispatch operations.
+### ~~M-18 — Admin Panel: Shipments Standalone Page Missing~~ ✅ Fixed
+**Backend:** added admin `GET /api/v1/shipments` (status filter, search by tracking/order number, pagination). `shipment.repository.listAll()` joins the order to return `order_number` + `customer_name` alongside each shipment; service caps `limit` at 100; query validated via `shipmentQuerySchema`.
+**Frontend:** new `app/admin/shipments/page.tsx` — debounced search, status-filter tabs, table with order link, customer, courier/tracking, and an inline status `<select>` that dispatches via the new `useAdminUpdateShipment` hook (`shipmentService.list` + `useAdminShipments`). Added a "مرسولات" link to the admin sidebar. Verified end-to-end with a real admin token.
 
 ---
 
@@ -480,19 +481,19 @@ Low-priority structured data for product list rich results.
 | ~~M-4~~ | ~~Configurable shipping cost~~ ✅ | 🟡 | Low |
 | M-5 | Tax calculation / config | 🟡 | Medium |
 | M-6 | Order confirmation page | 🟡 | Low |
-| M-7 | Coupon validation feedback in checkout | 🟡 | Low |
-| M-8 | `bulkStatus()` transaction | 🟡 | Low |
-| M-9 | Product image file upload in admin | 🟡 | Medium |
-| M-10 | Variant image management in admin | 🟡 | Medium |
+| ~~M-7~~ | ~~Coupon validation feedback in checkout~~ ✅ | 🟡 | Low |
+| ~~M-8~~ | ~~`bulkStatus()` transaction~~ ✅ | 🟡 | Low |
+| ~~M-9~~ | ~~Product image file upload in admin~~ ✅ | 🟡 | Medium |
+| ~~M-10~~ | ~~Variant image management in admin~~ ✅ | 🟡 | Medium |
 | M-11 | Specification field editor in admin | 🟡 | Low |
 | M-12 | Review title/comment `.min(1)` | 🟡 | Low |
 | ~~M-13~~ | ~~Admin reviews approval filter~~ ✅ | 🟡 | Low |
-| M-14 | Customer edit-review UI | 🟡 | Low |
+| ~~M-14~~ | ~~Customer edit-review UI~~ ✅ | 🟡 | Low |
 | ~~M-15~~ | ~~Filter unapproved reviews in section~~ ✅ | 🟡 | Low |
-| M-16 | Admin dashboard page | 🟡 | Medium |
-| M-17 | Admin users management page | 🟡 | High |
-| M-18 | Admin shipments list page | 🟡 | Medium |
-| M-19 | Centralize magic numbers | 🟡 | Low |
+| ~~M-16~~ | ~~Admin dashboard page~~ ✅ | 🟡 | Medium |
+| ~~M-17~~ | ~~Admin users management page~~ ✅ | 🟡 | High |
+| ~~M-18~~ | ~~Admin shipments list page~~ ✅ | 🟡 | Medium |
+| ~~M-19~~ | ~~Centralize magic numbers (token TTLs)~~ ✅ | 🟡 | Low |
 | M-20 | Fix req.user module augmentation | 🟡 | Low |
 | M-21 | React error boundaries | 🟡 | Low |
 | M-22 | React Query staleTime | 🟡 | Low |

@@ -17,6 +17,56 @@ export class ShipmentRepository {
   private repo      = AppDataSource.getRepository(Shipment);
   private orderRepo = AppDataSource.getRepository(Order);
 
+  // Admin: list all shipments with order context, status filter, search & pagination
+  async listAll(options: {
+    status?: ShipmentStatus;
+    search?: string;
+    page: number;
+    limit: number;
+  }) {
+    const qb = this.repo
+      .createQueryBuilder('shipment')
+      .leftJoin(Order, 'order', 'order.id = shipment.order_id')
+      .addSelect('order.order_number', 'order_number')
+      .addSelect('order.shipping_address_snapshot', 'shipping_address_snapshot');
+
+    if (options.status) {
+      qb.andWhere('shipment.status = :status', { status: options.status });
+    }
+
+    if (options.search) {
+      qb.andWhere(
+        '(shipment.tracking_number ILIKE :s OR order.order_number ILIKE :s)',
+        { s: `%${options.search}%` }
+      );
+    }
+
+    qb.orderBy('shipment.created_at', 'DESC')
+      .offset((options.page - 1) * options.limit)
+      .limit(options.limit);
+
+    const [{ entities, raw }, total] = await Promise.all([
+      qb.getRawAndEntities(),
+      qb.getCount(),
+    ]);
+
+    const data = entities.map((shipment, i) => ({
+      ...shipment,
+      order_number: raw[i]?.order_number ?? null,
+      customer_name: raw[i]?.shipping_address_snapshot?.full_name ?? null,
+    }));
+
+    return {
+      data,
+      meta: {
+        page: options.page,
+        limit: options.limit,
+        total,
+        totalPages: Math.ceil(total / options.limit),
+      },
+    };
+  }
+
   // SHP-B1: userId param enables ownership check for non-admin callers
   async findByOrder(orderId: string, userId?: string) {
     const order = await this.orderRepo.findOne({ where: { id: orderId } });

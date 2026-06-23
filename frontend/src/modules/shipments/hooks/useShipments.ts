@@ -3,7 +3,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { shipmentService } from '../services/shipment.service';
-import type { UpdateShipmentDto } from '../types/shipment.types';
+import type { UpdateShipmentDto, AdminShipmentListParams } from '../types/shipment.types';
 import toast from 'react-hot-toast';
 
 export function useShipments(orderId: string) {
@@ -11,6 +11,29 @@ export function useShipments(orderId: string) {
     queryKey: ['shipments', orderId],
     queryFn: () => shipmentService.findByOrder(orderId),
     enabled: !!orderId,
+  });
+}
+
+// Admin: paginated list of all shipments
+export function useAdminShipments(params?: AdminShipmentListParams) {
+  return useQuery({
+    queryKey: ['shipments', 'admin', params],
+    queryFn: () => shipmentService.list(params),
+  });
+}
+
+// Admin: update a shipment from the standalone list (invalidates the admin list)
+export function useAdminUpdateShipment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateShipmentDto }) =>
+      shipmentService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments', 'admin'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success('وضعیت ارسال بروزرسانی شد');
+    },
+    onError: (error: any) => toast.error(error.response?.data?.message || 'خطا'),
   });
 }
 
