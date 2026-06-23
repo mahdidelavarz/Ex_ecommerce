@@ -293,10 +293,14 @@ The augmentation already existed and was correct — `shared/types/express.d.ts`
 
 ---
 
-### M-21 — No React Error Boundaries
-**File:** `frontend/src/app/layout.tsx`
-A runtime error in any component crashes the entire app with a white screen.
-**Fix:** Add `ErrorBoundary.tsx` (class component with `componentDidCatch`) to layout, plus `error.tsx` inside each major route segment.
+### ~~M-21 — No React Error Boundaries~~ ✅ Fixed
+Used the App Router's native error-boundary convention (the modern equivalent of a `componentDidCatch` class — Next wraps each segment in a React error boundary via `error.tsx`):
+- `app/error.tsx` — catches render errors in any page under the root layout; shows a graceful fallback with **تلاش مجدد** (calls Next's `reset`) and a home link, and logs the error.
+- `app/admin/error.tsx` — admin-scoped boundary so a failure stays contained to the panel.
+- `app/global-error.tsx` — last-resort boundary for errors thrown in the root layout itself; renders its own `<html>/<body>` with inlined styles (can't rely on providers/CSS).
+- Shared presentational `components/ui/ErrorState.tsx` keeps the two in-app boundaries DRY.
+
+No more white-screen crashes. To scope errors to other segments (cart, checkout, …), drop an `error.tsx` re-exporting the same pattern into that folder.
 
 ---
 
@@ -486,7 +490,7 @@ Low-priority structured data for product list rich results.
 | ~~M-18~~ | ~~Admin shipments list page~~ ✅ | 🟡 | Medium |
 | ~~M-19~~ | ~~Centralize magic numbers (token TTLs)~~ ✅ | 🟡 | Low |
 | ~~M-20~~ | ~~Fix req.user module augmentation~~ ✅ | 🟡 | Low |
-| M-21 | React error boundaries | 🟡 | Low |
+| ~~M-21~~ | ~~React error boundaries~~ ✅ | 🟡 | Low |
 | M-22 | React Query staleTime | 🟡 | Low |
 | M-23 | Cart quantity bounds validation | 🟡 | Low |
 | M-24 | Optimistic UI for cart | 🟡 | Medium |
