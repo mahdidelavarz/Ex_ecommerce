@@ -10,7 +10,7 @@ export class AddressController {
   private addressRepo = AppDataSource.getRepository(UserAddress);
 
   list = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+    const userId = req.userId!;
     const addresses = await this.addressRepo.find({
       where: { user_id: userId },
       order: { is_default_shipping: 'DESC', created_at: 'DESC' } as any,
@@ -19,7 +19,7 @@ export class AddressController {
   });
 
   create = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+    const userId = req.userId!;
     const {
       full_name, phone, country, state, city,
       address_line_1, address_line_2, postal_code,
@@ -62,7 +62,7 @@ export class AddressController {
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user.id;
+    const userId = req.userId!;
     const { id } = req.params;
     const address = await this.addressRepo.findOne({ where: { id, user_id: userId } });
     if (!address) throw new NotFoundError('آدرس یافت نشد');

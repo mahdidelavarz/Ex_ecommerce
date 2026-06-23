@@ -288,17 +288,8 @@ Result: JWT signing, both auth cookies, and the DB refresh-token expiry are all 
 
 ---
 
-### M-20 — `req.user` Module Augmentation Inconsistent
-**File:** `backend/src/middleware/auth.ts`, various controllers
-Some controllers use `as unknown as AuthenticatedUser` casts, bypassing type safety.
-**Fix:** `backend/src/types/express.d.ts`:
-```ts
-declare global {
-  namespace Express {
-    interface Request { user?: UserPayload; requestId?: string; }
-  }
-}
-```
+### ~~M-20 — `req.user` Module Augmentation Inconsistent~~ ✅ Fixed
+The augmentation already existed and was correct — `shared/types/express.d.ts` declares `Request.user?: User` / `userId?: string` / `requestId?` / `startTime?`, and `tsconfig.json` loads it via both `files` and `typeRoots`. The only code bypassing it was `auth/address.controller.ts`, which read `(req as any).user.id` in `list`/`create`/`delete`. Replaced all three with the typed `req.userId!` (the convention used by every other controller); routes are `authenticate`-guarded so it's always populated. No `(req as any).user` / `req['user']` bypasses remain.
 
 ---
 
@@ -494,7 +485,7 @@ Low-priority structured data for product list rich results.
 | ~~M-17~~ | ~~Admin users management page~~ ✅ | 🟡 | High |
 | ~~M-18~~ | ~~Admin shipments list page~~ ✅ | 🟡 | Medium |
 | ~~M-19~~ | ~~Centralize magic numbers (token TTLs)~~ ✅ | 🟡 | Low |
-| M-20 | Fix req.user module augmentation | 🟡 | Low |
+| ~~M-20~~ | ~~Fix req.user module augmentation~~ ✅ | 🟡 | Low |
 | M-21 | React error boundaries | 🟡 | Low |
 | M-22 | React Query staleTime | 🟡 | Low |
 | M-23 | Cart quantity bounds validation | 🟡 | Low |
