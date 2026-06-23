@@ -304,16 +304,8 @@ No more white-screen crashes. To scope errors to other segments (cart, checkout,
 
 ---
 
-### M-22 — React Query Default `staleTime` is Zero
-**File:** `frontend/src/lib/query-provider.tsx`
-Every window-focus refetches all queries — categories and brands are fetched repeatedly.
-**Fix:**
-```ts
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 5 * 60 * 1000, retry: 1 } },
-});
-```
-Override per-query for real-time data (cart, orders).
+### ~~M-22 — React Query Default `staleTime` is Zero~~ ✅ Fixed
+`query-provider.tsx` — default `staleTime` raised to **5 minutes** (`retry: 1` and `refetchOnWindowFocus: false` were already set, so focus no longer refetches everything). Real-time data overrides the default per-query: cart was already `30s`; added `staleTime: 30s` to the order hooks (`useMyOrders`, `useOrder`, `useAdminOrders`) so status/payment/fulfillment changes stay fresh, and the dashboard hook already uses `60s`. Mutations still `invalidateQueries`, so post-action correctness is unaffected by the longer default.
 
 ---
 
@@ -491,7 +483,7 @@ Low-priority structured data for product list rich results.
 | ~~M-19~~ | ~~Centralize magic numbers (token TTLs)~~ ✅ | 🟡 | Low |
 | ~~M-20~~ | ~~Fix req.user module augmentation~~ ✅ | 🟡 | Low |
 | ~~M-21~~ | ~~React error boundaries~~ ✅ | 🟡 | Low |
-| M-22 | React Query staleTime | 🟡 | Low |
+| ~~M-22~~ | ~~React Query staleTime~~ ✅ | 🟡 | Low |
 | M-23 | Cart quantity bounds validation | 🟡 | Low |
 | M-24 | Optimistic UI for cart | 🟡 | Medium |
 | M-25 | Wire InventoryLog | 🟡 | Medium |

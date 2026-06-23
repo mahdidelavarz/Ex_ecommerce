@@ -5,12 +5,25 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../services/order.service';
 import toast from 'react-hot-toast';
 
+// Orders are real-time (status changes, payment, fulfillment) — keep them fresh
+// with a short staleTime that overrides the 5-minute global default.
+const ORDERS_STALE_TIME = 30 * 1000;
+
 export function useMyOrders(params?: any) {
-  return useQuery({ queryKey: ['orders', 'my', params], queryFn: () => orderService.myOrders(params) });
+  return useQuery({
+    queryKey: ['orders', 'my', params],
+    queryFn: () => orderService.myOrders(params),
+    staleTime: ORDERS_STALE_TIME,
+  });
 }
 
 export function useOrder(id: string) {
-  return useQuery({ queryKey: ['orders', id], queryFn: () => orderService.getById(id), enabled: !!id });
+  return useQuery({
+    queryKey: ['orders', id],
+    queryFn: () => orderService.getById(id),
+    enabled: !!id,
+    staleTime: ORDERS_STALE_TIME,
+  });
 }
 
 export function useCreateOrder() {
@@ -47,6 +60,7 @@ export function useAdminOrders(params?: any) {
   return useQuery({
     queryKey: ['orders', 'admin', params],
     queryFn: () => orderService.adminList(params),
+    staleTime: ORDERS_STALE_TIME,
   });
 }
 

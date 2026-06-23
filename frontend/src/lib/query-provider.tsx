@@ -10,7 +10,10 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            // Reference/catalog data (categories, brands, products) rarely
+            // changes within a session, so cache for 5 minutes by default.
+            // Real-time data (cart, orders) overrides this per-query.
+            staleTime: 5 * 60 * 1000,
             refetchOnWindowFocus: false,
             retry: 1,
           },
