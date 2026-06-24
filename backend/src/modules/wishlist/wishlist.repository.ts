@@ -12,13 +12,19 @@ export class WishlistRepository {
   async findByUser(userId: string, page = 1, limit = 20) {
     const [rows, total] = await this.repo.findAndCount({
       where: { user_id: userId },
-      relations: ['variant', 'variant.product', 'variant.variant_attribute_values', 'variant.variant_attribute_values.attribute_value', 'variant.variant_attribute_values.attribute_value.attribute', 'variant.images'],
+      relations: ['variant', 'variant.product', 'variant.product.images', 'variant.variant_attribute_values', 'variant.variant_attribute_values.attribute_value', 'variant.variant_attribute_values.attribute_value.attribute', 'variant.images'],
       order: { created_at: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
 
-    const items = rows.map((item) => ({
+    const items = rows.map((item) => {
+      // Prefer the variant's own image; fall back to the product's thumbnail
+      // (images are usually attached to the product, not the variant).
+      const productImgs = item.variant.product?.images || [];
+      const productThumb = productImgs.find((img: any) => img.is_thumbnail) || [...productImgs].sort((a: any, b: any) => a.sort_order - b.sort_order)[0];
+      const image = item.variant.images?.[0]?.image_url || productThumb?.image_url || null;
+      return {
       id: item.id,
       variant_id: item.variant_id,
       variant: {
@@ -33,7 +39,7 @@ export class WishlistRepository {
           value: vav.attribute_value?.value || '',
           color_code: vav.attribute_value?.color_code || null,
         })) || [],
-        image: item.variant.images?.[0]?.image_url || null,
+        image,
         product: item.variant.product ? {
           id: item.variant.product.id,
           title: item.variant.product.title,
@@ -42,7 +48,8 @@ export class WishlistRepository {
         } : null,
       },
       created_at: item.created_at,
-    }));
+      };
+    });
 
     return { items, total, page, limit };
   }

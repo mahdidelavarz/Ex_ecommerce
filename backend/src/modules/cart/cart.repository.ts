@@ -49,6 +49,7 @@ export class CartRepository {
       .createQueryBuilder('item')
       .leftJoinAndSelect('item.variant', 'variant')
       .leftJoinAndSelect('variant.product', 'product')
+      .leftJoinAndSelect('product.images', 'productImages')
       .leftJoinAndSelect('variant.images', 'images')
       .leftJoinAndSelect('variant.variant_attribute_values', 'vav')
       .leftJoinAndSelect('vav.attribute_value', 'attrVal')
@@ -58,7 +59,12 @@ export class CartRepository {
 
     const mappedItems = items.map((item) => {
       const variant = item.variant;
-      const thumbnail = variant.images?.find((img) => img.sort_order === 0) || variant.images?.[0];
+      // Prefer the variant's own image; fall back to the product's thumbnail
+      // (images are usually attached to the product, not the variant).
+      const variantThumb = variant.images?.find((img) => img.sort_order === 0) || variant.images?.[0];
+      const productImgs = variant.product?.images || [];
+      const productThumb = productImgs.find((img) => img.is_thumbnail) || [...productImgs].sort((a, b) => a.sort_order - b.sort_order)[0];
+      const thumbnail = variantThumb || productThumb;
       return {
         id: item.id,
         variant_id: item.variant_id,
