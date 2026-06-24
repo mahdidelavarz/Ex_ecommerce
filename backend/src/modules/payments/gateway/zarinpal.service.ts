@@ -36,4 +36,23 @@ export class ZarinpalService {
     if (code !== 100 && code !== 101) throw new BadRequestError('پرداخت تایید نشد');
     return { refId: String(ref_id), alreadyVerified: code === 101 };
   }
+
+  /**
+   * Attempt to refund a settled payment. Zarinpal refunds require merchant
+   * PaymentManager access, so this is best-effort: returns false on any failure
+   * (e.g. sandbox / no access) instead of throwing, letting the return workflow
+   * complete and finance reconcile manually.
+   */
+  async refundPayment(authority: string, amount: number): Promise<boolean> {
+    try {
+      const res = await axios.post(`${this.base}/v4/payment/refund.json`, {
+        merchant_id: env.zarinpal.merchantId,
+        authority,
+        amount,
+      });
+      return res.data?.data?.code === 100;
+    } catch {
+      return false;
+    }
+  }
 }

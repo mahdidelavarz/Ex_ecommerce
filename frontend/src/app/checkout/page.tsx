@@ -41,6 +41,9 @@ export default function CheckoutPage() {
   const { data: shippingCostSetting } = useSetting('shipping_cost');
   const shippingCost = parseInt(shippingCostSetting?.value ?? '50000');
 
+  const { data: taxRateSetting } = useSetting('tax_rate');
+  const taxRate = parseFloat(taxRateSetting?.value ?? '0');
+
   useEffect(() => {
     if (addresses?.length && !selectedAddressId) {
       const def = addresses.find((a) => a.is_default_shipping) ?? addresses[0];
@@ -137,7 +140,9 @@ export default function CheckoutPage() {
 
   const discountAmount = couponResult?.discount_amount ?? 0;
   const effectiveShipping = couponResult?.coupon?.type === 'free_shipping' ? 0 : shippingCost;
-  const totalAmount = Math.max(0, cart?.subtotal ?? 0) - discountAmount + effectiveShipping;
+  const taxableBase = Math.max(0, (cart?.subtotal ?? 0) - discountAmount);
+  const taxAmount = Math.round((taxableBase * taxRate) / 100);
+  const totalAmount = taxableBase + effectiveShipping + taxAmount;
 
   return (
     <main className="min-h-screen bg-background">
@@ -285,6 +290,12 @@ export default function CheckoutPage() {
                       : formatPrice(shippingCost)}
                   </span>
                 </div>
+                {taxAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-text-secondary">مالیات ({taxRate}٪):</span>
+                    <span>{formatPrice(taxAmount)}</span>
+                  </div>
+                )}
                 <hr className="border-border" />
                 <div className="flex justify-between text-lg font-bold">
                   <span>مبلغ قابل پرداخت:</span>

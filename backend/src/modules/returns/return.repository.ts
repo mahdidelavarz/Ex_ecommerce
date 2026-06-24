@@ -3,6 +3,8 @@ import { AppDataSource } from '../../config/database';
 import { Return, ReturnStatus } from '../../database/entities/return.entity';
 import { ReturnItem } from '../../database/entities/return-item.entity';
 import { ProductVariant } from '../../database/entities/product-variant.entity';
+import { Payment, PaymentStatusEnum } from '../../database/entities/payment.entity';
+import { Order, PaymentStatus } from '../../database/entities/order.entity';
 import { InventoryLogType } from '../../database/entities/inventory-log.entity';
 import { writeInventoryLog } from '../../shared/utils/inventory-log';
 import { NotFoundError } from '../../shared/utils/errors';
@@ -114,10 +116,15 @@ export class ReturnRepository {
       if (!ret) throw new NotFoundError('مرجوعی یافت نشد');
 
       const wasReceived = ret.status === ReturnStatus.RECEIVED;
+      const wasRefunded = ret.status === ReturnStatus.REFUNDED;
 
       ret.status = dto.status as ReturnStatus;
       if (dto.refund_amount !== undefined) ret.refund_amount = dto.refund_amount;
       if (dto.admin_note) ret.admin_note = dto.admin_note;
+      // Stamp the moment the refund is initiated (first transition to refunded)
+      if (dto.status === ReturnStatus.REFUNDED && !wasRefunded) {
+        ret.refund_triggered_at = new Date();
+      }
       await queryRunner.manager.save(ret);
 
       // Restock returned items the first time the return is marked "received"
@@ -145,6 +152,26 @@ export class ReturnRepository {
             referenceId: ret.id,
             note: `مرجوعی ${ret.return_number}`,
             createdBy: userId ?? null,
+          });
+        }
+      }
+
+      // Mark the order's settled payment (and the order) as refunded the first
+      // time we transition to "refunded". The actual gateway refund is attempted
+      // best-effort in the service layer (outside this transaction).
+      if (dto.status === ReturnStatus.REFUNDED && !wasRefunded) {
+        const payment = await queryRunner.manager.findOne(Payment, {
+          where: { order_id: ret.order_id, status: PaymentStatusEnum.COMPLETED },
+          order: { created_at: 'DESC' },
+        });
+        if (payment) {
+          await queryRunner.manager.update(Payment, payment.id, {
+            status: PaymentStatusEnum.REFUNDED,
+            refunded_at: new Date(),
+            refund_amount: ret.refund_amount,
+          });
+          await queryRunner.manager.update(Order, ret.order_id, {
+            payment_status: PaymentStatus.REFUNDED,
           });
         }
       }

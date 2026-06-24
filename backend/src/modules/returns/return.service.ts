@@ -1,8 +1,11 @@
 // src/modules/returns/return.service.ts
 import { AppDataSource } from '../../config/database';
 import { Order, OrderStatus } from '../../database/entities/order.entity';
+import { Payment, PaymentStatusEnum } from '../../database/entities/payment.entity';
 import { NotFoundError, BadRequestError } from '../../shared/utils/errors';
 import { ReturnRepository } from './return.repository';
+import { ZarinpalService } from '../payments/gateway/zarinpal.service';
+import { logger } from '../../shared/utils/logger';
 
 const RETURN_WINDOW_DAYS = 14;
 
@@ -17,6 +20,8 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
 export class ReturnService {
   private repo = new ReturnRepository();
   private orderRepo = AppDataSource.getRepository(Order);
+  private paymentRepo = AppDataSource.getRepository(Payment);
+  private zarinpal = new ZarinpalService();
 
   async create(userId: string, dto: { order_id: string; reason: string; items: { order_item_id: string; quantity: number }[] }) {
     const order = await this.orderRepo.findOne({
@@ -68,6 +73,25 @@ export class ReturnService {
         throw new BadRequestError('مبلغ بازگشتی الزامی است');
       if (dto.refund_amount > Number(ret.order.total_amount))
         throw new BadRequestError('مبلغ بازگشتی نمی‌تواند از مبلغ سفارش بیشتر باشد');
+
+      // Best-effort gateway refund (outside the DB transaction). The repo records
+      // the refund state + refund_triggered_at regardless, so a sandbox/no-access
+      // gateway failure doesn't block the workflow — finance reconciles manually.
+      const payment = await this.paymentRepo.findOne({
+        where: { order_id: ret.order_id, status: PaymentStatusEnum.COMPLETED },
+        order: { created_at: 'DESC' },
+      });
+      if (payment?.transaction_id) {
+        const ok = await this.zarinpal.refundPayment(
+          payment.transaction_id,
+          Number(dto.refund_amount),
+        );
+        if (!ok) {
+          logger.warn(
+            `Zarinpal refund not completed for return ${ret.return_number} (order ${ret.order_id}); recorded for manual reconciliation`,
+          );
+        }
+      }
     }
 
     return this.repo.updateStatus(id, dto, userId);

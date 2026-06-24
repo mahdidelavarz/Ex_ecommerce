@@ -32,6 +32,13 @@ export const updateProductSchema = z.object({
   seo_description: z.string().max(500).nullable().optional(),
   is_active: z.boolean().optional(),
   is_public: z.boolean().optional(),
+  images: z.array(z.object({
+    image_url: z.string(),
+    alt_text: z.string().optional(),
+    is_thumbnail: z.boolean().optional(),
+    sort_order: z.number().optional(),
+  })).optional(),
+  tag_ids: z.array(z.string().uuid()).optional(),
 });
 
 export const bulkStatusSchema = z.object({

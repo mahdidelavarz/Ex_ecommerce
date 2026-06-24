@@ -32,6 +32,9 @@ const productFormSchema = z.object({
   is_active: z.boolean(),
   is_public: z.boolean(),
   tag_ids: z.array(z.string()).optional(),
+  specifications: z
+    .array(z.object({ key: z.string(), value: z.string() }))
+    .optional(),
   images: z
     .array(
       z.object({
@@ -87,6 +90,7 @@ export default function AdminProductFormPage() {
       is_active: false,
       is_public: false,
       tag_ids: [],
+      specifications: [],
       images: [{ image_url: "", alt_text: "", is_thumbnail: true }],
     },
   });
@@ -96,6 +100,12 @@ export default function AdminProductFormPage() {
     append: addImage,
     remove: removeImage,
   } = useFieldArray({ control, name: "images" });
+
+  const {
+    fields: specFields,
+    append: addSpec,
+    remove: removeSpec,
+  } = useFieldArray({ control, name: "specifications" });
 
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
@@ -159,6 +169,12 @@ export default function AdminProductFormPage() {
         is_active: true,
         is_public: true,
         tag_ids: product.tags?.map((t) => t.id) || [],
+        specifications: product.specification
+          ? Object.entries(product.specification).map(([key, value]) => ({
+              key,
+              value: String(value),
+            }))
+          : [],
         images:
           product.images?.length > 0
             ? product.images.map((img) => ({
@@ -177,13 +193,21 @@ export default function AdminProductFormPage() {
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
     try {
+      // Convert the key/value editor rows into a specification object (drop
+      // rows with an empty key); send null when there are none.
+      const specEntries = (data.specifications ?? [])
+        .filter((s) => s.key.trim())
+        .map((s) => [s.key.trim(), s.value] as const);
+
+      const { specifications: _specifications, ...rest } = data;
       const payload = {
-        ...data,
+        ...rest,
         brand_id: data.brand_id || null,
         short_description: data.short_description || null,
         full_description: data.full_description || null,
         seo_title: data.seo_title || null,
         seo_description: data.seo_description || null,
+        specification: specEntries.length ? Object.fromEntries(specEntries) : null,
         images: data.images?.filter((img) => img.image_url.trim()),
       };
 
@@ -500,6 +524,52 @@ export default function AdminProductFormPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Specifications (jsonb key/value pairs) */}
+                <div className="bg-surface rounded-card shadow-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-text-primary">مشخصات فنی</h3>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => addSpec({ key: "", value: "" })}
+                    >
+                      + افزودن مشخصه
+                    </Button>
+                  </div>
+
+                  {specFields.length === 0 ? (
+                    <p className="text-sm text-text-muted">
+                      مشخصه‌ای ثبت نشده است. مثال: جنس → نخ پنبه
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {specFields.map((field, index) => (
+                        <div key={field.id} className="flex items-center gap-3">
+                          <input
+                            {...register(`specifications.${index}.key`)}
+                            placeholder="عنوان (مثلاً: جنس)"
+                            className="flex-1 px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                          <input
+                            {...register(`specifications.${index}.value`)}
+                            placeholder="مقدار (مثلاً: نخ پنبه)"
+                            className="flex-1 px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeSpec(index)}
+                            className="p-2 hover:bg-error-light rounded-button text-error"
+                            title="حذف"
+                          >
+                            <MdiClose className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

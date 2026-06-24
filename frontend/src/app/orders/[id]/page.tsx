@@ -215,6 +215,12 @@ export default function OrderDetailPage() {
               <span className="text-text-secondary">هزینه ارسال:</span>
               <span>{formatPrice(order.shipping_amount)}</span>
             </div>
+            {order.tax_amount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-text-secondary">مالیات:</span>
+                <span>{formatPrice(order.tax_amount)}</span>
+              </div>
+            )}
             <hr className="border-border" />
             <div className="flex justify-between font-bold text-base">
               <span>مبلغ نهایی:</span>

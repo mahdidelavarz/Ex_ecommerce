@@ -58,9 +58,12 @@ export class OrderRepository {
       for (const cartItem of cart.items) {
         // Pessimistic write lock prevents two concurrent orders from both seeing
         // sufficient stock and both decrementing past zero.
+        // Lock only the variant row (FOR UPDATE OF v). Postgres rejects
+        // FOR UPDATE on the nullable side of the LEFT JOINs below, so the lock
+        // must be scoped to the primary table.
         const variant = await queryRunner.manager
           .createQueryBuilder(ProductVariant, 'v')
-          .setLock('pessimistic_write')
+          .setLock('pessimistic_write', undefined, ['v'])
           .leftJoinAndSelect('v.product', 'product')
           .leftJoinAndSelect('v.variant_attribute_values', 'vav')
           .leftJoinAndSelect('vav.attribute_value', 'av')
@@ -176,8 +179,15 @@ export class OrderRepository {
       const settingRepo = AppDataSource.getRepository(AppSetting);
       const shippingSetting = await settingRepo.findOne({ where: { key: 'shipping_cost' } });
       const shippingAmount = shippingSetting ? parseInt(shippingSetting.value) : 50000;
-      const taxAmount = 0;
-      const totalAmount = Math.max(0, subtotal - discountAmount + shippingAmount + taxAmount);
+
+      // Tax is a configurable percentage (app_settings.tax_rate) applied to the
+      // discounted goods subtotal. Defaults to 0 when unset.
+      const taxSetting = await settingRepo.findOne({ where: { key: 'tax_rate' } });
+      const taxRate = taxSetting ? parseFloat(taxSetting.value) : 0;
+      const taxableBase = Math.max(0, subtotal - discountAmount);
+      const taxAmount = Math.round((taxableBase * taxRate) / 100);
+
+      const totalAmount = Math.max(0, taxableBase + shippingAmount + taxAmount);
 
       // Generate order number — timestamp + 4-char random avoids count() race condition
       const rand = Math.random().toString(36).slice(2, 6).toUpperCase();

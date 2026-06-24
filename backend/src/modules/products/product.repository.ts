@@ -116,39 +116,46 @@ export class ProductRepository {
     qb.skip((page - 1) * limit);
     qb.take(limit);
 
-    const [data, total] = await qb.getManyAndCount();
+    // The thumbnail/aggregate columns are added via addSelect with custom
+    // aliases, which getMany()/getManyAndCount() do NOT map onto entities.
+    // Read them from the aligned raw rows (one row per product via groupBy).
+    const total = await qb.getCount();
+    const { entities, raw } = await qb.getRawAndEntities();
 
     return {
-      data: data.map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        short_description: p.short_description,
-        category: p.category
-          ? { id: p.category.id, name: p.category.name, slug: p.category.slug }
-          : null,
-        brand: p.brand
-          ? {
-              id: p.brand.id,
-              name: p.brand.name,
-              slug: p.brand.slug,
-              logo: p.brand.logo,
-            }
-          : null,
-        thumbnail: p.thumbnail || null,
-        price_range: {
-          min: parseFloat(p.min_price) || 0,
-          max: parseFloat(p.max_price) || 0,
-        },
-        total_stock: parseInt(p.total_stock) || 0,
-        variants_count: parseInt(p.variants_count) || 0,
-        has_discount: p.has_discount === true || p.has_discount === 't',
-        avg_rating: 0,
-        reviews_count: 0,
-        is_active: p.is_active,
-        is_public: p.is_public,
-        created_at: p.created_at,
-      })),
+      data: entities.map((p: any, i: number) => {
+        const r: any = raw[i] ?? {};
+        return {
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          short_description: p.short_description,
+          category: p.category
+            ? { id: p.category.id, name: p.category.name, slug: p.category.slug }
+            : null,
+          brand: p.brand
+            ? {
+                id: p.brand.id,
+                name: p.brand.name,
+                slug: p.brand.slug,
+                logo: p.brand.logo,
+              }
+            : null,
+          thumbnail: r.thumbnail ?? null,
+          price_range: {
+            min: parseFloat(r.min_price) || 0,
+            max: parseFloat(r.max_price) || 0,
+          },
+          total_stock: parseInt(r.total_stock) || 0,
+          variants_count: parseInt(r.variants_count) || 0,
+          has_discount: r.has_discount === true || r.has_discount === "t",
+          avg_rating: 0,
+          reviews_count: 0,
+          is_active: p.is_active,
+          is_public: p.is_public,
+          created_at: p.created_at,
+        };
+      }),
       total,
     };
   }
@@ -205,7 +212,7 @@ export class ProductRepository {
     const product = await this.repo.findOne({ where: { slug } });
     if (!product) return [];
 
-    return this.repo
+    const qb = this.repo
       .createQueryBuilder("product")
       .leftJoinAndSelect("product.category", "category")
       .leftJoinAndSelect("product.brand", "brand")
@@ -219,8 +226,15 @@ export class ProductRepository {
       .andWhere("product.is_public = true")
       .andWhere("product.deleted_at IS NULL")
       .orderBy("RANDOM()")
-      .take(limit)
-      .getMany();
+      .take(limit);
+
+    // thumbnail is a custom addSelect alias, not mapped onto entities — read
+    // it from the aligned raw rows.
+    const { entities, raw } = await qb.getRawAndEntities();
+    return entities.map((p: any, i: number) => ({
+      ...p,
+      thumbnail: raw[i]?.thumbnail ?? null,
+    }));
   }
 
   async getFilters(categoryId: string) {
@@ -346,8 +360,33 @@ export class ProductRepository {
       (dto as any).slug = await this.generateUniqueSlug(dto.title, id);
     }
 
-    Object.assign(product, dto);
-    return this.repo.save(product);
+    // Pull relations out of the scalar payload: images are replaced explicitly
+    // below, and tag_ids are synced separately via syncTags().
+    const { images, tag_ids, ...scalars } = dto as any;
+
+    await AppDataSource.transaction(async (manager) => {
+      Object.assign(product, scalars);
+      await manager.save(product);
+
+      if (images !== undefined) {
+        // Replace the product's images with the submitted set
+        await manager.delete(ProductImage, { product_id: id });
+        if (images.length) {
+          const newImages = images.map((img: any, index: number) =>
+            manager.create(ProductImage, {
+              product_id: id,
+              image_url: img.image_url,
+              alt_text: img.alt_text || null,
+              is_thumbnail: img.is_thumbnail ?? index === 0,
+              sort_order: img.sort_order ?? index,
+            }),
+          );
+          await manager.save(newImages);
+        }
+      }
+    });
+
+    return this.findById(id);
   }
 
   async softDelete(id: string) {

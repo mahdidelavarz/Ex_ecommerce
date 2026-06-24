@@ -18,10 +18,8 @@ _Last updated: 2026-06-19_
 
 ---
 
-### C-3 — Checkout Uses Hardcoded Address ID
-**File:** `frontend/src/app/checkout/page.tsx`
-Checkout sends `addressId: 'temp-address-id'` — backend rejects it. No order can be placed.
-**Fix:** Add an address selector UI in checkout. Fetch `GET /users/addresses`, let the user pick one, and pass the real UUID.
+### ~~C-3 — Checkout Uses Hardcoded Address ID~~ ✅ Fixed
+No `temp-address-id` remains. `checkout/page.tsx` has a full address selector: `useAddresses()` fetches the user's saved addresses, radio buttons set `selectedAddressId` (defaulting to the default-shipping address), and a "new address" form (`useCreateAddress`) adds one inline. The place-order button is disabled until an address is selected, and `handlePlaceOrder` sends the real UUID as `shipping_address_id` / `billing_address_id` to `POST /orders` — which matches the backend validator (`order.validator.ts` requires both as UUIDs).
 
 ---
 
@@ -202,16 +200,15 @@ Full settings system added:
 
 ---
 
-### M-5 — Tax Hardcoded to Zero  ---not needed
-**File:** `backend/src/modules/orders/order.repository.ts`
-No tax calculation or config. Add a `TAX_RATE` env variable and apply it during order totalling.
+### ~~M-5 — Tax Hardcoded to Zero~~ ✅ Fixed
+Tax is now configurable via the `tax_rate` app setting (consistent with `shipping_cost`, and admin-editable — the seed sets it to 9). `order.repository.ts` computes `taxAmount = round((subtotal - discount) * tax_rate / 100)` and includes it in the order total (was hardcoded `taxAmount = 0`). Checkout (`useSetting('tax_rate')`) and the order detail page both show a "مالیات" line. Verified end-to-end: subtotal 98,400,000 → tax 8,856,000 (9%) → total includes it.
+
+**Bonus critical bug fixed:** order placement was completely broken — the stock-lock query combined `.setLock('pessimistic_write')` with `leftJoinAndSelect`, and Postgres rejects `FOR UPDATE` on the nullable side of a LEFT JOIN (`FOR UPDATE cannot be applied to the nullable side of an outer join`). Every `POST /orders` 500'd (the seed inserts orders directly, so it was never exercised). Scoped the lock to the variant table: `.setLock('pessimistic_write', undefined, ['v'])` → `FOR UPDATE OF v`. Order placement verified working.
 
 ---
 
-### M-6 — No Order Confirmation Page After Checkout
-**File:** `frontend/src/app/checkout/page.tsx`
-After a successful order, there is no redirect to a confirmation page — user is left on the checkout page.
-**Fix:** On payment success, redirect to `/orders/[id]?confirmed=true` and show a success banner.
+### ~~M-6 — No Order Confirmation Page After Checkout~~ ✅ Fixed
+Already implemented (doc was stale). After checkout, `handlePlaceOrder` redirects to the Zarinpal gateway; the backend `payment.service.verify()` redirects back to `${frontendUrl}/orders/{id}?payment=success` (or `?payment=cancelled`). The order detail page (`orders/[id]/page.tsx`) reads the `payment` query param and renders a green success banner ("پرداخت شما با موفقیت انجام شد. سفارش تأیید شد.") or a red cancelled banner with a "پرداخت مجدد" retry button. Uses `?payment=success` rather than the doc's `?confirmed=true`, but fulfils the requirement.
 
 ---
 
@@ -235,15 +232,13 @@ Backend endpoints + service methods already existed but had no UI. Added a "تص
 
 ---
 
-### M-11 — Product `specification` Field Has No Editor in Admin  //need to research
-**File:** `frontend/src/app/admin/products/[id]/page.tsx`
-The field is not present in the admin form.
+### ~~M-11 — Product `specification` Field Has No Editor in Admin~~ ✅ Fixed
+Backend already accepted `specification: z.record(z.any())` on create/update and returned it in the detail response — only the admin UI was missing. Added a "مشخصات فنی" key/value editor (react-hook-form `useFieldArray` named `specifications`) to the Basic tab of `admin/products/[id]/page.tsx`: add/remove rows of key→value. On load the `specification` object is mapped to `{ key, value }[]`; on submit it's converted back to a record (rows with empty keys dropped, `null` when none) and the UI-only `specifications` field is excluded from the payload.
 
 ---
 
-### M-12 — Review `title` / `comment` Allow Empty String
-**File:** `backend/src/modules/reviews/review.validator.ts:7`
-Change to `.min(1)` so empty-string submissions are rejected.
+### ~~M-12 — Review `title` / `comment` Allow Empty String~~ ✅ Fixed
+`review.validator.ts` already had `.min(1)` (so literal `""` was rejected), but whitespace-only strings like `"   "` slipped through. Changed title/comment in both `createReviewSchema` and `updateReviewSchema` to `z.string().trim().min(1, …)` — now whitespace-only is rejected and stored values are trimmed.
 
 ---
 
@@ -332,12 +327,13 @@ Added a shared `shared/utils/inventory-log.ts` `writeInventoryLog(manager, …)`
 
 ---
 
-### M-26 — Incomplete Return Workflow
-**File:** `backend/src/modules/returns/return.service.ts`
-When a return is approved the system does not restore stock or trigger a refund.
-**Fix:**
-1. On status → `received`: increment `variant.stock_quantity` inside a transaction + write `InventoryLog`.
-2. On status → `refunded`: call Zarinpal refund endpoint; record `refund_triggered_at`.
+### ~~M-26 — Incomplete Return Workflow~~ ✅ Fixed
+1. **On `→ received`** — restock + `InventoryLog` (done as part of M-25): `return.repository.updateStatus` increments each returned variant's `stock_quantity` in a transaction and writes a `RETURN_RECEIVED` log.
+2. **On `→ refunded`** — added `refund_triggered_at` (timestamptz) to the `Return` entity. In the same transaction, the order's settled `COMPLETED` payment is marked `REFUNDED` (with `refunded_at` + `refund_amount`), the order's `payment_status` → `refunded`, and `refund_triggered_at` is stamped. The gateway refund is attempted best-effort via new `ZarinpalService.refundPayment()` (outside the txn) — failures (sandbox/no PaymentManager access) are logged for manual reconciliation, not thrown, so the workflow always completes.
+
+Verified end-to-end: return → refunded set `refund_triggered_at`; payment → `refunded` + `refunded_at` + amount; order `payment_status` → `refunded`.
+
+**Migration:** `1782345600000-AddRefundTriggeredAt.ts` adds the `returns.refund_triggered_at` column (idempotent `ADD COLUMN IF NOT EXISTS`). Dev gets it automatically via TypeORM `synchronize`; for prod run `npm run migration:run`.
 
 ---
 
@@ -414,6 +410,37 @@ Low-priority structured data for product list rich results.
 
 ---
 
+## 🚀 Production Readiness
+
+### Zarinpal Payment Gateway — currently TEST / sandbox
+
+**Current state (intentional):** the project runs against Zarinpal **sandbox**. A real merchant / payment link has **not** been requested yet, and the config is test-only:
+- `ZARINPAL_SANDBOX=true` → all calls hit `https://sandbox.zarinpal.com/pg`.
+- `ZARINPAL_MERCHANT_ID=your-merchant-id-here` (placeholder).
+- `ZARINPAL_CALLBACK_URL=http://localhost:5000/api/v1/payments/verify` (local HTTP).
+- Refunds: `ZarinpalService.refundPayment()` is **best-effort** and currently a logged no-op in sandbox (Zarinpal refunds need merchant PaymentManager/OAuth access we don't have). The return→refunded DB state (payment `refunded`, `refund_triggered_at`, order `payment_status`) is recorded authoritatively regardless, for manual reconciliation.
+
+**Steps to make payments production-ready (do later):**
+1. **Get a real merchant id** — register the business at zarinpal.com, complete verification, obtain the production `merchant_id` (UUID).
+2. **Set production env** (`backend/.env` / deployment secrets):
+   - `ZARINPAL_MERCHANT_ID=<real-uuid>`
+   - `ZARINPAL_SANDBOX=false` (switches `ZarinpalService.base` to `https://api.zarinpal.com/pg`)
+   - `ZARINPAL_CALLBACK_URL=https://<your-domain>/api/v1/payments/verify` (must be **HTTPS** and publicly reachable)
+   - `FRONTEND_URL=https://<your-frontend-domain>` (used for post-verify redirects)
+3. **Verify the round-trip on prod** — initiate → gateway → callback `verify` → redirect to `/orders/{id}?payment=success|cancelled`. Confirm `verifyPayment` amount matches the order total (already enforced).
+4. **HTTPS + reachability** — Zarinpal must be able to GET the callback URL; ensure TLS and that `/payments/verify` is not behind auth.
+
+**Steps to enable real refunds (do later):**
+1. **Request PaymentManager / refund access** from Zarinpal for the merchant (separate approval; not enabled by default).
+2. **Obtain an OAuth access token** for the refund API and add `ZARINPAL_ACCESS_TOKEN` to env + `config/env.ts` (`zarinpal.accessToken`).
+3. **Update `ZarinpalService.refundPayment()`** — send `Authorization: Bearer ${accessToken}` header to `/v4/payment/refund.json`, pass the correct identifier Zarinpal expects (it may require the **`ref_id`/`sessionId`** of the settled transaction rather than the original `authority` — confirm against current Zarinpal refund docs), and map their response codes (success vs. insufficient-balance vs. already-refunded).
+4. **Decide failure policy** — keep it best-effort (current: log + record for manual reconciliation) **or** surface a hard error to the admin when the gateway refund fails. If hard-fail, wrap the gateway call and the DB refund state in one flow so they don't diverge.
+5. **Reconciliation report (optional)** — add an admin view of returns where `status='refunded'` but the gateway refund didn't confirm, so finance can process those manually.
+
+Code touch-points: `backend/src/modules/payments/gateway/zarinpal.service.ts`, `payment.service.ts` (initiate/verify), `return.service.ts` + `return.repository.ts` (refund recording), `config/env.ts` (`zarinpal.*`).
+
+---
+
 ## Open Questions
 
 | # | Question |
@@ -433,7 +460,7 @@ Low-priority structured data for product list rich results.
 |---|------|----------|--------|
 | C-1 | CSRF protection | 🔴 | Low |
 | ~~C-2~~ | ~~Generate initial DB migration~~ ✅ | 🔴 | Low |
-| C-3 | Real address selector in checkout | 🔴 | Medium |
+| ~~C-3~~ | ~~Real address selector in checkout~~ ✅ | 🔴 | Medium |
 | ~~C-4~~ | ~~Review helpful vote deduplication~~ ✅ | 🔴 | Medium |
 | ~~C-5~~ | ~~Admin delete reviews (ownership fix)~~ ✅ | 🔴 | Low |
 | C-6 | Gate ReviewForm on purchase history | 🔴 | Low |
@@ -466,14 +493,14 @@ Low-priority structured data for product list rich results.
 | ~~M-2~~ | ~~S3 for uploads (multi-instance)~~ ✅ | 🟡 | High |
 | ~~M-3~~ | ~~Remove OTP from dev API response~~ ✅ | 🟡 | Low |
 | ~~M-4~~ | ~~Configurable shipping cost~~ ✅ | 🟡 | Low |
-| M-5 | Tax calculation / config | 🟡 | Medium |
-| M-6 | Order confirmation page | 🟡 | Low |
+| ~~M-5~~ | ~~Tax calculation / config~~ ✅ | 🟡 | Medium |
+| ~~M-6~~ | ~~Order confirmation page~~ ✅ | 🟡 | Low |
 | ~~M-7~~ | ~~Coupon validation feedback in checkout~~ ✅ | 🟡 | Low |
 | ~~M-8~~ | ~~`bulkStatus()` transaction~~ ✅ | 🟡 | Low |
 | ~~M-9~~ | ~~Product image file upload in admin~~ ✅ | 🟡 | Medium |
 | ~~M-10~~ | ~~Variant image management in admin~~ ✅ | 🟡 | Medium |
-| M-11 | Specification field editor in admin | 🟡 | Low |
-| M-12 | Review title/comment `.min(1)` | 🟡 | Low |
+| ~~M-11~~ | ~~Specification field editor in admin~~ ✅ | 🟡 | Low |
+| ~~M-12~~ | ~~Review title/comment `.min(1)`~~ ✅ | 🟡 | Low |
 | ~~M-13~~ | ~~Admin reviews approval filter~~ ✅ | 🟡 | Low |
 | ~~M-14~~ | ~~Customer edit-review UI~~ ✅ | 🟡 | Low |
 | ~~M-15~~ | ~~Filter unapproved reviews in section~~ ✅ | 🟡 | Low |
@@ -487,7 +514,7 @@ Low-priority structured data for product list rich results.
 | ~~M-23~~ | ~~Cart quantity bounds validation~~ ✅ | 🟡 | Low |
 | ~~M-24~~ | ~~Optimistic UI for cart~~ ✅ | 🟡 | Medium |
 | ~~M-25~~ | ~~Wire InventoryLog~~ ✅ | 🟡 | Medium |
-| M-26 | Return: stock restore + refund trigger | 🟡 | High |
+| ~~M-26~~ | ~~Return: stock restore + refund trigger~~ ✅ | 🟡 | High |
 | ~~M-27~~ | ~~`lang="fa" dir="rtl"` on `<html>`~~ ✅ | 🟡 | Low |
 | ~~M-28~~ | ~~Alt text on all images~~ ✅ | 🟡 | Low |
 | M-29 | `generateStaticParams` + ISR | 🟡 | Low |

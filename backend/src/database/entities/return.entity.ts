@@ -36,6 +36,9 @@ export class Return extends BaseEntity {
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
   refund_amount: number;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  refund_triggered_at: Date | null;
+
   @Column({ type: 'text', nullable: true })
   admin_note: string | null;
 

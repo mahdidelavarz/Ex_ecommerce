@@ -71,9 +71,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Serve local uploads in non-S3 mode
+// Serve local uploads in non-S3 mode. Override Helmet's default
+// Cross-Origin-Resource-Policy (same-origin) so the frontend on a different
+// origin (:3000) can embed these images served from the API origin (:5000).
 if (!env.s3.enabled) {
-  app.use('/uploads', express.static(path.resolve(env.upload.path)));
+  app.use(
+    '/uploads',
+    (_req, res, next) => {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      next();
+    },
+    express.static(path.resolve(env.upload.path)),
+  );
 }
 
 // API routes
