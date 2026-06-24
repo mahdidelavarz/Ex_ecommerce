@@ -6,7 +6,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import AuthInitProvider from "@/modules/auth/components/AuthInitProvider";
 import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import ConditionalFooter from "@/components/layout/ConditionalFooter";
 import QueryProvider from "@/lib/query-provider";
 import CartDrawer from "@/modules/cart/components/CartDrawer";
 
@@ -82,7 +82,7 @@ export default function RootLayout({
               <Header />
               <main className="flex-1">{children}</main>
               <CartDrawer />
-              <Footer />
+              <ConditionalFooter />
             </AuthInitProvider>
           </QueryProvider>
           <Toaster

@@ -79,6 +79,7 @@ const menuItems = [
   { title: "مرجوعی‌ها", icon: MdiKeyboardReturn, href: "/admin/returns" },
   { title: "نظرات", icon: MdiCommentTextOutline, href: "/admin/reviews" },
   { title: "تنظیمات", icon: MdiCog, href: "/admin/settings" },
+  { title: "کامپوننت‌ها (UI)", icon: MdiShape, href: "/admin/ui-showcase" },
   {
     title: "بازگشت به سایت",
     icon: MdiArrowRight,
