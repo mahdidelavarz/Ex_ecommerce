@@ -166,6 +166,22 @@ async function main() {
   const catPhones = await categoryRepo.save(
     categoryRepo.create({ name: 'موبایل', slug: 'phones', parent_id: catElectronics.id, sort_order: 1 }),
   );
+  // Cosmetic / beauty categories
+  const catBeauty = await categoryRepo.save(
+    categoryRepo.create({ name: 'آرایش و زیبایی', slug: 'beauty', sort_order: 3, color: '#8E4A7B' }),
+  );
+  const catSkincare = await categoryRepo.save(
+    categoryRepo.create({ name: 'مراقبت پوست', slug: 'skincare', parent_id: catBeauty.id, sort_order: 1 }),
+  );
+  const catMakeup = await categoryRepo.save(
+    categoryRepo.create({ name: 'آرایش صورت', slug: 'makeup', parent_id: catBeauty.id, sort_order: 2 }),
+  );
+  const catFragrance = await categoryRepo.save(
+    categoryRepo.create({ name: 'عطر و ادکلن', slug: 'fragrance', parent_id: catBeauty.id, sort_order: 3 }),
+  );
+  const catHair = await categoryRepo.save(
+    categoryRepo.create({ name: 'مراقبت مو', slug: 'hair-care', parent_id: catBeauty.id, sort_order: 4 }),
+  );
   console.log('📂 Seeded categories');
 
   // ───────────────────────────────────────────── brands
@@ -174,6 +190,12 @@ async function main() {
     brandRepo.create({ name: 'Nike', slug: 'nike', description: 'ورزشی و کژوال' }),
     brandRepo.create({ name: 'Apple', slug: 'apple', description: 'محصولات دیجیتال' }),
     brandRepo.create({ name: 'Zara', slug: 'zara', description: 'مد روز' }),
+  ]);
+  const [brandLoreal, brandMaybelline, brandOrdinary, brandDior] = await brandRepo.save([
+    brandRepo.create({ name: "L'Oréal", slug: 'loreal', description: 'آرایشی و مراقبتی' }),
+    brandRepo.create({ name: 'Maybelline', slug: 'maybelline', description: 'آرایش صورت' }),
+    brandRepo.create({ name: 'The Ordinary', slug: 'the-ordinary', description: 'مراقبت پوست' }),
+    brandRepo.create({ name: 'Dior', slug: 'dior', description: 'عطر و آرایش لوکس' }),
   ]);
   console.log('🏷️  Seeded brands');
 
@@ -204,6 +226,12 @@ async function main() {
   const [sizeM, sizeL] = await valueRepo.save([
     valueRepo.create({ attribute_id: attrSize.id, value: 'M', sort_order: 1 }),
     valueRepo.create({ attribute_id: attrSize.id, value: 'L', sort_order: 2 }),
+  ]);
+  // Cosmetic shades (reuse the color attribute)
+  const [shadeNude, shadeRose, shadeChampagne] = await valueRepo.save([
+    valueRepo.create({ attribute_id: attrColor.id, value: 'نود', color_code: '#E3BC9A', sort_order: 4 }),
+    valueRepo.create({ attribute_id: attrColor.id, value: 'رز', color_code: '#C72C48', sort_order: 5 }),
+    valueRepo.create({ attribute_id: attrColor.id, value: 'شامپاینی', color_code: '#F7E7CE', sort_order: 6 }),
   ]);
   console.log('🎨 Seeded attributes & values');
 
@@ -253,6 +281,120 @@ async function main() {
       variants: [
         { sku: 'IP15PRO-BLK', price: 95000000, compare_at_price: null, stock: 5, color: colorBlack.id, size: null },
         { sku: 'IP15PRO-WHT', price: 95000000, compare_at_price: null, stock: 3, color: colorWhite.id, size: null },
+      ],
+    },
+    // ── Cosmetic products (added) ──
+    {
+      title: 'کرم مرطوب‌کننده صورت',
+      slug: 'face-moisturizer-cream',
+      category_id: catSkincare.id,
+      brand_id: brandLoreal.id,
+      short_description: 'آبرسان قوی برای انواع پوست',
+      tags: [tagNew.id, tagPopular.id],
+      variants: [
+        { sku: 'SKN-MOIST-50', price: 480000, compare_at_price: 600000, stock: 30, color: null, size: null },
+      ],
+    },
+    {
+      title: 'سرم ویتامین C',
+      slug: 'vitamin-c-serum',
+      category_id: catSkincare.id,
+      brand_id: brandOrdinary.id,
+      short_description: 'روشن‌کننده و ضدلک پوست',
+      tags: [tagNew.id],
+      variants: [
+        { sku: 'SKN-VITC-30', price: 720000, compare_at_price: null, stock: 18, color: null, size: null },
+      ],
+    },
+    {
+      title: 'کرم ضدآفتاب SPF50',
+      slug: 'sunscreen-spf50',
+      category_id: catSkincare.id,
+      brand_id: brandLoreal.id,
+      short_description: 'محافظت بالا در برابر آفتاب',
+      tags: [tagPopular.id, tagSummer.id],
+      variants: [
+        { sku: 'SKN-SUN-50', price: 550000, compare_at_price: 650000, stock: 25, color: null, size: null },
+      ],
+    },
+    {
+      title: 'رژ لب مات',
+      slug: 'matte-lipstick',
+      category_id: catMakeup.id,
+      brand_id: brandMaybelline.id,
+      short_description: 'ماندگاری بالا با فرمول مات',
+      tags: [tagNew.id, tagSale.id],
+      variants: [
+        { sku: 'MKP-LIP-NUDE', price: 320000, compare_at_price: 400000, stock: 22, color: shadeNude.id, size: null },
+        { sku: 'MKP-LIP-ROSE', price: 320000, compare_at_price: 400000, stock: 17, color: shadeRose.id, size: null },
+        { sku: 'MKP-LIP-RED', price: 320000, compare_at_price: 400000, stock: 0, color: colorRed.id, size: null },
+      ],
+    },
+    {
+      title: 'ریمل حجم‌دهنده',
+      slug: 'volumizing-mascara',
+      category_id: catMakeup.id,
+      brand_id: brandMaybelline.id,
+      short_description: 'حجم و کشش فوق‌العاده مژه‌ها',
+      tags: [tagPopular.id],
+      variants: [
+        { sku: 'MKP-MASC-BLK', price: 380000, compare_at_price: null, stock: 40, color: colorBlack.id, size: null },
+      ],
+    },
+    {
+      title: 'کرم پودر پوشانندگی بالا',
+      slug: 'full-coverage-foundation',
+      category_id: catMakeup.id,
+      brand_id: brandLoreal.id,
+      short_description: 'پوشانندگی بالا و ماندگار',
+      tags: [tagNew.id, tagPopular.id],
+      variants: [
+        { sku: 'MKP-FND-NUDE', price: 690000, compare_at_price: 850000, stock: 15, color: shadeNude.id, size: null },
+        { sku: 'MKP-FND-CHMP', price: 690000, compare_at_price: 850000, stock: 11, color: shadeChampagne.id, size: null },
+      ],
+    },
+    {
+      title: 'پالت سایه چشم',
+      slug: 'eyeshadow-palette',
+      category_id: catMakeup.id,
+      brand_id: brandDior.id,
+      short_description: '۱۲ رنگ متنوع و مخملی',
+      tags: [tagNew.id],
+      variants: [
+        { sku: 'MKP-EYE-12', price: 1850000, compare_at_price: null, stock: 12, color: null, size: null },
+      ],
+    },
+    {
+      title: 'عطر زنانه لوکس',
+      slug: 'luxury-womens-perfume',
+      category_id: catFragrance.id,
+      brand_id: brandDior.id,
+      short_description: 'رایحه‌ای گرم و ماندگار',
+      tags: [tagPopular.id],
+      variants: [
+        { sku: 'FRG-WMN-100', price: 4200000, compare_at_price: null, stock: 9, color: null, size: null },
+      ],
+    },
+    {
+      title: 'عطر مردانه لوکس',
+      slug: 'luxury-mens-perfume',
+      category_id: catFragrance.id,
+      brand_id: brandDior.id,
+      short_description: 'رایحه‌ای چوبی و مردانه',
+      tags: [tagNew.id, tagSale.id],
+      variants: [
+        { sku: 'FRG-MEN-100', price: 3900000, compare_at_price: 4500000, stock: 7, color: null, size: null },
+      ],
+    },
+    {
+      title: 'شامپو تقویت‌کننده مو',
+      slug: 'strengthening-shampoo',
+      category_id: catHair.id,
+      brand_id: brandLoreal.id,
+      short_description: 'تقویت و ترمیم موهای آسیب‌دیده',
+      tags: [tagSale.id, tagPopular.id],
+      variants: [
+        { sku: 'HAIR-SHMP-400', price: 260000, compare_at_price: 320000, stock: 50, color: null, size: null },
       ],
     },
   ];
