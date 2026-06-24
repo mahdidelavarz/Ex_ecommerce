@@ -36,6 +36,18 @@ export class ProductRepository {
       .leftJoinAndSelect("product.brand", "brand")
       .leftJoin("product.images", "images", "images.is_thumbnail = true")
       .addSelect("images.image_url", "thumbnail")
+      .addSelect(
+        `(SELECT v.id FROM product_variants v
+            WHERE v.product_id = product.id AND v.is_active = true AND v.deleted_at IS NULL
+            ORDER BY v.price ASC LIMIT 1)`,
+        "default_variant_id",
+      )
+      .addSelect(
+        `(SELECT v.stock_quantity FROM product_variants v
+            WHERE v.product_id = product.id AND v.is_active = true AND v.deleted_at IS NULL
+            ORDER BY v.price ASC LIMIT 1)`,
+        "default_variant_stock",
+      )
       .leftJoin("product.variants", "variants", "variants.is_active = true")
       .addSelect("MIN(variants.price)", "min_price")
       .addSelect("MAX(variants.price)", "max_price")
@@ -142,6 +154,8 @@ export class ProductRepository {
               }
             : null,
           thumbnail: r.thumbnail ?? null,
+          default_variant_id: r.default_variant_id ?? null,
+          default_variant_stock: parseInt(r.default_variant_stock) || 0,
           price_range: {
             min: parseFloat(r.min_price) || 0,
             max: parseFloat(r.max_price) || 0,

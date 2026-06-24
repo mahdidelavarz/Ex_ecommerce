@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import MegaMenu from "./MegaMenu";
 import MobileCategoryMenu from "./MobileCategoryMenu";
+import ThemeToggle from "./ThemeToggle";
 import {
   LucideLogIn,
   LucideSearch,
@@ -14,13 +15,14 @@ import {
   MdiCartOutline,
   MdiHeartOutline,
   MdiMenu,
+  MdiViewDashboard,
 } from "../icons/Icons";
 import { useCartStore } from "@/modules/cart/store/cart.store";
 import { useCart } from "@/modules/cart/hooks/useCart";
 import { useWishlist } from "@/modules/wishlist/hooks/useWishlist";
 
 export default function Header() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isAdmin } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { openCart } = useCartStore();
   const { cart } = useCart();
@@ -50,6 +52,9 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <ThemeToggle />
+
             {/* Search */}
             <Link
               href="/search"
@@ -73,14 +78,17 @@ export default function Header() {
               )}
             </Link>
 
-            <Link
-              href="/admin/categories"
-              className="p-2 hover:bg-surface-raised rounded-button transition-colors"
-              aria-label="علاقه‌مندی‌ها"
-            >
-              admin
-              <MdiHeartOutline className="w-5 h-5 text-text-secondary" />
-            </Link>
+            {/* Admin panel — only for admins */}
+            {isAdmin && (
+              <Link
+                href="/admin/categories"
+                className="p-2 hover:bg-surface-raised rounded-button transition-colors"
+                aria-label="پنل مدیریت"
+                title="پنل مدیریت"
+              >
+                <MdiViewDashboard className="w-5 h-5 text-text-secondary" />
+              </Link>
+            )}
 
             {/* Cart */}
             <button

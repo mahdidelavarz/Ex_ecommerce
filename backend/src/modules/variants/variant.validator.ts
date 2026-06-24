@@ -18,32 +18,34 @@ const priceRefinement = (data: any, ctx: z.RefinementCtx) => {
   }
 };
 
+// numeric columns come back from Postgres as strings (TypeORM numeric), so the
+// admin edit form can submit string values — coerce them to numbers here.
 export const createVariantSchema = z.object({
   sku: z.string().min(1, 'کد محصول الزامی است').max(100),
   barcode: z.string().nullable().optional(),
-  price: z.number().min(0, 'قیمت نمی‌تواند منفی باشد'),
-  compare_at_price: z.number().min(0).nullable().optional(),
-  cost: z.number().min(0).optional(),
-  weight: z.number().min(0).nullable().optional(),
-  stock_quantity: z.number().int().min(0).optional(),
-  low_stock_threshold: z.number().int().min(0).nullable().optional(),
+  price: z.coerce.number().min(0, 'قیمت نمی‌تواند منفی باشد'),
+  compare_at_price: z.coerce.number().min(0).nullable().optional(),
+  cost: z.coerce.number().min(0).optional(),
+  weight: z.coerce.number().min(0).nullable().optional(),
+  stock_quantity: z.coerce.number().int().min(0).optional(),
+  low_stock_threshold: z.coerce.number().int().min(0).nullable().optional(),
   is_active: z.boolean().optional(),
   attribute_value_ids: z.array(z.string().uuid()).optional(),
   images: z.array(z.object({
     image_url: z.string().url('آدرس تصویر نامعتبر است'),
-    sort_order: z.number().optional(),
+    sort_order: z.coerce.number().optional(),
   })).optional(),
 }).superRefine(priceRefinement);
 
 export const updateVariantSchema = z.object({
   sku: z.string().min(1).max(100).optional(),
   barcode: z.string().nullable().optional(),
-  price: z.number().min(0).optional(),
-  compare_at_price: z.number().min(0).nullable().optional(),
-  cost: z.number().min(0).optional(),
-  weight: z.number().min(0).nullable().optional(),
-  stock_quantity: z.number().int().min(0).optional(),
-  low_stock_threshold: z.number().int().min(0).nullable().optional(),
+  price: z.coerce.number().min(0).optional(),
+  compare_at_price: z.coerce.number().min(0).nullable().optional(),
+  cost: z.coerce.number().min(0).optional(),
+  weight: z.coerce.number().min(0).nullable().optional(),
+  stock_quantity: z.coerce.number().int().min(0).optional(),
+  low_stock_threshold: z.coerce.number().int().min(0).nullable().optional(),
   is_active: z.boolean().optional(),
   attribute_value_ids: z.array(z.string().uuid()).optional(),
 }).superRefine(priceRefinement);

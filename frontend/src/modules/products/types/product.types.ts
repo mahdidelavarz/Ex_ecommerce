@@ -18,6 +18,8 @@ export interface ProductListResponse {
     logo: string | null;
   } | null;
   thumbnail: string | null;
+  default_variant_id: string | null;
+  default_variant_stock: number;
   price_range: {
     min: number;
     max: number;

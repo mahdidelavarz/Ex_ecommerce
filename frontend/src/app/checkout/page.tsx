@@ -12,7 +12,7 @@ import { couponService } from '@/modules/coupons/services/coupon.service';
 import type { CouponValidation } from '@/modules/coupons/types/coupon.types';
 import Button from '@/components/ui/Button';
 import { formatPrice } from '@/utils/formatPrice';
-import { MdiCartOff, MdiStore } from '@/components/icons/Icons';
+import { MdiCartOff, MdiStore, MdiImageOff } from '@/components/icons/Icons';
 import { useSetting } from '@/modules/settings/hooks/useSettings';
 import toast from 'react-hot-toast';
 
@@ -231,11 +231,17 @@ export default function CheckoutPage() {
               <div className="divide-y divide-border">
                 {cart.items.map((item) => (
                   <div key={item.id} className="flex gap-4 py-4">
-                    <img
-                      src={item.variant.image || ''}
-                      alt={item.variant.product?.title}
-                      className="w-16 h-16 rounded-lg object-cover bg-surface-raised"
-                    />
+                    {item.variant.image ? (
+                      <img
+                        src={item.variant.image}
+                        alt={item.variant.product?.title}
+                        className="w-16 h-16 rounded-lg object-cover bg-surface-raised"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-surface-raised flex items-center justify-center shrink-0">
+                        <MdiImageOff className="w-6 h-6 text-text-muted" />
+                      </div>
+                    )}
                     <div className="flex-1">
                       <p className="font-medium text-text-primary">{item.variant.product?.title}</p>
                       <div className="flex gap-1 mt-1">

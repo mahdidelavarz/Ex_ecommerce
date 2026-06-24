@@ -34,23 +34,24 @@ body {
    Design Tokens - Light & Dark Theme
    ────────────────────────────────────────────── */
 @theme {
-  /* Brand Colors */
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
-  --color-primary-light: #DBEAFE;
-  --color-secondary: #7C3AED;
-  --color-secondary-hover: #6D28D9;
+  /* Brand Colors — Aubergine + Champagne luxury (cosmetic) */
+  --color-primary: #8E4A7B;
+  --color-primary-hover: #793F69;
+  --color-primary-light: #F1E5EE;
+  --color-secondary: #C2A878;
+  --color-secondary-hover: #AE9264;
+  --color-secondary-light: #F3EBDD;
 
-  /* Neutrals */
-  --color-background: #F8FAFC;
+  /* Neutrals — blush ivory */
+  --color-background: #F8F4F2;
   --color-surface: #FFFFFF;
-  --color-surface-raised: #F1F5F9;
-  --color-border: #E2E8F0;
+  --color-surface-raised: #F3EAE7;
+  --color-border: #ECE2DC;
 
-  /* Text */
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
+  /* Text — deep aubergine */
+  --color-text-primary: #2A1726;
+  --color-text-secondary: #6A5560;
+  --color-text-muted: #A4939C;
 
   /* Feedback */
   --color-success: #16A34A;
@@ -67,28 +68,31 @@ body {
   --spacing-card: 1.5rem;
 
   /* Border Radius */
-  --radius-card: 1rem;
+  --radius-card: 1.25rem;
   --radius-button: 0.75rem;
   --radius-input: 0.75rem;
 
-  /* Shadows */
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* Shadows — soft, warm plum-tinted */
+  --shadow-card: 0 1px 2px rgb(42 23 38 / 0.06), 0 4px 16px -8px rgb(142 74 123 / 0.18);
+  --shadow-card-hover: 0 8px 30px -8px rgb(142 74 123 / 0.28);
+  --shadow-modal: 0 20px 25px -5px rgb(42 23 38 / 0.18), 0 8px 10px -6px rgb(42 23 38 / 0.12);
 }
 
 /* ──────────────────────────────────────────────
    Dark Theme Overrides
    ────────────────────────────────────────────── */
 [data-theme='dark'] {
-  --color-background: #0F172A;
-  --color-surface: #1E293B;
-  --color-surface-raised: #334155;
-  --color-border: #334155;
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #CBD5E1;
-  --color-text-muted: #64748B;
-  --color-primary-light: #1E3A5F;
+  --color-background: #1A1117;
+  --color-surface: #241A22;
+  --color-surface-raised: #2F2230;
+  --color-border: #3A2D38;
+  --color-text-primary: #F5EEF2;
+  --color-text-secondary: #D5C5CF;
+  --color-text-muted: #9A8793;
+  --color-primary: #A85C92;
+  --color-primary-hover: #B86CA1;
+  --color-primary-light: #3A2536;
+  --color-secondary-light: #332B1C;
   --color-success-light: #14532D;
   --color-warning-light: #451A03;
   --color-error-light: #450A0A;
