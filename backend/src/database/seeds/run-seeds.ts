@@ -85,6 +85,17 @@ async function main() {
       last_login_at: new Date(),
     }),
   );
+  // Personal admin account (mirrors the make-admin script) so a fresh seed
+  // always leaves this phone as an active admin.
+  await userRepo.save(
+    userRepo.create({
+      phone_number: '09025574357',
+      full_name: 'مدیر',
+      role: UserRole.ADMIN,
+      is_active: true,
+      profile_completed: true,
+    }),
+  );
   const support = await userRepo.save(
     userRepo.create({
       email: 'support@nazishop.test',

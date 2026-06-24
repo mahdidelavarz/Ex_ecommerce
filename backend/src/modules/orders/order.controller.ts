@@ -4,6 +4,7 @@ import { Request } from 'express';
 import { OrderService } from './order.service';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { ApiResponseHelper } from '../../shared/utils/response';
+import { UserRole } from '../../shared/constants/enums';
 
 export class OrderController {
   private service = new OrderService();
@@ -23,7 +24,9 @@ export class OrderController {
   });
 
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const order = await this.service.findById(req.params.id, req.userId!);
+    // Admins may view any order; customers are scoped to their own.
+    const ownerScope = req.user?.role === UserRole.ADMIN ? undefined : req.userId!;
+    const order = await this.service.findById(req.params.id, ownerScope);
     ApiResponseHelper.success(res, order);
   });
 
