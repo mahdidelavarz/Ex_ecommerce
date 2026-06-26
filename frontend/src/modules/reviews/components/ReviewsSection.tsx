@@ -6,10 +6,8 @@ import { useProductReviews, useCanReview } from "../hooks/useReviews";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 import ReviewCard from "./ReviewCard";
 import ReviewForm from "./ReviewForm";
-import StarRating from "@/components/ui/StarRating";
+import { Card, EmptyState, Pagination, Select, Skeleton, StarRating } from "@/components/ui";
 import {
-  MdiChevronLeft,
-  MdiChevronRight,
   MdiCommentTextOutline,
   MdiStar,
 } from "@/components/icons/Icons";
@@ -90,16 +88,17 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
         <div className="lg:col-span-2 space-y-6">
           {/* Sort + Write Review */}
           <div className="flex items-center justify-between">
-            <select
+            <Select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 bg-surface border border-border rounded-input text-sm"
-            >
-              <option value="newest">جدیدترین</option>
-              <option value="helpful">مفیدترین</option>
-              <option value="rating_high">بیشترین امتیاز</option>
-              <option value="rating_low">کمترین امتیاز</option>
-            </select>
+              wrapperClassName="w-44"
+              options={[
+                { value: 'newest', label: 'جدیدترین' },
+                { value: 'helpful', label: 'مفیدترین' },
+                { value: 'rating_high', label: 'بیشترین امتیاز' },
+                { value: 'rating_low', label: 'کمترین امتیاز' },
+              ]}
+            />
           </div>
 
           {/* Review Form / Status */}
@@ -155,32 +154,24 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-surface rounded-card shadow-card p-6 animate-pulse-soft"
-                >
+                <Card key={i} className="p-6">
                   <div className="flex gap-3 mb-3">
-                    <div className="w-10 h-10 bg-surface-raised rounded-full" />
+                    <Skeleton circle width={40} height={40} />
                     <div className="space-y-2">
-                      <div className="h-4 bg-surface-raised rounded w-24" />
-                      <div className="h-3 bg-surface-raised rounded w-16" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-16" />
                     </div>
                   </div>
-                  <div className="h-12 bg-surface-raised rounded" />
-                </div>
+                  <Skeleton className="h-12 w-full" />
+                </Card>
               ))}
             </div>
           ) : data?.reviews?.length === 0 ? (
-            <div className="text-center py-12">
-              <MdiCommentTextOutline
-                className="text-text-muted mx-auto mb-3"
-                width={48}
-              />
-              <p className="text-text-secondary">هنوز نظری ثبت نشده است</p>
-              <p className="text-text-muted text-sm mt-1">
-                اولین نفری باشید که نظر می‌دهید!
-              </p>
-            </div>
+            <EmptyState
+              icon={MdiCommentTextOutline}
+              title="هنوز نظری ثبت نشده است"
+              message="اولین نفری باشید که نظر می‌دهید!"
+            />
           ) : (
             <div className="space-y-4">
               {data?.reviews?.map((review) => {
@@ -212,28 +203,8 @@ export default function ReviewsSection({ productId }: ReviewsSectionProps) {
           )}
 
           {/* Pagination */}
-          {data?.meta && data.meta.totalPages > 1 && (
-            <div className="flex justify-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-              >
-                <MdiChevronRight className="w-5 h-5" />
-              </button>
-              <span className="px-4 py-2 text-sm text-text-secondary">
-                {page} از {data.meta.totalPages}
-              </span>
-              <button
-                onClick={() =>
-                  setPage((p) => Math.min(data.meta.totalPages, p + 1))
-                }
-                disabled={page === data.meta.totalPages}
-                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-              >
-                <MdiChevronLeft className="w-5 h-5" />
-              </button>
-            </div>
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="نظر" />
           )}
         </div>
       </div>

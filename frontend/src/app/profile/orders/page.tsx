@@ -6,18 +6,9 @@ import Link from 'next/link';
 import { useMyOrders } from '@/modules/orders/hooks/useOrders';
 import { formatPrice } from '@/utils/formatPrice';
 import { useProtectedRoute } from '@/modules/auth/hooks/useProtectedRoute';
-import { MdiChevronLeft, MdiChevronRight, MdiClipboardTextOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
-
-const statusLabels: Record<string, string> = {
-  pending: 'در انتظار', confirmed: 'تایید شده', processing: 'در حال پردازش',
-  shipped: 'ارسال شده', delivered: 'تحویل شده', cancelled: 'لغو شده', returned: 'مرجوع شده',
-};
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-warning-light text-warning', confirmed: 'bg-info-light text-info',
-  processing: 'bg-info-light text-info', shipped: 'bg-primary-light text-primary',
-  delivered: 'bg-success-light text-success', cancelled: 'bg-error-light text-error',
-};
+import { Badge, Card, EmptyState, Pagination } from '@/components/ui';
+import { orderStatusBadge } from '@/utils/statusBadge';
+import { MdiClipboardTextOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 export default function ProfileOrdersPage() {
   const { user, isLoading: isAuthLoading } = useProtectedRoute();
@@ -45,11 +36,11 @@ export default function ProfileOrdersPage() {
       <h1 className="text-2xl font-bold text-text-primary mb-8">سفارش‌های من</h1>
 
       {data?.data?.length === 0 ? (
-        <div className="text-center py-16 bg-surface rounded-card shadow-card">
-          <MdiClipboardTextOff className="text-text-muted mx-auto mb-4" width={64} />
-          <p className="text-text-secondary mb-4">هیچ سفارشی ثبت نشده</p>
-          <Link href="/products" className="text-primary hover:underline">مشاهده محصولات</Link>
-        </div>
+        <Card className="py-4">
+          <EmptyState icon={MdiClipboardTextOff} title="هیچ سفارشی ثبت نشده">
+            <Link href="/products" className="text-primary hover:underline">مشاهده محصولات</Link>
+          </EmptyState>
+        </Card>
       ) : (
         <div className="space-y-4">
           {data?.data?.map((order) => (
@@ -66,9 +57,9 @@ export default function ProfileOrdersPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className={`px-3 py-1 rounded-full text-xs ${statusColors[order.order_status]}`}>
-                    {statusLabels[order.order_status]}
-                  </span>
+                  <Badge variant={orderStatusBadge(order.order_status).variant} size="sm">
+                    {orderStatusBadge(order.order_status).label}
+                  </Badge>
                   <span className="font-bold">{formatPrice(order.total_amount)}</span>
                 </div>
               </div>
@@ -77,16 +68,8 @@ export default function ProfileOrdersPage() {
         </div>
       )}
 
-      {data?.meta && data.meta.totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-            <MdiChevronRight className="w-5 h-5" />
-          </button>
-          <span className="px-4 py-2 text-sm">{page} از {data.meta.totalPages}</span>
-          <button onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))} disabled={page === data.meta.totalPages} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-            <MdiChevronLeft className="w-5 h-5" />
-          </button>
-        </div>
+      {data?.meta && (
+        <Pagination meta={data.meta} onPageChange={setPage} itemLabel="سفارش" className="mt-6" />
       )}
     </div>
   );

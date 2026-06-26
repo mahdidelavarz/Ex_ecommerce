@@ -8,15 +8,13 @@ import { useBrands } from "@/modules/brands/hooks/useBrands";
 import { brandService } from "@/modules/brands/services/brand.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminSidebar from "@/components/layout/AdminSidebar";
-import Button from "@/components/ui/Button";
+import { Badge, Button, EmptyState, Input, Pagination, Skeleton } from "@/components/ui";
 import type { Brand } from "@/modules/brands/types/brand.types";
 import {
   LucidePencil,
   LucidePlus,
   LucideSearch,
   MdiCheckCircle,
-  MdiChevronLeft,
-  MdiChevronRight,
   MdiCloseCircle,
   MdiTagOff,
   MdiTrashCan,
@@ -78,22 +76,16 @@ export default function AdminBrandsPage() {
 
           {/* Search */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <div className="relative">
-              <LucideSearch
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted"
-                width={20}
-              />
-              <input
-                type="text"
-                placeholder="جستجو در برندها..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full pr-10 pl-4 py-2 bg-surface border border-border rounded-input text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
+            <Input
+              type="text"
+              placeholder="جستجو در برندها..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              icon={LucideSearch}
+            />
           </div>
 
           {/* Grid */}
@@ -102,24 +94,20 @@ export default function AdminBrandsPage() {
               [...Array(6)].map((_, i) => (
                 <div
                   key={i}
-                  className="bg-surface rounded-card shadow-card p-6 animate-pulse-soft"
+                  className="bg-surface rounded-card shadow-card p-6"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-surface-raised rounded-xl" />
+                    <Skeleton className="w-16 h-16 rounded-xl" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-surface-raised rounded w-3/4" />
-                      <div className="h-3 bg-surface-raised rounded w-1/2" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
                     </div>
                   </div>
                 </div>
               ))
             ) : data?.data?.length === 0 ? (
-              <div className="col-span-full text-center py-12">
-                <MdiTagOff
-                  className="text-text-muted mx-auto mb-3"
-                  width={48}
-                />
-                <p className="text-text-secondary">برندی یافت نشد</p>
+              <div className="col-span-full">
+                <EmptyState icon={MdiTagOff} title="برندی یافت نشد" />
               </div>
             ) : (
               data?.data?.map((brand) => (
@@ -134,46 +122,8 @@ export default function AdminBrandsPage() {
           </div>
 
           {/* Pagination */}
-          {data?.meta && data.meta.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 bg-surface rounded-card shadow-card px-4 py-3">
-              <p className="text-sm text-text-secondary">
-                {data.meta.total} برند
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="p-2 hover:bg-surface-raised rounded-button transition-colors disabled:opacity-50"
-                >
-                  <MdiChevronRight className="w-5 h-5" />
-                </button>
-                {Array.from(
-                  { length: data.meta.totalPages },
-                  (_, i) => i + 1,
-                ).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`w-10 h-10 rounded-button text-sm font-medium transition-colors ${
-                      p === page
-                        ? "bg-primary text-white"
-                        : "text-text-secondary hover:bg-surface-raised"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-                <button
-                  onClick={() =>
-                    setPage((p) => Math.min(data.meta.totalPages, p + 1))
-                  }
-                  disabled={page === data.meta.totalPages}
-                  className="p-2 hover:bg-surface-raised rounded-button transition-colors disabled:opacity-50"
-                >
-                  <MdiChevronLeft className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="برند" className="mt-6" />
           )}
         </div>
       </main>
@@ -240,21 +190,13 @@ function BrandCard({
         <span className="text-xs text-text-muted">
           {brand.products_count} محصول
         </span>
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-            brand.is_active
-              ? "bg-success-light text-success"
-              : "bg-error-light text-error"
-          }`}
+        <Badge
+          variant={brand.is_active ? "success" : "error"}
+          size="sm"
+          icon={brand.is_active ? MdiCheckCircle : MdiCloseCircle}
         >
-          {brand.is_active ? (
-            <MdiCheckCircle className="w-3 h-3" />
-          ) : (
-            <MdiCloseCircle className="w-3 h-3" />
-          )}
-
           {brand.is_active ? "فعال" : "غیرفعال"}
-        </span>
+        </Badge>
       </div>
     </div>
   );

@@ -12,9 +12,15 @@ import { useCreateCoupon, useUpdateCoupon } from '@/modules/coupons/hooks/useCou
 import { couponService } from '@/modules/coupons/services/coupon.service';
 import { useCategories } from '@/modules/categories/hooks/useCategories';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
+import { Button, Card, Checkbox, Input, Select } from '@/components/ui';
 import { useProducts } from '@/modules/products/hooks/useProducts';
 import { MdiArrowRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
+
+const typeOptions = [
+  { value: 'percentage', label: 'درصدی' },
+  { value: 'fixed', label: 'مبلغ ثابت' },
+  { value: 'free_shipping', label: 'ارسال رایگان' },
+];
 
 const formSchema = z.object({
   code: z.string().min(1, 'کد الزامی است').max(50),
@@ -107,64 +113,65 @@ export default function AdminCouponFormPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="bg-surface rounded-card shadow-card p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">کد تخفیف *</label>
-                <input {...register('code')} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary uppercase" />
-                {errors.code && <p className="text-sm text-error">{errors.code.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">نوع *</label>
-                <select {...register('type')} className="w-full px-4 py-2 bg-surface border border-border rounded-input">
-                  <option value="percentage">درصدی</option>
-                  <option value="fixed">مبلغ ثابت</option>
-                  <option value="free_shipping">ارسال رایگان</option>
-                </select>
-              </div>
+            <Card className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input
+                label="کد تخفیف *"
+                className="uppercase"
+                {...register('code')}
+                error={errors.code?.message}
+              />
+              <Select label="نوع *" options={typeOptions} {...register('type')} />
               {type !== 'free_shipping' && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{type === 'percentage' ? 'درصد' : 'مبلغ (تومان)'} *</label>
-                  <input type="number" {...register('value', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input" />
-                </div>
+                <Input
+                  label={`${type === 'percentage' ? 'درصد' : 'مبلغ (تومان)'} *`}
+                  type="number"
+                  {...register('value', { valueAsNumber: true })}
+                  error={errors.value?.message}
+                />
               )}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">حداقل سفارش (تومان)</label>
-                <input type="number" {...register('min_order_amount', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input" />
-              </div>
+              <Input
+                label="حداقل سفارش (تومان)"
+                type="number"
+                {...register('min_order_amount', { valueAsNumber: true })}
+              />
               {type === 'percentage' && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">حداکثر تخفیف (تومان)</label>
-                  <input type="number" {...register('max_discount', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input" />
-                </div>
+                <Input
+                  label="حداکثر تخفیف (تومان)"
+                  type="number"
+                  {...register('max_discount', { valueAsNumber: true })}
+                />
               )}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">محدودیت تعداد</label>
-                <input type="number" {...register('usage_limit', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">محدودیت برای هر کاربر</label>
-                <input type="number" {...register('usage_per_user', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">تاریخ شروع *</label>
-                <input type="date" {...register('starts_at')} className="w-full px-4 py-2 bg-surface border border-border rounded-input" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">تاریخ انقضا *</label>
-                <input type="date" {...register('expires_at')} className="w-full px-4 py-2 bg-surface border border-border rounded-input" />
-              </div>
-            </div>
+              <Input
+                label="محدودیت تعداد"
+                type="number"
+                {...register('usage_limit', { valueAsNumber: true })}
+              />
+              <Input
+                label="محدودیت برای هر کاربر"
+                type="number"
+                {...register('usage_per_user', { valueAsNumber: true })}
+              />
+              <Input
+                label="تاریخ شروع *"
+                type="date"
+                {...register('starts_at')}
+                error={errors.starts_at?.message}
+              />
+              <Input
+                label="تاریخ انقضا *"
+                type="date"
+                {...register('expires_at')}
+                error={errors.expires_at?.message}
+              />
+            </Card>
 
             {/* Status */}
-            <div className="bg-surface rounded-card shadow-card p-6">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" {...register('is_active')} className="rounded" />
-                <span className="text-sm">فعال</span>
-              </label>
-            </div>
+            <Card className="p-6">
+              <Checkbox label="فعال" {...register('is_active')} />
+            </Card>
 
             {/* Product Restrictions */}
-            <div className="bg-surface rounded-card shadow-card p-6">
+            <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium text-text-primary">محدودیت محصول</h3>
                 {selectedProducts.length > 0 && (
@@ -176,30 +183,27 @@ export default function AdminCouponFormPage() {
               <p className="text-xs text-text-muted mb-3">اگر انتخاب نشود، کد برای همه محصولات معتبر است.</p>
               <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-input p-2">
                 {(productsData?.data ?? []).map((p: any) => (
-                  <label key={p.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface-raised cursor-pointer">
-                    <input
-                      type="checkbox"
-                      value={p.id}
-                      checked={selectedProducts.includes(p.id)}
-                      onChange={(e) => {
-                        const next = e.target.checked
-                          ? [...selectedProducts, p.id]
-                          : selectedProducts.filter((id) => id !== p.id);
-                        setValue('product_ids', next);
-                      }}
-                      className="rounded"
-                    />
-                    <span className="text-sm">{p.title}</span>
-                  </label>
+                  <Checkbox
+                    key={p.id}
+                    label={p.title}
+                    wrapperClassName="w-full px-2 py-1 rounded hover:bg-surface-raised"
+                    checked={selectedProducts.includes(p.id)}
+                    onChange={(e) => {
+                      const next = e.target.checked
+                        ? [...selectedProducts, p.id]
+                        : selectedProducts.filter((id) => id !== p.id);
+                      setValue('product_ids', next);
+                    }}
+                  />
                 ))}
               </div>
               {selectedProducts.length > 0 && (
                 <p className="text-xs text-primary mt-2">{selectedProducts.length} محصول انتخاب شده</p>
               )}
-            </div>
+            </Card>
 
             {/* Category Restrictions */}
-            <div className="bg-surface rounded-card shadow-card p-6">
+            <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium text-text-primary">محدودیت دسته‌بندی</h3>
                 {selectedCategories.length > 0 && (
@@ -211,27 +215,24 @@ export default function AdminCouponFormPage() {
               <p className="text-xs text-text-muted mb-3">اگر انتخاب نشود، کد برای همه دسته‌بندی‌ها معتبر است.</p>
               <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-input p-2">
                 {(categoriesData?.data ?? []).map((c: any) => (
-                  <label key={c.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface-raised cursor-pointer">
-                    <input
-                      type="checkbox"
-                      value={c.id}
-                      checked={selectedCategories.includes(c.id)}
-                      onChange={(e) => {
-                        const next = e.target.checked
-                          ? [...selectedCategories, c.id]
-                          : selectedCategories.filter((id) => id !== c.id);
-                        setValue('category_ids', next);
-                      }}
-                      className="rounded"
-                    />
-                    <span className="text-sm">{c.name}</span>
-                  </label>
+                  <Checkbox
+                    key={c.id}
+                    label={c.name}
+                    wrapperClassName="w-full px-2 py-1 rounded hover:bg-surface-raised"
+                    checked={selectedCategories.includes(c.id)}
+                    onChange={(e) => {
+                      const next = e.target.checked
+                        ? [...selectedCategories, c.id]
+                        : selectedCategories.filter((id) => id !== c.id);
+                      setValue('category_ids', next);
+                    }}
+                  />
                 ))}
               </div>
               {selectedCategories.length > 0 && (
                 <p className="text-xs text-primary mt-2">{selectedCategories.length} دسته‌بندی انتخاب شده</p>
               )}
-            </div>
+            </Card>
 
             <div className="flex gap-4">
               <Button type="submit" loading={isSubmitting} size="lg">{isEdit ? 'بروزرسانی' : 'ایجاد'}</Button>

@@ -8,7 +8,7 @@ import { useVariants } from '@/modules/variants/hooks/useVariants';
 import { variantService } from '@/modules/variants/services/variant.service';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
+import { Badge, Button, Card, EmptyState, Input, Skeleton } from '@/components/ui';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ProductVariant } from '@/modules/variants/types/variant.types';
 import { LucidePencil, LucidePlus, MdiArrowRight, MdiCheckCircle, MdiClose, MdiImageOff, MdiPackageVariantClosed, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
@@ -78,22 +78,25 @@ export default function AdminProductVariantsPage() {
           <div className="space-y-4">
             {isLoading ? (
               [...Array(2)].map((_, i) => (
-                <div key={i} className="bg-surface rounded-card shadow-card p-6 animate-pulse-soft">
-                  <div className="h-4 bg-surface-raised rounded w-1/4 mb-4" />
-                  <div className="h-10 bg-surface-raised rounded w-full" />
+                <div key={i} className="bg-surface rounded-card shadow-card p-6">
+                  <Skeleton className="h-4 w-1/4 mb-4" />
+                  <Skeleton className="h-10 w-full" />
                 </div>
               ))
             ) : variants?.length === 0 ? (
-              <div className="text-center py-16 bg-surface rounded-card shadow-card">
-                <MdiPackageVariantClosed className="text-text-muted mx-auto mb-3" width={48} />
-                <p className="text-text-secondary mb-4">هیچ واریانتی برای این محصول ثبت نشده</p>
-                <Button
-                  onClick={() => router.push(`/admin/products/variants/new?productId=${productId}`)}
-                  icon={LucidePlus}
+              <Card className="py-4">
+                <EmptyState
+                  icon={MdiPackageVariantClosed}
+                  title="هیچ واریانتی برای این محصول ثبت نشده"
                 >
-                  ایجاد اولین واریانت
-                </Button>
-              </div>
+                  <Button
+                    onClick={() => router.push(`/admin/products/variants/new?productId=${productId}`)}
+                    icon={LucidePlus}
+                  >
+                    ایجاد اولین واریانت
+                  </Button>
+                </EmptyState>
+              </Card>
             ) : (
               variants?.map((variant) => (
                 <VariantCard
@@ -128,7 +131,7 @@ function VariantCard({
   const hasDiscount = variant.compare_at_price && variant.compare_at_price > variant.price;
 
   return (
-    <div className="bg-surface rounded-card shadow-card hover:shadow-card-hover transition-all p-6">
+    <Card className="hover:shadow-card-hover transition-all p-6">
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Images */}
         <div className="flex gap-2">
@@ -187,11 +190,12 @@ function VariantCard({
           <div>
             {editingStock ? (
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   type="number"
+                  wrapperClassName="w-20"
                   value={stockValue}
                   onChange={(e) => setStockValue(parseInt(e.target.value) || 0)}
-                  className="w-20 px-2 py-1 border border-border rounded-input text-sm text-center"
+                  className="text-sm text-center py-1"
                   autoFocus
                 />
                 <button
@@ -231,13 +235,11 @@ function VariantCard({
           <button onClick={onDelete} className="p-2 hover:bg-error-light rounded-button text-error" title="حذف">
             <MdiTrashCan className="w-4 h-4" />
           </button>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium text-center ${
-            variant.is_active ? 'bg-success-light text-success' : 'bg-error-light text-error'
-          }`}>
+          <Badge variant={variant.is_active ? 'success' : 'error'} size="sm" className="justify-center">
             {variant.is_active ? 'فعال' : 'غیرفعال'}
-          </span>
+          </Badge>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

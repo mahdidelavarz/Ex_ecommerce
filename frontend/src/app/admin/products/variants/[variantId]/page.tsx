@@ -12,7 +12,7 @@ import { variantService } from '@/modules/variants/services/variant.service';
 import { productService } from '@/modules/products/services/product.service';
 import { useAllAttributes } from '@/modules/attributes/hooks/useAttributes';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
+import { Button, Card, Checkbox, Input, Toggle } from '@/components/ui';
 import type { VariantImage } from '@/modules/variants/types/variant.types';
 import { MdiArrowRight, MdiClose, MdiImageMultiple, MdiImageOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
@@ -184,66 +184,40 @@ export default function AdminVariantFormPage() {
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-6">
               {/* Basic Info */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-6">اطلاعات پایه</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">کد محصول (SKU) *</label>
-                    <input {...register('sku')} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary" />
-                    {errors.sku && <p className="text-sm text-error">{errors.sku.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">بارکد</label>
-                    <input {...register('barcode')} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">قیمت (تومان) *</label>
-                    <input type="number" {...register('price', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary" />
-                    {errors.price && <p className="text-sm text-error">{errors.price.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">قیمت مقایسه (تومان)</label>
-                    <input type="number" {...register('compare_at_price', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">قیمت تمام شده (تومان)</label>
-                    <input type="number" {...register('cost', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">وزن (گرم)</label>
-                    <input type="number" {...register('weight', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
+                  <Input label="کد محصول (SKU) *" {...register('sku')} error={errors.sku?.message} />
+                  <Input label="بارکد" {...register('barcode')} />
+                  <Input label="قیمت (تومان) *" type="number" {...register('price', { valueAsNumber: true })} error={errors.price?.message} />
+                  <Input label="قیمت مقایسه (تومان)" type="number" {...register('compare_at_price', { valueAsNumber: true })} error={errors.compare_at_price?.message} />
+                  <Input label="قیمت تمام شده (تومان)" type="number" {...register('cost', { valueAsNumber: true })} error={errors.cost?.message} />
+                  <Input label="وزن (گرم)" type="number" {...register('weight', { valueAsNumber: true })} />
                 </div>
-              </div>
+              </Card>
 
               {/* Stock */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-6">موجودی</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">تعداد موجودی</label>
-                    <input type="number" {...register('stock_quantity', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-text-secondary">هشدار موجودی کم</label>
-                    <input type="number" {...register('low_stock_threshold', { valueAsNumber: true })} className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
+                  <Input label="تعداد موجودی" type="number" {...register('stock_quantity', { valueAsNumber: true })} />
+                  <Input label="هشدار موجودی کم" type="number" {...register('low_stock_threshold', { valueAsNumber: true })} />
                 </div>
-              </div>
+              </Card>
 
               {/* Status */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-4">وضعیت</h2>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked={isActive} onChange={(e) => setValue('is_active', e.target.checked)} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-border rounded-full peer-checked:bg-success relative after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-                  <span className="text-sm text-text-secondary">{isActive ? 'فعال' : 'غیرفعال'}</span>
-                </label>
-              </div>
+                <Toggle
+                  label={isActive ? 'فعال' : 'غیرفعال'}
+                  checked={isActive}
+                  onChange={(e) => setValue('is_active', e.target.checked)}
+                />
+              </Card>
 
               {/* Images — only available once the variant exists */}
               {isEdit && (
-                <div className="bg-surface rounded-card shadow-card p-6">
+                <Card className="p-6">
                   <h2 className="text-lg font-bold text-text-primary mb-6">تصاویر واریانت</h2>
                   <div className="flex flex-wrap gap-3">
                     {variantImages.map((img) => (
@@ -290,12 +264,12 @@ export default function AdminVariantFormPage() {
                       هنوز تصویری برای این واریانت اضافه نشده است
                     </p>
                   )}
-                </div>
+                </Card>
               )}
 
               {/* Attributes */}
               {attributes && attributes.length > 0 && (
-                <div className="bg-surface rounded-card shadow-card p-6">
+                <Card className="p-6">
                   <h2 className="text-lg font-bold text-text-primary mb-6">ویژگی‌ها</h2>
                   <div className="space-y-4">
                     {attributes.map((attr) => (
@@ -303,26 +277,25 @@ export default function AdminVariantFormPage() {
                         <label className="text-sm font-medium text-text-secondary block mb-2">{attr.name}</label>
                         <div className="flex flex-wrap gap-2">
                           {attr.values?.map((val) => (
-                            <label key={val.id} className="flex items-center gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                value={val.id}
-                                {...register('attribute_value_ids')}
-                                className="rounded"
-                              />
-                              <span className="flex items-center gap-1 text-sm text-text-primary">
-                                {val.color_code && (
-                                  <span className="w-4 h-4 rounded-full border" style={{ backgroundColor: val.color_code }} />
-                                )}
-                                {val.value}
-                              </span>
-                            </label>
+                            <Checkbox
+                              key={val.id}
+                              value={val.id}
+                              {...register('attribute_value_ids')}
+                              label={
+                                <span className="flex items-center gap-1">
+                                  {val.color_code && (
+                                    <span className="w-4 h-4 rounded-full border" style={{ backgroundColor: val.color_code }} />
+                                  )}
+                                  {val.value}
+                                </span>
+                              }
+                            />
                           ))}
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
               )}
 
               {/* Actions */}

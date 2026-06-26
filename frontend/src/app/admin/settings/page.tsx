@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
+import { Button, Card, Input } from '@/components/ui';
 import { useAdminSettings, useUpdateSetting } from '@/modules/settings/hooks/useSettings';
 import { SvgSpinnersRingResize } from '@/components/icons/Icons';
 import type { AppSetting } from '@/modules/settings/services/setting.service';
@@ -60,17 +60,17 @@ export default function AdminSettingsPage() {
           ) : (
             <div className="space-y-4">
               {settings?.map((setting) => (
-                <div key={setting.key} className="bg-surface rounded-card shadow-card p-6">
+                <Card key={setting.key} className="p-6">
                   <label className="block text-sm font-medium text-text-secondary mb-1">
                     {setting.label}
                   </label>
                   <p className="text-xs text-text-muted mb-3 font-mono">{setting.key}</p>
-                  <div className="flex gap-3">
-                    <input
+                  <div className="flex gap-3 items-start">
+                    <Input
+                      wrapperClassName="flex-1"
                       type="text"
                       value={values[setting.key] ?? setting.value}
                       onChange={(e) => handleChange(setting.key, e.target.value)}
-                      className="flex-1 px-4 py-2 border border-border rounded-input text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                     <Button
                       size="sm"
@@ -81,7 +81,7 @@ export default function AdminSettingsPage() {
                       ذخیره
                     </Button>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}

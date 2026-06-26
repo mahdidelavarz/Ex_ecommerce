@@ -5,9 +5,9 @@ import { useState } from 'react';
 import { useTags, useCreateTag, useUpdateTag, useDeleteTag } from '@/modules/tags/hooks/useTags';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
+import { Button, Input, Pagination, Skeleton } from '@/components/ui';
 import type { Tag } from '@/modules/tags/types/tag.types';
-import { LucidePencil, LucidePlus, LucideSearch, MdiCheck, MdiChevronLeft, MdiChevronRight, MdiClose, MdiTag, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { LucidePencil, LucidePlus, LucideSearch, MdiCheck, MdiClose, MdiTag, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const LIMIT = 50;
 
@@ -80,19 +80,15 @@ export default function AdminTagsPage() {
 
           {/* Create */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <input
-                  value={newTagName}
-                  onChange={(e) => { setNewTagName(e.target.value); setNewTagError(''); }}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                  placeholder="نام تگ جدید..."
-                  className={`w-full px-4 py-2 bg-surface border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
-                    newTagError ? 'border-error' : 'border-border'
-                  }`}
-                />
-                {newTagError && <p className="text-xs text-error mt-1">{newTagError}</p>}
-              </div>
+            <div className="flex gap-3 items-start">
+              <Input
+                wrapperClassName="flex-1"
+                value={newTagName}
+                onChange={(e) => { setNewTagName(e.target.value); setNewTagError(''); }}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                placeholder="نام تگ جدید..."
+                error={newTagError || undefined}
+              />
               <Button onClick={handleCreate} icon={LucidePlus} loading={createMutation.isPending}>
                 ایجاد
               </Button>
@@ -100,13 +96,12 @@ export default function AdminTagsPage() {
           </div>
 
           {/* Search */}
-          <div className="relative mb-6">
-            <LucideSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={20} />
-            <input
+          <div className="mb-6">
+            <Input
               value={search}
               onChange={handleSearch}
               placeholder="جستجو..."
-              className="w-full pr-10 pl-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              icon={LucideSearch}
             />
           </div>
 
@@ -114,7 +109,7 @@ export default function AdminTagsPage() {
           <div className="bg-surface rounded-card shadow-card">
             {isLoading ? (
               <div className="p-6 space-y-3">
-                {[...Array(5)].map((_, i) => <div key={i} className="h-10 bg-surface-raised rounded animate-pulse-soft" />)}
+                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
               </div>
             ) : (
               <div className="divide-y divide-border">
@@ -123,11 +118,12 @@ export default function AdminTagsPage() {
                     {editingTag?.id === tag.id ? (
                       <div className="flex flex-col gap-1 flex-1">
                         <div className="flex items-center gap-3">
-                          <input
+                          <Input
+                            wrapperClassName="flex-1"
                             value={editName}
                             onChange={(e) => { setEditName(e.target.value); setEditError(''); }}
                             onKeyDown={(e) => e.key === 'Enter' && handleUpdate()}
-                            className={`flex-1 px-3 py-1 border rounded-input text-sm ${editError ? 'border-error' : 'border-border'}`}
+                            error={editError || undefined}
                             autoFocus
                           />
                           <button
@@ -180,26 +176,13 @@ export default function AdminTagsPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 text-sm text-text-secondary">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="flex items-center gap-1 px-3 py-1.5 border border-border rounded-button hover:bg-surface-raised disabled:opacity-40"
-              >
-                <MdiChevronRight className="w-4 h-4" />
-                قبلی
-              </button>
-              <span>صفحه {page} از {totalPages}</span>
-              <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={page >= totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 border border-border rounded-button hover:bg-surface-raised disabled:opacity-40"
-              >
-                بعدی
-                <MdiChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
+          {data?.meta && (
+            <Pagination
+              meta={{ page, limit: LIMIT, total: data.meta.total, totalPages }}
+              onPageChange={setPage}
+              itemLabel="تگ"
+              className="mt-4"
+            />
           )}
         </div>
       </main>

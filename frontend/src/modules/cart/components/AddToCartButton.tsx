@@ -4,11 +4,11 @@
 import { useState } from "react";
 import { useCart } from "../hooks/useCart";
 import type { CartVariant } from "../types/cart.types";
+import { Button } from "@/components/ui";
 import {
   LucidePlus,
   MdiCartPlus,
   MdiMinus,
-  SvgSpinnersRingResize,
 } from "@/components/icons/Icons";
 
 interface AddToCartButtonProps {
@@ -58,18 +58,15 @@ export default function AddToCartButton({
         </button>
       </div>
 
-      <button
+      <Button
         onClick={handleAddToCart}
         disabled={isOutOfStock || isAdding}
-        className="flex-1 bg-primary text-white py-3 px-6 rounded-button font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        loading={isAdding}
+        icon={MdiCartPlus}
+        className="flex-1"
       >
-        {isAdding ? (
-          <SvgSpinnersRingResize className="w-5 h-5" />
-        ) : (
-          <MdiCartPlus className="w-5 h-5" />
-        )}
         {isOutOfStock ? "ناموجود" : "افزودن به سبد خرید"}
-      </button>
+      </Button>
     </div>
   );
 }

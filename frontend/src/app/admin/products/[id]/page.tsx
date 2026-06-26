@@ -16,7 +16,7 @@ import { useAllAttributes } from "@/modules/attributes/hooks/useAttributes";
 import { useAllTags } from "@/modules/tags/hooks/useTags";
 import { useVariants } from "@/modules/variants/hooks/useVariants";
 import AdminSidebar from "@/components/layout/AdminSidebar";
-import Button from "@/components/ui/Button";
+import { Badge, Button, Card, Checkbox, EmptyState, Input, Select, Textarea, Toggle } from "@/components/ui";
 import { formatPrice } from "@/utils/formatPrice";
 import type { ProductVariant } from "@/modules/variants/types/variant.types";
 import { LucidePencil, LucidePlus, LucideSearch, MdiArrowRight, MdiClose, MdiImageMultiple, MdiInformation, MdiPackageVariant, MdiPackageVariantClosed, MdiTrashCan, SvgSpinnersRingResize } from "@/components/icons/Icons";
@@ -386,123 +386,68 @@ export default function AdminProductFormPage() {
             {/* TAB: Basic Info */}
             {activeTab === "basic" && (
               <div className="space-y-6">
-                <div className="bg-surface rounded-card shadow-card p-6">
+                <Card className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-medium text-text-secondary">
-                        عنوان *
-                      </label>
-                      <input
-                        {...register("title")}
-                        className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                      {errors.title && (
-                        <p className="text-sm text-error">
-                          {errors.title.message}
-                        </p>
-                      )}
-                    </div>
+                    <Input
+                      label="عنوان *"
+                      wrapperClassName="md:col-span-2"
+                      {...register("title")}
+                      error={errors.title?.message}
+                    />
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-text-secondary">
-                        دسته‌بندی *
-                      </label>
-                      <select
-                        {...register("category_id")}
-                        className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="">انتخاب کنید</option>
-                        {categoriesData?.data?.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.category_id && (
-                        <p className="text-sm text-error">
-                          {errors.category_id.message}
-                        </p>
-                      )}
-                    </div>
+                    <Select label="دسته‌بندی *" {...register("category_id")} error={errors.category_id?.message}>
+                      <option value="">انتخاب کنید</option>
+                      {categoriesData?.data?.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </Select>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-text-secondary">
-                        برند
-                      </label>
-                      <select
-                        {...register("brand_id")}
-                        className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="">بدون برند</option>
-                        {brandsData?.map((brand) => (
-                          <option key={brand.id} value={brand.id}>
-                            {brand.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <Select label="برند" {...register("brand_id")}>
+                      <option value="">بدون برند</option>
+                      {brandsData?.map((brand) => (
+                        <option key={brand.id} value={brand.id}>
+                          {brand.name}
+                        </option>
+                      ))}
+                    </Select>
 
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-medium text-text-secondary">
-                        توضیح کوتاه
-                      </label>
-                      <input
-                        {...register("short_description")}
-                        className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
+                    <Input
+                      label="توضیح کوتاه"
+                      wrapperClassName="md:col-span-2"
+                      {...register("short_description")}
+                    />
 
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-medium text-text-secondary">
-                        توضیحات کامل
-                      </label>
-                      <textarea
-                        {...register("full_description")}
-                        rows={8}
-                        className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                      />
-                    </div>
+                    <Textarea
+                      label="توضیحات کامل"
+                      wrapperClassName="md:col-span-2"
+                      {...register("full_description")}
+                      rows={8}
+                    />
                   </div>
-                </div>
+                </Card>
 
                 {/* Status */}
-                <div className="bg-surface rounded-card shadow-card p-6">
+                <Card className="p-6">
                   <h3 className="font-medium text-text-primary mb-4">وضعیت</h3>
                   <div className="flex gap-8">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isActive}
-                        onChange={(e) =>
-                          setValue("is_active", e.target.checked)
-                        }
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-border rounded-full peer-checked:bg-success relative after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-                      <span className="text-sm">
-                        {isActive ? "فعال" : "غیرفعال"}
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isPublic}
-                        onChange={(e) =>
-                          setValue("is_public", e.target.checked)
-                        }
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-border rounded-full peer-checked:bg-success relative after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-                      <span className="text-sm">
-                        {isPublic ? "منتشر شده" : "پیش‌نویس"}
-                      </span>
-                    </label>
+                    <Toggle
+                      label={isActive ? "فعال" : "غیرفعال"}
+                      checked={isActive}
+                      onChange={(e) => setValue("is_active", e.target.checked)}
+                    />
+                    <Toggle
+                      label={isPublic ? "منتشر شده" : "پیش‌نویس"}
+                      checked={isPublic}
+                      onChange={(e) => setValue("is_public", e.target.checked)}
+                    />
                   </div>
-                </div>
+                </Card>
 
                 {/* Tags */}
                 {tags && tags.length > 0 && (
-                  <div className="bg-surface rounded-card shadow-card p-6">
+                  <Card className="p-6">
                     <h3 className="font-medium text-text-primary mb-4">
                       برچسب‌ها
                     </h3>
@@ -522,11 +467,11 @@ export default function AdminProductFormPage() {
                         </button>
                       ))}
                     </div>
-                  </div>
+                  </Card>
                 )}
 
                 {/* Specifications (jsonb key/value pairs) */}
-                <div className="bg-surface rounded-card shadow-card p-6">
+                <Card className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-medium text-text-primary">مشخصات فنی</h3>
                     <Button
@@ -547,15 +492,17 @@ export default function AdminProductFormPage() {
                     <div className="space-y-3">
                       {specFields.map((field, index) => (
                         <div key={field.id} className="flex items-center gap-3">
-                          <input
+                          <Input
+                            wrapperClassName="flex-1"
                             {...register(`specifications.${index}.key`)}
                             placeholder="عنوان (مثلاً: جنس)"
-                            className="flex-1 px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="text-sm"
                           />
-                          <input
+                          <Input
+                            wrapperClassName="flex-1"
                             {...register(`specifications.${index}.value`)}
                             placeholder="مقدار (مثلاً: نخ پنبه)"
-                            className="flex-1 px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="text-sm"
                           />
                           <button
                             type="button"
@@ -569,13 +516,13 @@ export default function AdminProductFormPage() {
                       ))}
                     </div>
                   )}
-                </div>
+                </Card>
               </div>
             )}
 
             {/* TAB: Images */}
             {activeTab === "images" && (
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="font-medium text-text-primary">
                     تصاویر محصول
@@ -616,13 +563,12 @@ export default function AdminProductFormPage() {
                       </div>
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="sm:col-span-2">
-                          <label className="text-xs text-text-secondary block mb-1">
-                            آدرس تصویر
-                          </label>
-                          <input
+                          <Input
+                            label="آدرس تصویر"
+                            dir="ltr"
                             {...register(`images.${index}.image_url`)}
                             placeholder="https://..."
-                            className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="text-sm"
                           />
                           <label className="inline-flex items-center gap-2 mt-2 cursor-pointer text-xs text-primary hover:underline">
                             {uploadingIndex === index ? (
@@ -649,27 +595,19 @@ export default function AdminProductFormPage() {
                             />
                           </label>
                         </div>
-                        <div>
-                          <label className="text-xs text-text-secondary block mb-1">
-                            متن جایگزین
-                          </label>
-                          <input
-                            {...register(`images.${index}.alt_text`)}
-                            placeholder="توضیح تصویر"
-                            className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
-                        </div>
-                      </div>
-                      <label className="flex items-center gap-2 mt-6 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          {...register(`images.${index}.is_thumbnail`)}
-                          className="rounded"
+                        <Input
+                          label="متن جایگزین"
+                          {...register(`images.${index}.alt_text`)}
+                          placeholder="توضیح تصویر"
+                          className="text-sm"
                         />
-                        <span className="text-xs text-text-secondary">
-                          تصویر اصلی
-                        </span>
-                      </label>
+                      </div>
+                      <div className="mt-6">
+                        <Checkbox
+                          label={<span className="text-xs">تصویر اصلی</span>}
+                          {...register(`images.${index}.is_thumbnail`)}
+                        />
+                      </div>
                       {imageFields.length > 1 && (
                         <button
                           type="button"
@@ -682,7 +620,7 @@ export default function AdminProductFormPage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
 
             {/* TAB: Variants */}
@@ -690,7 +628,7 @@ export default function AdminProductFormPage() {
               <div className="space-y-6">
                 {/* Add/Edit Variant Form */}
                 {showVariantForm && (
-                  <div className="bg-surface rounded-card shadow-card p-6">
+                  <Card className="p-6">
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="font-medium text-text-primary">
                         {editingVariant ? "ویرایش واریانت" : "واریانت جدید"}
@@ -704,104 +642,46 @@ export default function AdminProductFormPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div>
-                        <label className="text-xs text-text-secondary block mb-1">
-                          کد محصول (SKU) *
-                        </label>
-                        <input
-                          value={variantForm.sku}
-                          onChange={(e) =>
-                            setVariantForm({
-                              ...variantForm,
-                              sku: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-text-secondary block mb-1">
-                          بارکد
-                        </label>
-                        <input
-                          value={variantForm.barcode}
-                          onChange={(e) =>
-                            setVariantForm({
-                              ...variantForm,
-                              barcode: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-text-secondary block mb-1">
-                          قیمت (تومان) *
-                        </label>
-                        <input
-                          type="number"
-                          value={variantForm.price}
-                          onChange={(e) =>
-                            setVariantForm({
-                              ...variantForm,
-                              price: parseInt(e.target.value) || 0,
-                            })
-                          }
-                          className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-text-secondary block mb-1">
-                          قیمت مقایسه
-                        </label>
-                        <input
-                          type="number"
-                          value={variantForm.compare_at_price || ""}
-                          onChange={(e) =>
-                            setVariantForm({
-                              ...variantForm,
-                              compare_at_price: e.target.value
-                                ? parseInt(e.target.value)
-                                : null,
-                            })
-                          }
-                          className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-text-secondary block mb-1">
-                          موجودی
-                        </label>
-                        <input
-                          type="number"
-                          value={variantForm.stock_quantity}
-                          onChange={(e) =>
-                            setVariantForm({
-                              ...variantForm,
-                              stock_quantity: parseInt(e.target.value) || 0,
-                            })
-                          }
-                          className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-text-secondary block mb-1">
-                          هشدار موجودی
-                        </label>
-                        <input
-                          type="number"
-                          value={variantForm.low_stock_threshold || ""}
-                          onChange={(e) =>
-                            setVariantForm({
-                              ...variantForm,
-                              low_stock_threshold: e.target.value
-                                ? parseInt(e.target.value)
-                                : null,
-                            })
-                          }
-                          className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
+                      <Input
+                        label="کد محصول (SKU) *"
+                        value={variantForm.sku}
+                        onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value })}
+                        className="text-sm"
+                      />
+                      <Input
+                        label="بارکد"
+                        value={variantForm.barcode}
+                        onChange={(e) => setVariantForm({ ...variantForm, barcode: e.target.value })}
+                        className="text-sm"
+                      />
+                      <Input
+                        label="قیمت (تومان) *"
+                        type="number"
+                        value={variantForm.price}
+                        onChange={(e) => setVariantForm({ ...variantForm, price: parseInt(e.target.value) || 0 })}
+                        className="text-sm"
+                      />
+                      <Input
+                        label="قیمت مقایسه"
+                        type="number"
+                        value={variantForm.compare_at_price || ""}
+                        onChange={(e) => setVariantForm({ ...variantForm, compare_at_price: e.target.value ? parseInt(e.target.value) : null })}
+                        className="text-sm"
+                      />
+                      <Input
+                        label="موجودی"
+                        type="number"
+                        value={variantForm.stock_quantity}
+                        onChange={(e) => setVariantForm({ ...variantForm, stock_quantity: parseInt(e.target.value) || 0 })}
+                        className="text-sm"
+                      />
+                      <Input
+                        label="هشدار موجودی"
+                        type="number"
+                        value={variantForm.low_stock_threshold || ""}
+                        onChange={(e) => setVariantForm({ ...variantForm, low_stock_threshold: e.target.value ? parseInt(e.target.value) : null })}
+                        className="text-sm"
+                      />
                     </div>
 
                     {/* Attributes */}
@@ -870,11 +750,11 @@ export default function AdminProductFormPage() {
                         انصراف
                       </Button>
                     </div>
-                  </div>
+                  </Card>
                 )}
 
                 {/* Variants List */}
-                <div className="bg-surface rounded-card shadow-card p-6">
+                <Card className="p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-medium text-text-primary">
                       واریانت‌ها ({variants?.length || 0})
@@ -892,15 +772,7 @@ export default function AdminProductFormPage() {
                   </div>
 
                   {variants?.length === 0 ? (
-                    <div className="text-center py-8">
-                      <MdiPackageVariantClosed
-                        className="text-text-muted mx-auto mb-2"
-                        width={40}
-                      />
-                      <p className="text-text-secondary text-sm">
-                        هیچ واریانتی ثبت نشده
-                      </p>
-                    </div>
+                    <EmptyState icon={MdiPackageVariantClosed} title="هیچ واریانتی ثبت نشده" />
                   ) : (
                     <div className="space-y-3">
                       {variants?.map((variant) => (
@@ -921,11 +793,9 @@ export default function AdminProductFormPage() {
                               >
                                 موجودی: {variant.stock_quantity}
                               </span>
-                              <span
-                                className={`text-xs px-1.5 py-0.5 rounded ${variant.is_active ? "bg-success-light text-success" : "bg-error-light text-error"}`}
-                              >
+                              <Badge variant={variant.is_active ? "success" : "error"} size="sm">
                                 {variant.is_active ? "فعال" : "غیرفعال"}
-                              </span>
+                              </Badge>
                             </div>
                             {variant.attributes?.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1">
@@ -962,34 +832,17 @@ export default function AdminProductFormPage() {
                       ))}
                     </div>
                   )}
-                </div>
+                </Card>
               </div>
             )}
 
             {/* TAB: SEO */}
             {activeTab === "seo" && (
-              <div className="bg-surface rounded-card shadow-card p-6 space-y-6">
+              <Card className="p-6 space-y-6">
                 <h3 className="font-medium text-text-primary">تنظیمات سئو</h3>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-text-secondary">
-                    عنوان سئو
-                  </label>
-                  <input
-                    {...register("seo_title")}
-                    className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-text-secondary">
-                    توضیحات سئو
-                  </label>
-                  <textarea
-                    {...register("seo_description")}
-                    rows={3}
-                    className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                  />
-                </div>
-              </div>
+                <Input label="عنوان سئو" {...register("seo_title")} />
+                <Textarea label="توضیحات سئو" {...register("seo_description")} rows={3} />
+              </Card>
             )}
           </form>
         </div>

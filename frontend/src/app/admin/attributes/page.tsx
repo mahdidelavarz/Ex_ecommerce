@@ -8,14 +8,12 @@ import { useAttributes } from "@/modules/attributes/hooks/useAttributes";
 import { attributeService } from "@/modules/attributes/services/attribute.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminSidebar from "@/components/layout/AdminSidebar";
-import Button from "@/components/ui/Button";
+import { Button, EmptyState, Input, Pagination, Skeleton } from "@/components/ui";
 import type { Attribute } from "@/modules/attributes/types/attribute.types";
 import {
   LucidePencil,
   LucidePlus,
   LucideSearch,
-  MdiChevronLeft,
-  MdiChevronRight,
   MdiClose,
   MdiShape,
   MdiTrashCan,
@@ -95,51 +93,33 @@ export default function AdminAttributesPage() {
 
           {/* Search */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <div className="relative">
-              <LucideSearch
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted"
-                width={20}
-              />
-              <input
-                type="text"
-                placeholder="جستجو در ویژگی‌ها..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full pr-10 pl-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
+            <Input
+              type="text"
+              placeholder="جستجو در ویژگی‌ها..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              icon={LucideSearch}
+            />
           </div>
 
           {/* Attributes Cards */}
           <div className="space-y-4">
             {isLoading ? (
               [...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-surface rounded-card shadow-card p-6 animate-pulse-soft"
-                >
-                  <div className="h-5 bg-surface-raised rounded w-1/4 mb-4" />
+                <div key={i} className="bg-surface rounded-card shadow-card p-6">
+                  <Skeleton className="h-5 w-1/4 mb-4" />
                   <div className="flex gap-3">
                     {[...Array(4)].map((_, j) => (
-                      <div
-                        key={j}
-                        className="h-10 bg-surface-raised rounded-lg w-24"
-                      />
+                      <Skeleton key={j} className="h-10 w-24 rounded-lg" />
                     ))}
                   </div>
                 </div>
               ))
             ) : data?.data?.length === 0 ? (
-              <div className="text-center py-12">
-                <LucidePlus
-                  className="text-text-muted mx-auto mb-3"
-                  width={48}
-                />
-                <p className="text-text-secondary">ویژگی یافت نشد</p>
-              </div>
+              <EmptyState icon={MdiShape} title="ویژگی یافت نشد" />
             ) : (
               data?.data?.map((attribute) => (
                 <AttributeCard
@@ -158,37 +138,8 @@ export default function AdminAttributesPage() {
           </div>
 
           {/* Pagination */}
-          {data?.meta && data.meta.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-2 hover:bg-surface-raised rounded-button disabled:opacity-50"
-              >
-                <MdiChevronRight className="w-5 h-5" />
-              </button>
-              {Array.from(
-                { length: data.meta.totalPages },
-                (_, i) => i + 1,
-              ).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`w-10 h-10 rounded-button text-sm font-medium ${p === page ? "bg-primary text-white" : "text-text-secondary hover:bg-surface-raised"}`}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                onClick={() =>
-                  setPage((p) => Math.min(data.meta.totalPages, p + 1))
-                }
-                disabled={page === data.meta.totalPages}
-                className="p-2 hover:bg-surface-raised rounded-button disabled:opacity-50"
-              >
-                <MdiChevronLeft className="w-5 h-5" />
-              </button>
-            </div>
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="ویژگی" className="mt-6" />
           )}
         </div>
       </main>

@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
+import { Button, Card, Input, Select } from '@/components/ui';
 import { attributeService } from '@/modules/attributes/services/attribute.service';
 import {
   useCreateAttribute,
@@ -27,7 +27,7 @@ const valueSchema = z.object({
 
 const attributeFormSchema = z.object({
   name: z.string().min(1, 'نام ویژگی الزامی است').max(100),
-  type: z.enum(['color', 'size', 'text']).default('text'),
+  type: z.enum(['color', 'size', 'text']),
   values: z.array(valueSchema).optional(),
 });
 
@@ -150,31 +150,30 @@ export default function AdminAttributeFormPage() {
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-6">
               {/* Name */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-4">نام ویژگی</h2>
-                <input
+                <Input
                   {...register('name')}
                   placeholder="مثال: رنگ، سایز، حافظه"
-                  className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
+                  error={errors.name?.message}
                 />
-                {errors.name && <p className="text-sm text-error mt-2">{errors.name.message}</p>}
-              </div>
+              </Card>
 
               {/* Type */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-4">نوع ویژگی</h2>
-                <select
+                <Select
                   {...register('type')}
-                  className="w-full px-4 py-2 bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="text">متن</option>
-                  <option value="size">سایز</option>
-                  <option value="color">رنگ</option>
-                </select>
-              </div>
+                  options={[
+                    { value: 'text', label: 'متن' },
+                    { value: 'size', label: 'سایز' },
+                    { value: 'color', label: 'رنگ' },
+                  ]}
+                />
+              </Card>
 
               {/* Values */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold text-text-primary">مقادیر</h2>
                   <Button
@@ -228,20 +227,19 @@ export default function AdminAttributeFormPage() {
                     const colorCode = watch(`values.${index}.color_code`);
                     return (
                       <div key={field.id} className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <input
-                            {...register(`values.${index}.value`)}
-                            placeholder="مقدار (مثال: قرمز، XL، 256GB)"
-                            className="w-full px-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
-                        </div>
-                        <div className="w-32">
-                          <input
-                            {...register(`values.${index}.color_code`)}
-                            placeholder="#FF0000"
-                            className="w-full px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
-                        </div>
+                        <Input
+                          wrapperClassName="flex-1"
+                          {...register(`values.${index}.value`)}
+                          placeholder="مقدار (مثال: قرمز، XL، 256GB)"
+                          className="text-sm"
+                        />
+                        <Input
+                          wrapperClassName="w-32"
+                          dir="ltr"
+                          {...register(`values.${index}.color_code`)}
+                          placeholder="#FF0000"
+                          className="text-sm"
+                        />
                         <input
                           type="color"
                           value={colorCode || '#000000'}
@@ -261,7 +259,7 @@ export default function AdminAttributeFormPage() {
                     );
                   })}
                 </div>
-              </div>
+              </Card>
 
               {/* Actions */}
               <div className="flex gap-4">

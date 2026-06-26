@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { useDashboardStats } from '@/modules/dashboard/hooks/useDashboard';
 import AdminSidebar from '@/components/layout/AdminSidebar';
+import { Badge, Skeleton, Table, TBody, TD, TableEmpty, TH, THead, TRow } from '@/components/ui';
 import { formatPrice } from '@/utils/formatPrice';
+import { orderStatusBadge } from '@/utils/statusBadge';
 import {
   MdiCart,
   MdiPackageVariant,
@@ -16,18 +18,6 @@ import {
   MdiChevronLeft,
   SvgSpinnersRingResize,
 } from '@/components/icons/Icons';
-
-const statusLabels: Record<string, string> = {
-  pending: 'در انتظار', confirmed: 'تایید شده', processing: 'در حال پردازش',
-  shipped: 'ارسال شده', delivered: 'تحویل شده', cancelled: 'لغو شده', returned: 'مرجوع شده',
-};
-
-const statusClasses: Record<string, string> = {
-  pending: 'bg-warning-light text-warning', confirmed: 'bg-info-light text-info',
-  processing: 'bg-info-light text-info', shipped: 'bg-primary-light text-primary',
-  delivered: 'bg-success-light text-success', cancelled: 'bg-error-light text-error',
-  returned: 'bg-error-light text-error',
-};
 
 const quickLinks = [
   { title: 'محصولات', href: '/admin/products', icon: MdiPackageVariant },
@@ -75,7 +65,7 @@ export default function AdminDashboardPage() {
                 <div className="min-w-0">
                   <p className="text-text-muted text-xs mb-1">{kpi.label}</p>
                   {isLoading ? (
-                    <div className="h-6 w-20 bg-surface-raised rounded animate-pulse-soft" />
+                    <Skeleton className="h-6 w-20" />
                   ) : (
                     <p className="text-lg font-bold text-text-primary truncate">{kpi.value}</p>
                   )}
@@ -111,42 +101,41 @@ export default function AdminDashboardPage() {
             {isLoading ? (
               <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-12 bg-surface-raised rounded animate-pulse-soft" />
+                  <Skeleton key={i} className="h-12 w-full" />
                 ))}
               </div>
-            ) : stats?.recent_orders.length === 0 ? (
-              <p className="text-center text-text-secondary py-8 text-sm">هنوز سفارشی ثبت نشده است</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-text-muted text-xs border-b border-border">
-                      <th className="text-right font-medium pb-3">شماره</th>
-                      <th className="text-right font-medium pb-3">مشتری</th>
-                      <th className="text-right font-medium pb-3">مبلغ</th>
-                      <th className="text-right font-medium pb-3">وضعیت</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {stats?.recent_orders.map((order) => (
-                      <tr key={order.id} className="hover:bg-surface-raised transition-colors">
-                        <td className="py-3">
-                          <Link href={`/admin/orders/${order.id}`} className="text-primary hover:underline font-medium">
-                            {order.order_number}
-                          </Link>
-                        </td>
-                        <td className="py-3 text-text-secondary">{order.customer_name}</td>
-                        <td className="py-3 text-text-primary">{formatPrice(order.total_amount)}</td>
-                        <td className="py-3">
-                          <span className={`text-xs px-2 py-1 rounded-full ${statusClasses[order.order_status] ?? 'bg-surface-raised text-text-secondary'}`}>
-                            {statusLabels[order.order_status] ?? order.order_status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table className="text-sm">
+                <THead>
+                  <TH align="right">شماره</TH>
+                  <TH align="right">مشتری</TH>
+                  <TH align="right">مبلغ</TH>
+                  <TH align="right">وضعیت</TH>
+                </THead>
+                <TBody>
+                  {stats?.recent_orders.length === 0 ? (
+                    <TableEmpty colSpan={4} message="هنوز سفارشی ثبت نشده است" icon={MdiCart} />
+                  ) : (
+                    stats?.recent_orders.map((order) => {
+                      const status = orderStatusBadge(order.order_status);
+                      return (
+                        <TRow key={order.id} hover>
+                          <TD align="right" label="شماره">
+                            <Link href={`/admin/orders/${order.id}`} className="text-primary hover:underline font-medium">
+                              {order.order_number}
+                            </Link>
+                          </TD>
+                          <TD align="right" label="مشتری" className="text-text-secondary">{order.customer_name}</TD>
+                          <TD align="right" label="مبلغ">{formatPrice(order.total_amount)}</TD>
+                          <TD align="right" label="وضعیت">
+                            <Badge variant={status.variant} size="sm">{status.label}</Badge>
+                          </TD>
+                        </TRow>
+                      );
+                    })
+                  )}
+                </TBody>
+              </Table>
             )}
           </div>
         </div>

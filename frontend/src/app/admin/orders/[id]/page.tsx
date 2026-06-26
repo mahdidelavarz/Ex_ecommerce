@@ -11,9 +11,24 @@ import { shipmentService } from "@/modules/shipments/services/shipment.service";
 import { orderService } from "@/modules/orders/services/order.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminSidebar from "@/components/layout/AdminSidebar";
-import Button from "@/components/ui/Button";
+import {
+  Badge,
+  Button,
+  Card,
+  Input,
+  Modal,
+  Select,
+  Table,
+  TBody,
+  TD,
+  TH,
+  THead,
+  TRow,
+  Textarea,
+} from "@/components/ui";
 import { formatPrice } from "@/utils/formatPrice";
-import { shipmentStatusLabels } from "@/modules/shipments/types/shipment.types";
+import { orderStatusBadge } from "@/utils/statusBadge";
+import { shipmentStatusLabels, type ShipmentStatus } from "@/modules/shipments/types/shipment.types";
 import { paymentService } from "@/modules/payment/services/payment.service";
 import { LucidePencil, LucidePlus, MdiArrowRight, MdiClipboardTextOff, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
@@ -118,7 +133,7 @@ export default function AdminOrderDetailPage() {
     }
   };
 
-  const handleUpdateShipment = async (shipmentId: string, status: string) => {
+  const handleUpdateShipment = async (shipmentId: string, status: ShipmentStatus) => {
     try {
       await shipmentService.update(shipmentId, { status });
       toast.success("وضعیت ارسال بروزرسانی شد");
@@ -185,14 +200,16 @@ export default function AdminOrderDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Order Info */}
-            <div className="bg-surface rounded-card shadow-card p-6">
+            <Card className="p-6">
               <h2 className="font-bold text-text-primary mb-4">
                 اطلاعات سفارش
               </h2>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-text-muted">وضعیت:</span>
-                  <span>{statusLabels[order.order_status]}</span>
+                  <Badge variant={orderStatusBadge(order.order_status).variant} size="sm">
+                    {orderStatusBadge(order.order_status).label}
+                  </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">پرداخت:</span>
@@ -235,10 +252,10 @@ export default function AdminOrderDetailPage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* Customer Info */}
-            <div className="bg-surface rounded-card shadow-card p-6">
+            <Card className="p-6">
               <h2 className="font-bold text-text-primary mb-4">
                 اطلاعات مشتری
               </h2>
@@ -265,10 +282,10 @@ export default function AdminOrderDetailPage() {
                   یادداشت: {order.admin_note}
                 </div>
               )}
-            </div>
+            </Card>
 
             {/* Payments */}
-            <div className="bg-surface rounded-card shadow-card p-6">
+            <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-text-primary">پرداخت‌ها</h2>
                 <Button
@@ -301,26 +318,29 @@ export default function AdminOrderDetailPage() {
                         <span className="font-bold">
                           {formatPrice(p.amount)}
                         </span>
-                        <span
-                          className={`block text-xs px-2 py-0.5 rounded-full mt-1 text-center ${
-                            p.status === "completed"
-                              ? "bg-success-light text-success"
-                              : p.status === "failed"
-                                ? "bg-error-light text-error"
-                                : "bg-warning-light text-warning"
-                          }`}
-                        >
-                          {paymentStatusLabels[p.status] || p.status}
-                        </span>
+                        <div className="mt-1">
+                          <Badge
+                            variant={
+                              p.status === "completed"
+                                ? "success"
+                                : p.status === "failed"
+                                  ? "error"
+                                  : "warning"
+                            }
+                            size="sm"
+                          >
+                            {paymentStatusLabels[p.status] || p.status}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
 
             {/* Shipments */}
-            <div className="bg-surface rounded-card shadow-card p-6">
+            <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-text-primary">ارسال‌ها</h2>
                 <Button
@@ -345,7 +365,7 @@ export default function AdminOrderDetailPage() {
                         <select
                           value={s.status}
                           onChange={(e) =>
-                            handleUpdateShipment(s.id, e.target.value)
+                            handleUpdateShipment(s.id, e.target.value as ShipmentStatus)
                           }
                           className="text-xs px-2 py-1 rounded border border-border bg-surface"
                         >
@@ -375,236 +395,147 @@ export default function AdminOrderDetailPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
 
             {/* Items */}
-            <div className="lg:col-span-2 bg-surface rounded-card shadow-card p-6">
+            <Card className="lg:col-span-2 p-6">
               <h2 className="font-bold text-text-primary mb-4">اقلام سفارش</h2>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-text-muted">
-                    <th className="text-right py-2">محصول</th>
-                    <th className="text-center py-2">کد</th>
-                    <th className="text-center py-2">تعداد</th>
-                    <th className="text-center py-2">فی</th>
-                    <th className="text-center py-2">جمع</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="text-sm">
+                <THead>
+                  <TH align="right">محصول</TH>
+                  <TH align="center">کد</TH>
+                  <TH align="center">تعداد</TH>
+                  <TH align="center">فی</TH>
+                  <TH align="center">جمع</TH>
+                </THead>
+                <TBody>
                   {order.items?.map((item) => (
-                    <tr key={item.id} className="border-b border-border">
-                      <td className="py-3 font-medium">{item.product_title}</td>
-                      <td className="text-center text-text-muted text-xs">
-                        {item.sku}
-                      </td>
-                      <td className="text-center">{item.quantity}</td>
-                      <td className="text-center">
-                        {formatPrice(item.unit_price)}
-                      </td>
-                      <td className="text-center font-medium">
-                        {formatPrice(item.total_amount)}
-                      </td>
-                    </tr>
+                    <TRow key={item.id}>
+                      <TD align="right" label="محصول" className="font-medium">{item.product_title}</TD>
+                      <TD align="center" label="کد" className="text-text-muted text-xs">{item.sku}</TD>
+                      <TD align="center" label="تعداد">{item.quantity}</TD>
+                      <TD align="center" label="فی">{formatPrice(item.unit_price)}</TD>
+                      <TD align="center" label="جمع" className="font-medium">{formatPrice(item.total_amount)}</TD>
+                    </TRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </TBody>
+              </Table>
+            </Card>
           </div>
 
           {/* Modals */}
-          {showPaymentForm && (
-            <Modal onClose={() => setShowPaymentForm(false)} title="ثبت پرداخت">
-              <input
+          <Modal
+            open={showPaymentForm}
+            onClose={() => setShowPaymentForm(false)}
+            title="ثبت پرداخت"
+            footer={
+              <>
+                <Button variant="outline" onClick={() => setShowPaymentForm(false)}>انصراف</Button>
+                <Button onClick={handleAddPayment}>ثبت</Button>
+              </>
+            }
+          >
+            <div className="space-y-3">
+              <Input
                 value={paymentForm.provider}
-                onChange={(e) =>
-                  setPaymentForm({ ...paymentForm, provider: e.target.value })
-                }
+                onChange={(e) => setPaymentForm({ ...paymentForm, provider: e.target.value })}
                 placeholder="درگاه"
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
               />
-              <input
+              <Input
                 value={paymentForm.method}
-                onChange={(e) =>
-                  setPaymentForm({ ...paymentForm, method: e.target.value })
-                }
+                onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
                 placeholder="روش پرداخت"
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
               />
-              <input
+              <Input
                 type="number"
                 value={paymentForm.amount}
-                onChange={(e) =>
-                  setPaymentForm({
-                    ...paymentForm,
-                    amount: parseInt(e.target.value) || 0,
-                  })
-                }
+                onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseInt(e.target.value) || 0 })}
                 placeholder="مبلغ (تومان)"
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
               />
-              <div className="flex gap-2">
-                <Button onClick={handleAddPayment} className="flex-1">
-                  ثبت
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowPaymentForm(false)}
-                >
-                  انصراف
-                </Button>
-              </div>
-            </Modal>
-          )}
+            </div>
+          </Modal>
 
-          {showShipmentForm && (
-            <Modal onClose={() => setShowShipmentForm(false)} title="ثبت ارسال">
-              <select
+          <Modal
+            open={showShipmentForm}
+            onClose={() => setShowShipmentForm(false)}
+            title="ثبت ارسال"
+            footer={
+              <>
+                <Button variant="outline" onClick={() => setShowShipmentForm(false)}>انصراف</Button>
+                <Button onClick={handleAddShipment}>ثبت</Button>
+              </>
+            }
+          >
+            <div className="space-y-3">
+              <Select
                 value={shipmentForm.courier_name}
-                onChange={(e) =>
-                  setShipmentForm({
-                    ...shipmentForm,
-                    courier_name: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
-              >
-                <option value="پست">پست</option>
-                <option value="تیپاکس">تیپاکس</option>
-                <option value="پیک">پیک</option>
-              </select>
-              <input
+                onChange={(e) => setShipmentForm({ ...shipmentForm, courier_name: e.target.value })}
+                options={[
+                  { value: 'پست', label: 'پست' },
+                  { value: 'تیپاکس', label: 'تیپاکس' },
+                  { value: 'پیک', label: 'پیک' },
+                ]}
+              />
+              <Input
                 value={shipmentForm.tracking_number}
-                onChange={(e) =>
-                  setShipmentForm({
-                    ...shipmentForm,
-                    tracking_number: e.target.value,
-                  })
-                }
+                onChange={(e) => setShipmentForm({ ...shipmentForm, tracking_number: e.target.value })}
                 placeholder="کد پیگیری *"
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
               />
-              <input
+              <Input
                 value={shipmentForm.tracking_url}
-                onChange={(e) =>
-                  setShipmentForm({
-                    ...shipmentForm,
-                    tracking_url: e.target.value,
-                  })
-                }
+                onChange={(e) => setShipmentForm({ ...shipmentForm, tracking_url: e.target.value })}
                 placeholder="لینک پیگیری"
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
               />
-              <div className="flex gap-2">
-                <Button onClick={handleAddShipment} className="flex-1">
-                  ثبت
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowShipmentForm(false)}
-                >
-                  انصراف
-                </Button>
-              </div>
-            </Modal>
-          )}
+            </div>
+          </Modal>
 
-          {showStatusForm && (
-            <Modal
-              onClose={() => setShowStatusForm(false)}
-              title="بروزرسانی وضعیت"
-            >
-              <select
+          <Modal
+            open={showStatusForm}
+            onClose={() => setShowStatusForm(false)}
+            title="بروزرسانی وضعیت"
+            footer={
+              <>
+                <Button variant="outline" onClick={() => setShowStatusForm(false)}>انصراف</Button>
+                <Button onClick={handleUpdateStatus}>ذخیره</Button>
+              </>
+            }
+          >
+            <div className="space-y-3">
+              <Select
                 value={statusForm.order_status}
-                onChange={(e) =>
-                  setStatusForm({ ...statusForm, order_status: e.target.value })
-                }
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
-              >
-                {Object.entries(statusLabels).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v}
-                  </option>
-                ))}
-              </select>
-              <select
+                onChange={(e) => setStatusForm({ ...statusForm, order_status: e.target.value })}
+                options={Object.entries(statusLabels).map(([value, label]) => ({ value, label }))}
+              />
+              <Select
                 value={statusForm.payment_status}
-                onChange={(e) =>
-                  setStatusForm({
-                    ...statusForm,
-                    payment_status: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
-              >
-                <option value="pending">در انتظار</option>
-                <option value="partially_paid">پرداخت جزئی</option>
-                <option value="paid">پرداخت شده</option>
-                <option value="refunded">مسترد شده</option>
-                <option value="failed">ناموفق</option>
-              </select>
-              <select
+                onChange={(e) => setStatusForm({ ...statusForm, payment_status: e.target.value })}
+                options={[
+                  { value: 'pending', label: 'در انتظار' },
+                  { value: 'partially_paid', label: 'پرداخت جزئی' },
+                  { value: 'paid', label: 'پرداخت شده' },
+                  { value: 'refunded', label: 'مسترد شده' },
+                  { value: 'failed', label: 'ناموفق' },
+                ]}
+              />
+              <Select
                 value={statusForm.fulfillment_status}
-                onChange={(e) =>
-                  setStatusForm({
-                    ...statusForm,
-                    fulfillment_status: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3"
-              >
-                <option value="unfulfilled">ارسال نشده</option>
-                <option value="partially_fulfilled">ارسال جزئی</option>
-                <option value="fulfilled">ارسال شده</option>
-              </select>
-              <textarea
+                onChange={(e) => setStatusForm({ ...statusForm, fulfillment_status: e.target.value })}
+                options={[
+                  { value: 'unfulfilled', label: 'ارسال نشده' },
+                  { value: 'partially_fulfilled', label: 'ارسال جزئی' },
+                  { value: 'fulfilled', label: 'ارسال شده' },
+                ]}
+              />
+              <Textarea
                 value={statusForm.admin_note}
-                onChange={(e) =>
-                  setStatusForm({ ...statusForm, admin_note: e.target.value })
-                }
+                onChange={(e) => setStatusForm({ ...statusForm, admin_note: e.target.value })}
                 placeholder="یادداشت ادمین"
                 rows={2}
-                className="w-full px-3 py-2 border rounded-input text-sm mb-3 resize-none"
               />
-              <div className="flex gap-2">
-                <Button onClick={handleUpdateStatus} className="flex-1">
-                  ذخیره
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowStatusForm(false)}
-                >
-                  انصراف
-                </Button>
-              </div>
-            </Modal>
-          )}
+            </div>
+          </Modal>
         </div>
       </main>
-    </div>
-  );
-}
-
-function Modal({
-  children,
-  onClose,
-  title,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-  title: string;
-}) {
-  return (
-    <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-surface rounded-card shadow-modal p-6 w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="font-bold text-lg mb-4">{title}</h3>
-        {children}
-      </div>
     </div>
   );
 }

@@ -6,16 +6,10 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { formatPrice } from '@/utils/formatPrice';
+import { Badge, Card, Table, TBody, TD, TH, THead, TRow } from '@/components/ui';
+import { returnStatusBadge } from '@/utils/statusBadge';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import { MdiArrowRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
-
-const statusConfig: Record<string, { label: string; className: string }> = {
-  pending:  { label: 'در انتظار بررسی', className: 'bg-warning-light text-warning' },
-  approved: { label: 'تایید شده',       className: 'bg-success-light text-success' },
-  rejected: { label: 'رد شده',          className: 'bg-error-light text-error' },
-  received: { label: 'دریافت شد',       className: 'bg-blue-100 text-blue-700' },
-  refunded: { label: 'وجه بازگشت یافت', className: 'bg-success-light text-success' },
-};
 
 export default function ReturnDetailPage() {
   const params = useParams();
@@ -47,7 +41,7 @@ export default function ReturnDetailPage() {
     );
   }
 
-  const status = statusConfig[ret.status] ?? { label: ret.status, className: 'bg-warning-light text-warning' };
+  const status = returnStatusBadge(ret.status);
 
   return (
     <main className="min-h-screen bg-background" dir="rtl">
@@ -57,13 +51,11 @@ export default function ReturnDetailPage() {
             <MdiArrowRight className="w-5 h-5" />
           </Link>
           <h1 className="text-2xl font-bold text-text-primary">{ret.return_number}</h1>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.className}`}>
-            {status.label}
-          </span>
+          <Badge variant={status.variant} size="sm">{status.label}</Badge>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-surface rounded-card shadow-card p-6">
+          <Card className="p-6">
             <h2 className="font-bold text-text-primary mb-4">جزئیات مرجوعی</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -90,36 +82,34 @@ export default function ReturnDetailPage() {
                 </div>
               )}
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-surface rounded-card shadow-card p-6">
+          <Card className="p-6">
             <h2 className="font-bold text-text-primary mb-4">اقلام مرجوعی</h2>
             {ret.items?.length > 0 ? (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-text-muted">
-                    <th className="text-right py-2">محصول</th>
-                    <th className="text-center py-2">تعداد</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="text-sm">
+                <THead>
+                  <TH align="right">محصول</TH>
+                  <TH align="center">تعداد</TH>
+                </THead>
+                <TBody>
                   {ret.items.map((item: any) => (
-                    <tr key={item.id} className="border-b border-border last:border-0">
-                      <td className="py-3 font-medium">
+                    <TRow key={item.id}>
+                      <TD align="right" label="محصول" className="font-medium">
                         {item.order_item?.product_title || '-'}
                         {item.order_item?.variant_title && (
                           <span className="text-text-muted font-normal"> — {item.order_item.variant_title}</span>
                         )}
-                      </td>
-                      <td className="text-center">{item.quantity}</td>
-                    </tr>
+                      </TD>
+                      <TD align="center" label="تعداد">{item.quantity}</TD>
+                    </TRow>
                   ))}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             ) : (
               <p className="text-text-secondary text-sm">اطلاعاتی موجود نیست</p>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </main>

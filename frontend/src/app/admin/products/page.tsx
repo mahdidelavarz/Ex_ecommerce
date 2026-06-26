@@ -10,15 +10,28 @@ import { useAllBrands } from "@/modules/brands/hooks/useBrands";
 import { productService } from "@/modules/products/services/product.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminSidebar from "@/components/layout/AdminSidebar";
-import Button from "@/components/ui/Button";
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Input,
+  Pagination,
+  Select,
+  Table,
+  TBody,
+  TD,
+  TableEmpty,
+  TableSkeleton,
+  TH,
+  THead,
+  TRow,
+} from "@/components/ui";
 import { formatPrice } from "@/utils/formatPrice";
 import type { ProductListResponse } from "@/modules/products/types/product.types";
 import {
   LucidePencil,
   LucidePlus,
   LucideSearch,
-  MdiChevronLeft,
-  MdiChevronRight,
   MdiImageOff,
   MdiPackageVariantClosed,
   MdiTrashCan,
@@ -109,29 +122,22 @@ export default function AdminProductsPage() {
           {/* Filters */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="relative">
-                <LucideSearch
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted"
-                  width={20}
-                />
-                <input
-                  type="text"
-                  placeholder="جستجو..."
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full pr-10 pl-4 py-2 bg-surface border border-border rounded-input text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <select
+              <Input
+                type="text"
+                placeholder="جستجو..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                icon={LucideSearch}
+              />
+              <Select
                 value={categoryFilter}
                 onChange={(e) => {
                   setCategoryFilter(e.target.value);
                   setPage(1);
                 }}
-                className="px-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">همه دسته‌ها</option>
                 {categoriesData?.data?.map((cat) => (
@@ -139,14 +145,13 @@ export default function AdminProductsPage() {
                     {cat.name}
                   </option>
                 ))}
-              </select>
-              <select
+              </Select>
+              <Select
                 value={brandFilter}
                 onChange={(e) => {
                   setBrandFilter(e.target.value);
                   setPage(1);
                 }}
-                className="px-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">همه برندها</option>
                 {brandsData?.map((brand) => (
@@ -154,7 +159,7 @@ export default function AdminProductsPage() {
                     {brand.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -178,207 +183,99 @@ export default function AdminProductsPage() {
           )}
 
           {/* Table */}
-          <div className="bg-surface rounded-card shadow-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border bg-surface-raised">
-                    <th className="px-4 py-3 w-10">
-                      <input
-                        type="checkbox"
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedIds(
-                              new Set(data?.data?.map((p) => p.id) || []),
-                            );
-                          } else {
-                            setSelectedIds(new Set());
-                          }
-                        }}
-                        className="rounded"
-                      />
-                    </th>
-                    <th className="text-right px-4 py-3 text-sm font-medium text-text-secondary">
-                      محصول
-                    </th>
-                    <th className="text-center px-4 py-3 text-sm font-medium text-text-secondary hidden md:table-cell">
-                      قیمت
-                    </th>
-                    <th className="text-center px-4 py-3 text-sm font-medium text-text-secondary hidden lg:table-cell">
-                      موجودی
-                    </th>
-                    <th className="text-center px-4 py-3 text-sm font-medium text-text-secondary">
-                      وضعیت
-                    </th>
-                    <th className="text-center px-4 py-3 text-sm font-medium text-text-secondary">
-                      عملیات
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoading ? (
-                    [...Array(5)].map((_, i) => (
-                      <tr key={i} className="border-b border-border">
-                        <td className="px-4 py-3">
-                          <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
-                        </td>
-                      </tr>
-                    ))
-                  ) : data?.data?.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="text-center py-12">
-                        <MdiPackageVariantClosed
-                          className="text-text-muted mx-auto mb-3"
-                          width={48}
-                        />
-                        <p className="text-text-secondary">محصولی یافت نشد</p>
-                      </td>
-                    </tr>
-                  ) : (
-                    data?.data?.map((product) => (
-                      <tr
-                        key={product.id}
-                        className="border-b border-border hover:bg-surface-raised/50 transition-colors"
-                      >
-                        <td className="px-4 py-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.has(product.id)}
-                            onChange={() => toggleSelect(product.id)}
-                            className="rounded"
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            {product.thumbnail ? (
-                              <img
-                                src={product.thumbnail}
-                                alt={product.title}
-                                className="w-10 h-10 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-lg bg-surface-raised flex items-center justify-center">
-                                <MdiImageOff className="w-5 h-5 text-text-muted" />
-                              </div>
-                            )}
-                            <div>
-                              <p className="font-medium text-text-primary text-sm">
-                                {product.title}
-                              </p>
-                              <p className="text-xs text-text-muted">
-                                {product.category?.name}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-center hidden md:table-cell">
-                          <span className="text-sm text-text-primary">
-                            {product.price_range.min > 0
-                              ? formatPrice(product.price_range.min)
-                              : "-"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center hidden lg:table-cell">
-                          <span
-                            className={`text-sm ${product.total_stock === 0 ? "text-error" : "text-success"}`}
-                          >
-                            {product.total_stock}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                              product.is_active
-                                ? "bg-success-light text-success"
-                                : "bg-error-light text-error"
-                            }`}
-                          >
-                            {product.is_active ? "فعال" : "غیرفعال"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() =>
-                                router.push(`/admin/products/${product.id}`)
-                              }
-                              className="p-2 hover:bg-primary-light rounded-button text-primary"
-                              title="ویرایش"
-                            >
-                              <LucidePencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(product)}
-                              className="p-2 hover:bg-error-light rounded-button text-error"
-                              title="حذف"
-                            >
-                              <MdiTrashCan className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {data?.meta && data.meta.totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-                <p className="text-sm text-text-secondary">
-                  {data.meta.total} محصول
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="p-2 hover:bg-surface-raised rounded-button disabled:opacity-50"
-                  >
-                    <MdiChevronRight className="w-5 h-5" />
-                  </button>
-                  {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
-                    .slice(
-                      Math.max(0, page - 3),
-                      Math.min(data.meta.totalPages, page + 2),
-                    )
-                    .map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`w-10 h-10 rounded-button text-sm font-medium ${p === page ? "bg-primary text-white" : "text-text-secondary hover:bg-surface-raised"}`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  <button
-                    onClick={() =>
-                      setPage((p) => Math.min(data.meta.totalPages, p + 1))
+          <Table>
+            <THead>
+              <TH className="w-10">
+                <Checkbox
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedIds(new Set(data?.data?.map((p) => p.id) || []));
+                    } else {
+                      setSelectedIds(new Set());
                     }
-                    disabled={page === data.meta.totalPages}
-                    className="p-2 hover:bg-surface-raised rounded-button disabled:opacity-50"
-                  >
-                    <MdiChevronLeft className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+                  }}
+                />
+              </TH>
+              <TH align="right">محصول</TH>
+              <TH align="center" hideBelow="md">قیمت</TH>
+              <TH align="center" hideBelow="lg">موجودی</TH>
+              <TH align="center">وضعیت</TH>
+              <TH align="center">عملیات</TH>
+            </THead>
+            <TBody>
+              {isLoading ? (
+                <TableSkeleton rows={5} columns={6} />
+              ) : data?.data?.length === 0 ? (
+                <TableEmpty colSpan={6} message="محصولی یافت نشد" icon={MdiPackageVariantClosed} />
+              ) : (
+                data?.data?.map((product) => (
+                  <TRow key={product.id} hover>
+                    <TD label="">
+                      <Checkbox
+                        checked={selectedIds.has(product.id)}
+                        onChange={() => toggleSelect(product.id)}
+                      />
+                    </TD>
+                    <TD align="right" label="محصول">
+                      <div className="flex items-center gap-3">
+                        {product.thumbnail ? (
+                          <img
+                            src={product.thumbnail}
+                            alt={product.title}
+                            className="w-10 h-10 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-surface-raised flex items-center justify-center">
+                            <MdiImageOff className="w-5 h-5 text-text-muted" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium text-text-primary text-sm">{product.title}</p>
+                          <p className="text-xs text-text-muted">{product.category?.name}</p>
+                        </div>
+                      </div>
+                    </TD>
+                    <TD align="center" label="قیمت" hideBelow="md" className="text-sm">
+                      {product.price_range.min > 0 ? formatPrice(product.price_range.min) : "-"}
+                    </TD>
+                    <TD align="center" label="موجودی" hideBelow="lg">
+                      <span className={`text-sm ${product.total_stock === 0 ? "text-error" : "text-success"}`}>
+                        {product.total_stock}
+                      </span>
+                    </TD>
+                    <TD align="center" label="وضعیت">
+                      <Badge variant={product.is_active ? "success" : "error"} size="sm">
+                        {product.is_active ? "فعال" : "غیرفعال"}
+                      </Badge>
+                    </TD>
+                    <TD align="center" label="عملیات">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => router.push(`/admin/products/${product.id}`)}
+                          className="p-2 hover:bg-primary-light rounded-button text-primary"
+                          title="ویرایش"
+                        >
+                          <LucidePencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product)}
+                          className="p-2 hover:bg-error-light rounded-button text-error"
+                          title="حذف"
+                        >
+                          <MdiTrashCan className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </TD>
+                  </TRow>
+                ))
+              )}
+            </TBody>
+          </Table>
+
+          {/* Pagination */}
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="محصول" className="mt-6" />
+          )}
         </div>
       </main>
     </div>

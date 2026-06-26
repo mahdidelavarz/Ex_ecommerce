@@ -6,11 +6,24 @@ import { useRouter } from "next/navigation";
 import { useCoupons, useDeleteCoupon } from "@/modules/coupons/hooks/useCoupons";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminSidebar from "@/components/layout/AdminSidebar";
-import Button from "@/components/ui/Button";
+import {
+  Badge,
+  Button,
+  Pagination,
+  Table,
+  TBody,
+  TD,
+  TableEmpty,
+  TableSkeleton,
+  TH,
+  THead,
+  TRow,
+} from "@/components/ui";
 import type { Coupon } from "@/modules/coupons/types/coupon.types";
 import {
   LucidePencil,
   LucidePlus,
+  MdiTagOff,
   MdiTrashCan,
   SvgSpinnersRingResize,
 } from "@/components/icons/Icons";
@@ -67,128 +80,87 @@ export default function AdminCouponsPage() {
             </Button>
           </div>
 
-          <div className="bg-surface rounded-card shadow-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border bg-surface-raised">
-                    <th className="text-right px-4 py-3 text-sm">کد</th>
-                    <th className="text-center px-4 py-3 text-sm">نوع</th>
-                    <th className="text-center px-4 py-3 text-sm">مقدار</th>
-                    <th className="text-center px-4 py-3 text-sm hidden xl:table-cell">حداقل سفارش</th>
-                    <th className="text-center px-4 py-3 text-sm hidden xl:table-cell">حداکثر تخفیف</th>
-                    <th className="text-center px-4 py-3 text-sm hidden lg:table-cell">هر کاربر</th>
-                    <th className="text-center px-4 py-3 text-sm hidden md:table-cell">
-                      مصرف
-                    </th>
-                    <th className="text-center px-4 py-3 text-sm hidden lg:table-cell">
-                      اعتبار
-                    </th>
-                    <th className="text-center px-4 py-3 text-sm">وضعیت</th>
-                    <th className="text-center px-4 py-3 text-sm">عملیات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoading ? (
-                    [...Array(3)].map((_, i) => (
-                      <tr key={i} className="border-b border-border">
-                        <td colSpan={10} className="px-4 py-4">
-                          <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
-                        </td>
-                      </tr>
-                    ))
-                  ) : data?.data?.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={10}
-                        className="text-center py-12 text-text-secondary"
-                      >
-                        کد تخفیفی یافت نشد
-                      </td>
-                    </tr>
-                  ) : (
-                    data?.data?.map((coupon) => (
-                      <tr
-                        key={coupon.id}
-                        className="border-b border-border hover:bg-surface-raised/50"
-                      >
-                        <td className="px-4 py-3">
-                          <code className="bg-primary-light text-primary px-3 py-1 rounded text-sm font-bold">
-                            {coupon.code}
-                          </code>
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm">
-                          {typeLabels[coupon.type]}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm font-medium">
-                          {coupon.type === "free_shipping"
-                            ? "رایگان"
-                            : coupon.type === "percentage"
-                              ? `${coupon.value}٪`
-                              : `${coupon.value.toLocaleString()} تومان`}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm hidden xl:table-cell">
-                          {coupon.min_order_amount ? `${coupon.min_order_amount.toLocaleString()} تومان` : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm hidden xl:table-cell">
-                          {coupon.max_discount ? `${coupon.max_discount.toLocaleString()} تومان` : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm hidden lg:table-cell">
-                          {coupon.usage_per_user ?? '—'}
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm hidden md:table-cell">
-                          {coupon.used_count}
-                          {coupon.usage_limit ? ` / ${coupon.usage_limit}` : ""}
-                        </td>
-                        <td className="px-4 py-3 text-center text-xs hidden lg:table-cell">
-                          <div>
-                            {new Date(coupon.starts_at).toLocaleDateString(
-                              "fa-IR",
-                            )}
-                          </div>
-                          <div className="text-text-muted">
-                            تا{" "}
-                            {new Date(coupon.expires_at).toLocaleDateString(
-                              "fa-IR",
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-                              coupon.is_active
-                                ? "bg-success-light text-success"
-                                : "bg-error-light text-error"
-                            }`}
-                          >
-                            {coupon.is_active ? "فعال" : "غیرفعال"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex justify-center gap-1">
-                            <button
-                              onClick={() =>
-                                router.push(`/admin/coupons/${coupon.id}`)
-                              }
-                              className="p-2 hover:bg-primary-light rounded-button text-primary"
-                            >
-                              <LucidePencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(coupon)}
-                              className="p-2 hover:bg-error-light rounded-button text-error"
-                            >
-                              <MdiTrashCan className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <Table>
+            <THead>
+              <TH align="right">کد</TH>
+              <TH align="center">نوع</TH>
+              <TH align="center">مقدار</TH>
+              <TH align="center" hideBelow="lg">حداقل سفارش</TH>
+              <TH align="center" hideBelow="lg">حداکثر تخفیف</TH>
+              <TH align="center" hideBelow="lg">هر کاربر</TH>
+              <TH align="center" hideBelow="md">مصرف</TH>
+              <TH align="center" hideBelow="lg">اعتبار</TH>
+              <TH align="center">وضعیت</TH>
+              <TH align="center">عملیات</TH>
+            </THead>
+            <TBody>
+              {isLoading ? (
+                <TableSkeleton rows={3} columns={10} />
+              ) : data?.data?.length === 0 ? (
+                <TableEmpty colSpan={10} message="کد تخفیفی یافت نشد" icon={MdiTagOff} />
+              ) : (
+                data?.data?.map((coupon) => (
+                  <TRow key={coupon.id} hover>
+                    <TD align="right" label="کد">
+                      <code className="bg-primary-light text-primary px-3 py-1 rounded text-sm font-bold">
+                        {coupon.code}
+                      </code>
+                    </TD>
+                    <TD align="center" label="نوع">{typeLabels[coupon.type]}</TD>
+                    <TD align="center" label="مقدار" className="font-medium">
+                      {coupon.type === "free_shipping"
+                        ? "رایگان"
+                        : coupon.type === "percentage"
+                          ? `${coupon.value}٪`
+                          : `${coupon.value.toLocaleString()} تومان`}
+                    </TD>
+                    <TD align="center" label="حداقل سفارش" hideBelow="lg">
+                      {coupon.min_order_amount ? `${coupon.min_order_amount.toLocaleString()} تومان` : '—'}
+                    </TD>
+                    <TD align="center" label="حداکثر تخفیف" hideBelow="lg">
+                      {coupon.max_discount ? `${coupon.max_discount.toLocaleString()} تومان` : '—'}
+                    </TD>
+                    <TD align="center" label="هر کاربر" hideBelow="lg">{coupon.usage_per_user ?? '—'}</TD>
+                    <TD align="center" label="مصرف" hideBelow="md">
+                      {coupon.used_count}
+                      {coupon.usage_limit ? ` / ${coupon.usage_limit}` : ""}
+                    </TD>
+                    <TD align="center" label="اعتبار" hideBelow="lg" className="text-xs">
+                      <span className="flex flex-col md:block">
+                        <span>{new Date(coupon.starts_at).toLocaleDateString("fa-IR")}</span>
+                        <span className="text-text-muted">تا {new Date(coupon.expires_at).toLocaleDateString("fa-IR")}</span>
+                      </span>
+                    </TD>
+                    <TD align="center" label="وضعیت">
+                      <Badge variant={coupon.is_active ? "success" : "neutral"} size="sm">
+                        {coupon.is_active ? "فعال" : "غیرفعال"}
+                      </Badge>
+                    </TD>
+                    <TD align="center" label="عملیات">
+                      <div className="flex justify-center gap-1">
+                        <button
+                          onClick={() => router.push(`/admin/coupons/${coupon.id}`)}
+                          className="p-2 hover:bg-primary-light rounded-button text-primary"
+                        >
+                          <LucidePencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(coupon)}
+                          className="p-2 hover:bg-error-light rounded-button text-error"
+                        >
+                          <MdiTrashCan className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </TD>
+                  </TRow>
+                ))
+              )}
+            </TBody>
+          </Table>
+
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="کد تخفیف" className="mt-6" />
+          )}
         </div>
       </main>
     </div>

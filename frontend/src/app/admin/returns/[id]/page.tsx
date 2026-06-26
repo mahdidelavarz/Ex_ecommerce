@@ -8,21 +8,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
+import { Badge, Button, Card, Input, Table, TBody, TD, TH, THead, TRow, Textarea } from '@/components/ui';
 import { formatPrice } from '@/utils/formatPrice';
+import { returnStatusBadge } from '@/utils/statusBadge';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import { MdiArrowRight, MdiClipboardTextOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
-
-const statusLabels: Record<string, string> = {
-  pending: 'در انتظار', approved: 'تایید شده', rejected: 'رد شده',
-  received: 'دریافت شده', refunded: 'مسترد شده',
-};
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-warning-light text-warning', approved: 'bg-info-light text-info',
-  rejected: 'bg-error-light text-error', received: 'bg-primary-light text-primary',
-  refunded: 'bg-success-light text-success',
-};
 
 export default function AdminReturnDetailPage() {
   const router = useRouter();
@@ -92,14 +82,14 @@ export default function AdminReturnDetailPage() {
                 <p className="text-text-secondary text-sm">سفارش: {ret.order?.order_number}</p>
               </div>
             </div>
-            <span className={`px-4 py-2 rounded-full text-sm font-medium ${statusColors[ret.status]}`}>
-              {statusLabels[ret.status]}
-            </span>
+            <Badge variant={returnStatusBadge(ret.status).variant}>
+              {returnStatusBadge(ret.status).label}
+            </Badge>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Info */}
-            <div className="bg-surface rounded-card shadow-card p-6">
+            <Card className="p-6">
               <h2 className="font-bold text-text-primary mb-4">اطلاعات مرجوعی</h2>
               <div className="space-y-3 text-sm">
                 <div>
@@ -118,50 +108,47 @@ export default function AdminReturnDetailPage() {
                   <div className="bg-info-light text-info p-3 rounded text-xs">{ret.admin_note}</div>
                 )}
               </div>
-            </div>
+            </Card>
 
             {/* Customer */}
-            <div className="bg-surface rounded-card shadow-card p-6">
+            <Card className="p-6">
               <h2 className="font-bold text-text-primary mb-4">اطلاعات مشتری</h2>
               <p className="font-medium">{ret.user?.full_name || '-'}</p>
               <p className="text-text-secondary text-sm">{ret.user?.phone_number}</p>
               <p className="text-text-secondary text-sm">{ret.user?.email}</p>
-            </div>
+            </Card>
 
             {/* Items */}
-            <div className="lg:col-span-2 bg-surface rounded-card shadow-card p-6">
+            <Card className="lg:col-span-2 p-6">
               <h2 className="font-bold text-text-primary mb-4">اقلام مرجوعی</h2>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-text-muted">
-                    <th className="text-right py-2">محصول</th>
-                    <th className="text-center py-2">تعداد</th>
-                    <th className="text-right py-2">علت</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="text-sm">
+                <THead>
+                  <TH align="right">محصول</TH>
+                  <TH align="center">تعداد</TH>
+                  <TH align="right">علت</TH>
+                </THead>
+                <TBody>
                   {ret.items?.map((item: any) => (
-                    <tr key={item.id} className="border-b border-border">
-                      <td className="py-3 font-medium">{item.order_item?.product_title || '-'}</td>
-                      <td className="text-center">{item.quantity}</td>
-                      <td className="text-text-secondary text-xs">{item.reason || '-'}</td>
-                    </tr>
+                    <TRow key={item.id}>
+                      <TD align="right" label="محصول" className="font-medium">{item.order_item?.product_title || '-'}</TD>
+                      <TD align="center" label="تعداد">{item.quantity}</TD>
+                      <TD align="right" label="علت" className="text-text-secondary text-xs">{item.reason || '-'}</TD>
+                    </TRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </TBody>
+              </Table>
+            </Card>
 
             {/* Admin Actions */}
-            <div className="lg:col-span-2 bg-surface rounded-card shadow-card p-6">
+            <Card className="lg:col-span-2 p-6">
               <h2 className="font-bold text-text-primary mb-4">عملیات ادمین</h2>
-              
+
               <div className="space-y-4">
-                <textarea
+                <Textarea
                   value={adminNote}
                   onChange={(e) => setAdminNote(e.target.value)}
                   placeholder="یادداشت ادمین..."
                   rows={3}
-                  className="w-full px-4 py-2 bg-surface border border-border rounded-input text-sm resize-none"
                 />
 
                 {ret.status === 'pending' && (
@@ -177,18 +164,18 @@ export default function AdminReturnDetailPage() {
 
                 {ret.status === 'received' && (
                   <div className="flex items-center gap-3">
-                    <input
+                    <Input
                       type="number"
+                      wrapperClassName="w-48"
                       value={refundAmount || ''}
                       onChange={(e) => setRefundAmount(parseInt(e.target.value) || 0)}
                       placeholder="مبلغ بازگشتی (تومان)"
-                      className="px-4 py-2 bg-surface border border-border rounded-input text-sm w-48"
                     />
                     <Button onClick={() => updateStatus('refunded')} className="bg-info">بازگشت وجه</Button>
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       </main>

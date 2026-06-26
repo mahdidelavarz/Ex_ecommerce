@@ -10,10 +10,14 @@ import {
   Button,
   Card,
   Checkbox,
+  Drawer,
+  EmptyState,
   ErrorState,
   Input,
+  Modal,
   Pagination,
   Select,
+  Skeleton,
   Table,
   TBody,
   TD,
@@ -58,6 +62,8 @@ export default function UiShowcasePage() {
     "data",
   );
   const [page, setPage] = useState(1);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const totalPages = Math.ceil(allRows.length / PAGE_SIZE);
   const pageRows = allRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -303,6 +309,141 @@ export default function UiShowcasePage() {
                   itemLabel="محصول"
                 />
               )}
+            </Card.Body>
+          </Card>
+
+          {/* Card variants: default vs soft */}
+          <Card>
+            <Card.Header>
+              <Card.Title>کارت‌ها (Card) — حالت معمولی و نرم</Card.Title>
+            </Card.Header>
+            <Card.Body>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <Card variant="default" className="p-5">
+                  <p className="font-medium text-text-primary mb-1">
+                    حالت معمولی (default)
+                  </p>
+                  <p className="text-sm text-text-secondary">
+                    کارت تخت با سایه‌ی استاندارد. مناسب فرم‌ها، جدول‌ها و پنل مدیریت.
+                  </p>
+                </Card>
+
+                <Card variant="soft" className="p-5">
+                  <p className="font-medium text-text-primary mb-1">
+                    حالت نرم (soft)
+                  </p>
+                  <p className="text-sm text-text-secondary">
+                    سطح برجسته و لمسی، الهام‌گرفته از نئومورفیسم اما با کنتراست بالا.
+                    مناسب کارت محصول و صفحات فروشگاه.
+                  </p>
+                </Card>
+              </div>
+
+              {/* A more realistic "soft" product-card example */}
+              <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {sampleTitles.slice(0, 3).map((title, i) => (
+                  <Card key={title} variant="soft" className="p-4 text-center">
+                    <div className="aspect-square rounded-card bg-surface-raised mb-3 flex items-center justify-center">
+                      <MdiPackageVariantClosed className="w-10 h-10 text-text-muted" />
+                    </div>
+                    <p className="text-sm font-medium text-text-primary truncate">
+                      {title}
+                    </p>
+                    <p className="text-sm text-primary mt-1">
+                      {((i + 1) * 250000).toLocaleString("fa-IR")} تومان
+                    </p>
+                  </Card>
+                ))}
+              </div>
+
+              <p className="text-xs text-text-muted mt-5">
+                تم تیره/روشن را از هدر تغییر دهید تا سایه‌ی نرم در هر دو حالت بررسی شود.
+              </p>
+            </Card.Body>
+          </Card>
+
+          {/* Overlays: Modal & Drawer */}
+          <Card>
+            <Card.Header>
+              <Card.Title>پنجره‌ها (Modal / Drawer)</Card.Title>
+            </Card.Header>
+            <Card.Body className="flex flex-wrap items-center gap-3">
+              <Button variant="outline" onClick={() => setModalOpen(true)}>
+                باز کردن مودال
+              </Button>
+              <Button variant="outline" onClick={() => setDrawerOpen(true)}>
+                باز کردن کشو
+              </Button>
+            </Card.Body>
+          </Card>
+
+          <Modal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            title="عنوان مودال"
+            footer={
+              <>
+                <Button variant="ghost" onClick={() => setModalOpen(false)}>
+                  انصراف
+                </Button>
+                <Button
+                  onClick={() => {
+                    toast.success("تایید شد");
+                    setModalOpen(false);
+                  }}
+                >
+                  تایید
+                </Button>
+              </>
+            }
+          >
+            <p className="text-text-secondary text-sm">
+              این یک مودال نمونه است. با کلیک روی پس‌زمینه یا کلید Escape بسته
+              می‌شود.
+            </p>
+          </Modal>
+
+          <Drawer
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            title="فیلترها"
+            side="left"
+          >
+            <p className="text-text-secondary text-sm">
+              کشو از کنار باز می‌شود — مناسب فیلتر موبایل و فرم آدرس.
+            </p>
+          </Drawer>
+
+          {/* EmptyState */}
+          <Card>
+            <Card.Header>
+              <Card.Title>حالت خالی (EmptyState)</Card.Title>
+            </Card.Header>
+            <Card.Body>
+              <EmptyState
+                icon={MdiPackageVariantClosed}
+                title="موردی یافت نشد"
+                message="هنوز هیچ محصولی اضافه نشده است."
+              >
+                <Button icon={LucidePlus}>افزودن محصول</Button>
+              </EmptyState>
+            </Card.Body>
+          </Card>
+
+          {/* Skeleton */}
+          <Card>
+            <Card.Header>
+              <Card.Title>اسکلت بارگذاری (Skeleton)</Card.Title>
+            </Card.Header>
+            <Card.Body className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Skeleton circle width={48} height={48} />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </div>
+              <Skeleton className="h-24 w-full" />
             </Card.Body>
           </Card>
 

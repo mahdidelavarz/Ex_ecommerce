@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useWishlist, useRemoveFromWishlist } from '@/modules/wishlist/hooks/useWishlist';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { formatPrice } from '@/utils/formatPrice';
+import { Button, Card, EmptyState } from '@/components/ui';
 import { MdiClose, MdiHeartOff, MdiHeartOutline, MdiImageOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 
@@ -32,15 +33,17 @@ export default function WishlistPage() {
         </div>
 
         {!wishlist || wishlist.length === 0 ? (
-          <div className="text-center py-16 bg-surface rounded-card shadow-card">
-            <MdiHeartOff className="text-text-muted mx-auto mb-4" width={64} />
-            <p className="text-text-secondary mb-4">لیست علاقه‌مندی‌ها خالی است</p>
-            <Link href="/products" className="text-primary hover:underline">مشاهده محصولات</Link>
-          </div>
+          <Card className="py-4">
+            <EmptyState icon={MdiHeartOff} title="لیست علاقه‌مندی‌ها خالی است">
+              <Link href="/products">
+                <Button variant="outline">مشاهده محصولات</Button>
+              </Link>
+            </EmptyState>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {wishlist.map((item) => (
-              <div key={item.id} className="bg-surface rounded-card shadow-card p-4 flex gap-4">
+              <Card key={item.id} className="p-4 flex gap-4">
                 <Link href={`/products/${item.variant.product?.slug}`} className="flex-shrink-0">
                   {item.variant.image ? (
                     <img src={item.variant.image} alt={item.variant.product?.title} className="w-24 h-24 rounded-lg object-cover" />
@@ -84,7 +87,7 @@ export default function WishlistPage() {
                 >
                   <MdiClose className="w-4 h-4" />
                 </button>
-              </div>
+              </Card>
             ))}
           </div>
         )}

@@ -6,11 +6,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import Button from '@/components/ui/Button';
+import { Button, Input } from '@/components/ui';
 import { authService } from '../services/auth.service';
 import { useAuthStore } from '../store/auth.store';
 import type { AuthUser } from '../types/auth.type';
-import { MdiAccount, MdiAlertCircle, MdiCake, MdiEmail } from '@/components/icons/Icons';
+import { MdiAccount, MdiCake, MdiEmail } from '@/components/icons/Icons';
 
 const editProfileSchema = z.object({
   full_name: z
@@ -80,104 +80,34 @@ export default function EditProfileForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Full Name */}
-      <div className="space-y-2">
-        <label
-          htmlFor="full_name"
-          className="block text-sm font-medium text-text-secondary"
-        >
-          نام کامل *
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <MdiAccount className="w-5 h-5 text-text-muted" />
-          </div>
-          <input
-            id="full_name"
-            type="text"
-            {...register('full_name')}
-            disabled={isLoading}
-            className={`
-              w-full pr-10 pl-4 py-3 bg-surface border rounded-input
-              text-text-primary
-              transition-colors duration-200
-              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-              disabled:opacity-50 disabled:cursor-not-allowed
-              ${errors.full_name ? 'border-error' : 'border-border'}
-            `}
-          />
-        </div>
-        {errors.full_name && (
-          <p className="text-sm text-error flex items-center gap-1">
-            <MdiAlertCircle className="w-4 h-4" />
-            {errors.full_name.message}
-          </p>
-        )}
-      </div>
+      <Input
+        label="نام کامل *"
+        type="text"
+        icon={MdiAccount}
+        {...register('full_name')}
+        disabled={isLoading}
+        error={errors.full_name?.message}
+      />
 
       {/* Email */}
-      <div className="space-y-2">
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-text-secondary"
-        >
-          ایمیل (اختیاری)
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <MdiEmail className="w-5 h-5 text-text-muted" />
-          </div>
-          <input
-            id="email"
-            type="email"
-            {...register('email')}
-            disabled={isLoading}
-            dir="ltr"
-            className={`
-              w-full pr-10 pl-4 py-3 bg-surface border rounded-input
-              text-text-primary
-              transition-colors duration-200
-              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-              disabled:opacity-50 disabled:cursor-not-allowed
-              ${errors.email ? 'border-error' : 'border-border'}
-            `}
-          />
-        </div>
-        {errors.email && (
-          <p className="text-sm text-error flex items-center gap-1">
-            <MdiAlertCircle className="w-4 h-4" />
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+      <Input
+        label="ایمیل (اختیاری)"
+        type="email"
+        dir="ltr"
+        icon={MdiEmail}
+        {...register('email')}
+        disabled={isLoading}
+        error={errors.email?.message}
+      />
 
       {/* Birthday */}
-      <div className="space-y-2">
-        <label
-          htmlFor="birthday"
-          className="block text-sm font-medium text-text-secondary"
-        >
-          تاریخ تولد (اختیاری)
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <MdiCake className="w-5 h-5 text-text-muted" />
-          </div>
-          <input
-            id="birthday"
-            type="date"
-            {...register('birthday')}
-            disabled={isLoading}
-            className="
-              w-full pr-10 pl-4 py-3 bg-surface border rounded-input
-              text-text-primary
-              transition-colors duration-200
-              focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-              disabled:opacity-50 disabled:cursor-not-allowed
-              border-border
-            "
-          />
-        </div>
-      </div>
+      <Input
+        label="تاریخ تولد (اختیاری)"
+        type="date"
+        icon={MdiCake}
+        {...register('birthday')}
+        disabled={isLoading}
+      />
 
       {/* Action Buttons */}
       <div className="flex gap-3">

@@ -7,7 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useCategory } from '@/modules/categories/hooks/useCategories';
 import { productService } from '@/modules/products/services/product.service';
 import ProductGrid from '@/modules/products/components/ProductGrid';
-import { SvgSpinnersRingResize, MdiChevronLeft, MdiChevronRight, MdiFolderOpenOutline } from '@/components/icons/Icons';
+import { Pagination, Select } from '@/components/ui';
+import { SvgSpinnersRingResize, MdiChevronLeft, MdiFolderOpenOutline } from '@/components/icons/Icons';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
 
@@ -62,8 +63,6 @@ export default function CategoryPageClient() {
       </div>
     );
   }
-
-  const totalPages = productsData?.meta?.totalPages ?? 0;
 
   return (
     <main className="min-h-screen bg-background">
@@ -137,20 +136,21 @@ export default function CategoryPageClient() {
           <p className="text-sm text-text-secondary">
             {productsData?.meta?.total ?? 0} محصول
           </p>
-          <select
+          <Select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [by, order] = e.target.value.split('-');
               updateParams({ sort_by: by, sort_order: order }, false);
             }}
-            className="px-3 py-2 text-sm bg-surface border border-border rounded-input focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="created_at-DESC">جدیدترین</option>
-            <option value="created_at-ASC">قدیمی‌ترین</option>
-            <option value="price-ASC">ارزان‌ترین</option>
-            <option value="price-DESC">گران‌ترین</option>
-            <option value="title-ASC">الفبا (الف-ی)</option>
-          </select>
+            wrapperClassName="w-44"
+            options={[
+              { value: 'created_at-DESC', label: 'جدیدترین' },
+              { value: 'created_at-ASC', label: 'قدیمی‌ترین' },
+              { value: 'price-ASC', label: 'ارزان‌ترین' },
+              { value: 'price-DESC', label: 'گران‌ترین' },
+              { value: 'title-ASC', label: 'الفبا (الف-ی)' },
+            ]}
+          />
         </div>
 
         {/* Product Grid */}
@@ -161,36 +161,13 @@ export default function CategoryPageClient() {
         />
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
-            <button
-              onClick={() => updateParams({ page: String(page - 1) }, false)}
-              disabled={page === 1}
-              className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-            >
-              <MdiChevronRight className="w-5 h-5" />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .slice(Math.max(0, page - 3), Math.min(totalPages, page + 2))
-              .map((p) => (
-                <button
-                  key={p}
-                  onClick={() => updateParams({ page: String(p) }, false)}
-                  className={`w-10 h-10 rounded-button text-sm font-medium ${
-                    p === page ? 'bg-primary text-white' : 'hover:bg-surface'
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            <button
-              onClick={() => updateParams({ page: String(page + 1) }, false)}
-              disabled={page === totalPages}
-              className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-            >
-              <MdiChevronLeft className="w-5 h-5" />
-            </button>
-          </div>
+        {productsData?.meta && (
+          <Pagination
+            meta={productsData.meta}
+            onPageChange={(p) => updateParams({ page: String(p) }, false)}
+            itemLabel="محصول"
+            className="mt-8"
+          />
         )}
       </div>
     </main>

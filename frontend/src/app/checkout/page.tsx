@@ -10,7 +10,7 @@ import { paymentService } from '@/modules/payment/services/payment.service';
 import { useAddresses, useCreateAddress } from '@/modules/auth/hooks/useAddresses';
 import { couponService } from '@/modules/coupons/services/coupon.service';
 import type { CouponValidation } from '@/modules/coupons/types/coupon.types';
-import Button from '@/components/ui/Button';
+import { Button, EmptyState, Input, Skeleton, Textarea } from '@/components/ui';
 import { formatPrice } from '@/utils/formatPrice';
 import { MdiCartOff, MdiStore, MdiImageOff } from '@/components/icons/Icons';
 import { useSetting } from '@/modules/settings/hooks/useSettings';
@@ -105,11 +105,14 @@ export default function CheckoutPage() {
   if (!cart || cart.items.length === 0) {
     return (
       <main className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16 text-center">
-          <MdiCartOff className="text-text-muted mx-auto mb-4" width={80} />
-          <h1 className="text-2xl font-bold text-text-primary mb-2">سبد خرید خالی است</h1>
-          <p className="text-text-secondary mb-8">برای ثبت سفارش، ابتدا محصولی به سبد خرید اضافه کنید.</p>
-          <Button onClick={() => router.push('/products')} icon={MdiStore}>مشاهده محصولات</Button>
+        <div className="container mx-auto px-4 py-16">
+          <EmptyState
+            icon={MdiCartOff}
+            title="سبد خرید خالی است"
+            message="برای ثبت سفارش، ابتدا محصولی به سبد خرید اضافه کنید."
+          >
+            <Button onClick={() => router.push('/products')} icon={MdiStore}>مشاهده محصولات</Button>
+          </EmptyState>
         </div>
       </main>
     );
@@ -166,7 +169,7 @@ export default function CheckoutPage() {
 
               {addressesLoading ? (
                 <div className="space-y-2">
-                  {[1, 2].map((i) => <div key={i} className="h-16 bg-surface-raised rounded-card animate-pulse-soft" />)}
+                  {[1, 2].map((i) => <Skeleton key={i} className="h-16 w-full rounded-card" />)}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -202,20 +205,13 @@ export default function CheckoutPage() {
                 <div className="mt-4 p-4 bg-surface-raised rounded-card space-y-3">
                   <h3 className="text-sm font-semibold text-text-primary">آدرس جدید</h3>
                   <div className="grid grid-cols-2 gap-3">
-                    <input value={newAddress.full_name} onChange={(e) => setNewAddress((s) => ({ ...s, full_name: e.target.value }))}
-                      placeholder="نام و نام خانوادگی *" className="col-span-2 px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <input value={newAddress.phone} onChange={(e) => setNewAddress((s) => ({ ...s, phone: e.target.value }))}
-                      placeholder="شماره تلفن *" className="px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <input value={newAddress.postal_code} onChange={(e) => setNewAddress((s) => ({ ...s, postal_code: e.target.value }))}
-                      placeholder="کد پستی *" className="px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <input value={newAddress.state} onChange={(e) => setNewAddress((s) => ({ ...s, state: e.target.value }))}
-                      placeholder="استان *" className="px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <input value={newAddress.city} onChange={(e) => setNewAddress((s) => ({ ...s, city: e.target.value }))}
-                      placeholder="شهر *" className="px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <input value={newAddress.address_line_1} onChange={(e) => setNewAddress((s) => ({ ...s, address_line_1: e.target.value }))}
-                      placeholder="آدرس *" className="col-span-2 px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <input value={newAddress.address_line_2} onChange={(e) => setNewAddress((s) => ({ ...s, address_line_2: e.target.value }))}
-                      placeholder="واحد / طبقه (اختیاری)" className="col-span-2 px-3 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                    <Input wrapperClassName="col-span-2" className="text-sm" value={newAddress.full_name} onChange={(e) => setNewAddress((s) => ({ ...s, full_name: e.target.value }))} placeholder="نام و نام خانوادگی *" />
+                    <Input className="text-sm" value={newAddress.phone} onChange={(e) => setNewAddress((s) => ({ ...s, phone: e.target.value }))} placeholder="شماره تلفن *" />
+                    <Input className="text-sm" value={newAddress.postal_code} onChange={(e) => setNewAddress((s) => ({ ...s, postal_code: e.target.value }))} placeholder="کد پستی *" />
+                    <Input className="text-sm" value={newAddress.state} onChange={(e) => setNewAddress((s) => ({ ...s, state: e.target.value }))} placeholder="استان *" />
+                    <Input className="text-sm" value={newAddress.city} onChange={(e) => setNewAddress((s) => ({ ...s, city: e.target.value }))} placeholder="شهر *" />
+                    <Input wrapperClassName="col-span-2" className="text-sm" value={newAddress.address_line_1} onChange={(e) => setNewAddress((s) => ({ ...s, address_line_1: e.target.value }))} placeholder="آدرس *" />
+                    <Input wrapperClassName="col-span-2" className="text-sm" value={newAddress.address_line_2} onChange={(e) => setNewAddress((s) => ({ ...s, address_line_2: e.target.value }))} placeholder="واحد / طبقه (اختیاری)" />
                   </div>
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline" size="sm" onClick={() => setShowAddressForm(false)}>انصراف</Button>
@@ -262,12 +258,11 @@ export default function CheckoutPage() {
             {/* Note */}
             <div className="bg-surface rounded-card shadow-card p-6">
               <h2 className="font-bold text-text-primary mb-4">یادداشت سفارش</h2>
-              <textarea
+              <Textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="توضیحات اضافی برای سفارش..."
                 rows={3}
-                className="w-full px-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
               />
             </div>
           </div>
@@ -324,25 +319,22 @@ export default function CheckoutPage() {
                   </div>
                 ) : (
                   <>
-                    <div className="flex gap-2">
-                      <input
+                    <div className="flex gap-2 items-start">
+                      <Input
+                        wrapperClassName="flex-1"
+                        className="text-sm uppercase"
                         value={couponCode}
                         onChange={(e) => {
                           setCouponCode(e.target.value.toUpperCase());
                           if (couponError) setCouponError(null);
                         }}
                         placeholder="کد تخفیف"
-                        className={`flex-1 px-3 py-2 bg-surface border rounded-input text-sm uppercase focus:outline-none focus:ring-2 ${
-                          couponError ? 'border-error focus:ring-error' : 'border-border focus:ring-primary'
-                        }`}
+                        error={couponError || undefined}
                       />
                       <Button type="button" variant="outline" onClick={applyCoupon} loading={isValidating} disabled={!couponCode.trim()}>
                         اعمال
                       </Button>
                     </div>
-                    {couponError && (
-                      <p className="text-xs text-error mt-2">{couponError}</p>
-                    )}
                   </>
                 )}
               </div>

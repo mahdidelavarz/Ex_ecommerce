@@ -3,8 +3,7 @@
 
 import { useState } from 'react';
 import { useCreateReview, useUpdateReview } from '../hooks/useReviews';
-import StarRating from '@/components/ui/StarRating';
-import Button from '@/components/ui/Button';
+import { Button, Card, Input, StarRating, Textarea } from '@/components/ui';
 
 interface ReviewFormProps {
   productId: string;
@@ -52,7 +51,8 @@ export default function ReviewForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-surface rounded-card shadow-card p-6">
+    <Card className="p-6">
+      <form onSubmit={handleSubmit}>
       <h3 className="font-bold text-text-primary mb-4">
         {isEditing ? 'ویرایش نظر' : 'ثبت نظر'}
       </h3>
@@ -63,21 +63,20 @@ export default function ReviewForm({
       </div>
 
       <div className="mb-4">
-        <input
+        <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="عنوان نظر (اختیاری)"
-          className="w-full px-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="text-sm"
         />
       </div>
 
       <div className="mb-4">
-        <textarea
+        <Textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="نظر خود را بنویسید..."
           rows={4}
-          className="w-full px-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
         />
       </div>
 
@@ -91,6 +90,7 @@ export default function ReviewForm({
           </Button>
         )}
       </div>
-    </form>
+      </form>
+    </Card>
   );
 }

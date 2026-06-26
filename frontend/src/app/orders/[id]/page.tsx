@@ -9,6 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import { paymentService } from "@/modules/payment/services/payment.service";
 import ShipmentTimeline from "@/modules/shipments/components/ShipmentTimeline";
 import { useShipments } from "@/modules/shipments/hooks/useShipments";
+import { Badge, Button } from "@/components/ui";
+import { orderStatusBadge } from "@/utils/statusBadge";
 import { MdiClipboardTextOff, MdiCheckCircle, SvgSpinnersRingResize } from "@/components/icons/Icons";
 import toast from "react-hot-toast";
 
@@ -20,16 +22,6 @@ const statusLabels: Record<string, string> = {
   delivered: "تحویل شده",
   cancelled: "لغو شده",
   returned: "مرجوع شده",
-};
-
-const statusColors: Record<string, string> = {
-  pending: "bg-warning-light text-warning",
-  confirmed: "bg-info-light text-info",
-  processing: "bg-info-light text-info",
-  shipped: "bg-primary-light text-primary",
-  delivered: "bg-success-light text-success",
-  cancelled: "bg-error-light text-error",
-  returned: "bg-error-light text-error",
 };
 
 const paymentStatusLabels: Record<string, string> = {
@@ -110,13 +102,9 @@ export default function OrderDetailPage() {
         {paymentResult === 'cancelled' && (
           <div className="bg-error-light border border-error/30 rounded-card p-4 mb-6 flex items-center justify-between gap-3">
             <span className="text-error font-medium">پرداخت لغو شد. می‌توانید مجدداً تلاش کنید.</span>
-            <button
-              onClick={handleRetryPayment}
-              disabled={isRetrying}
-              className="shrink-0 px-4 py-2 text-sm font-medium bg-primary text-white rounded-button hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {isRetrying ? 'در حال انتقال...' : 'پرداخت مجدد'}
-            </button>
+            <Button size="sm" onClick={handleRetryPayment} loading={isRetrying} className="shrink-0">
+              پرداخت مجدد
+            </Button>
           </div>
         )}
 
@@ -130,11 +118,9 @@ export default function OrderDetailPage() {
               {new Date(order.created_at).toLocaleDateString("fa-IR")}
             </p>
           </div>
-          <span
-            className={`px-4 py-2 rounded-full text-sm font-medium ${statusColors[order.order_status]}`}
-          >
-            {statusLabels[order.order_status]}
-          </span>
+          <Badge variant={orderStatusBadge(order.order_status).variant}>
+            {orderStatusBadge(order.order_status).label}
+          </Badge>
         </div>
 
         {/* Status Timeline */}
@@ -267,17 +253,18 @@ export default function OrderDetailPage() {
                   </div>
                   <div className="text-left">
                     <p className="font-bold">{formatPrice(payment.amount)}</p>
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
+                    <Badge
+                      variant={
                         payment.status === "completed"
-                          ? "bg-success-light text-success"
+                          ? "success"
                           : payment.status === "failed"
-                            ? "bg-error-light text-error"
-                            : "bg-warning-light text-warning"
-                      }`}
+                            ? "error"
+                            : "warning"
+                      }
+                      size="sm"
                     >
                       {payment.status}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
               ))}
@@ -302,19 +289,16 @@ export default function OrderDetailPage() {
               <div>
                 <p className="text-text-secondary text-sm mb-4">آیا از لغو این سفارش اطمینان دارید؟ این عملیات قابل برگشت نیست.</p>
                 <div className="flex gap-3 justify-center">
-                  <button
-                    onClick={() => setShowCancelConfirm(false)}
-                    className="px-6 py-2 text-sm font-medium border border-border rounded-button hover:bg-surface-raised transition-colors"
-                  >
+                  <Button variant="outline" onClick={() => setShowCancelConfirm(false)}>
                     انصراف
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => { cancelOrder.mutate(order.id); setShowCancelConfirm(false); }}
-                    disabled={cancelOrder.isPending}
-                    className="px-6 py-2 text-sm font-medium bg-error text-white rounded-button hover:bg-red-700 transition-colors disabled:opacity-50"
+                    loading={cancelOrder.isPending}
+                    className="bg-error hover:bg-red-700"
                   >
-                    {cancelOrder.isPending ? 'در حال لغو...' : 'تأیید لغو سفارش'}
-                  </button>
+                    تأیید لغو سفارش
+                  </Button>
                 </div>
               </div>
             ) : (

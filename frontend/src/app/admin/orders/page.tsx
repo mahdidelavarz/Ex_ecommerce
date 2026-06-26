@@ -8,24 +8,38 @@ import { orderService } from '@/modules/orders/services/order.service';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import { formatPrice } from '@/utils/formatPrice';
-import { LucideSearch, MdiChevronLeft, MdiChevronRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import {
+  Badge,
+  Input,
+  Pagination,
+  Select,
+  Table,
+  TBody,
+  TD,
+  TableEmpty,
+  TableSkeleton,
+  TH,
+  THead,
+  TRow,
+} from '@/components/ui';
+import { orderStatusBadge, paymentStatusBadge } from '@/utils/statusBadge';
+import { LucideSearch, MdiPackageVariantClosed, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
-const statusLabels: Record<string, string> = {
-  pending: 'در انتظار', confirmed: 'تایید شده', processing: 'در حال پردازش',
-  shipped: 'ارسال شده', delivered: 'تحویل شده', cancelled: 'لغو شده', returned: 'مرجوع شده',
-};
+const statusOptions = [
+  { value: 'pending', label: 'در انتظار' },
+  { value: 'confirmed', label: 'تایید شده' },
+  { value: 'processing', label: 'در حال پردازش' },
+  { value: 'shipped', label: 'ارسال شده' },
+  { value: 'delivered', label: 'تحویل شده' },
+  { value: 'cancelled', label: 'لغو شده' },
+  { value: 'returned', label: 'مرجوع شده' },
+];
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-warning-light text-warning', confirmed: 'bg-info-light text-info',
-  processing: 'bg-info-light text-info', shipped: 'bg-primary-light text-primary',
-  delivered: 'bg-success-light text-success', cancelled: 'bg-error-light text-error',
-};
-
-const paymentColors: Record<string, string> = {
-  pending: 'bg-warning-light text-warning', paid: 'bg-success-light text-success',
-  failed: 'bg-error-light text-error', refunded: 'bg-error-light text-error',
-  partially_paid: 'bg-info-light text-info',
-};
+const paymentOptions = [
+  { value: 'pending', label: 'در انتظار' },
+  { value: 'paid', label: 'پرداخت شده' },
+  { value: 'failed', label: 'ناموفق' },
+];
 
 export default function AdminOrdersPage() {
   const router = useRouter();
@@ -63,100 +77,76 @@ export default function AdminOrdersPage() {
           {/* Filters */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="relative">
-                <LucideSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" width={20} />
-                <input
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                  placeholder="جستجو..."
-                  className="w-full pr-10 pl-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="px-4 py-2 bg-surface border border-border rounded-input text-sm">
-                <option value="">همه وضعیت‌ها</option>
-                {Object.entries(statusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
-              <select value={paymentFilter} onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }} className="px-4 py-2 bg-surface border border-border rounded-input text-sm">
-                <option value="">همه پرداخت‌ها</option>
-                <option value="pending">در انتظار</option>
-                <option value="paid">پرداخت شده</option>
-                <option value="failed">ناموفق</option>
-              </select>
+              <Input
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                placeholder="جستجو..."
+                icon={LucideSearch}
+              />
+              <Select
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                placeholder="همه وضعیت‌ها"
+                options={statusOptions}
+              />
+              <Select
+                value={paymentFilter}
+                onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }}
+                placeholder="همه پرداخت‌ها"
+                options={paymentOptions}
+              />
             </div>
           </div>
 
           {/* Table */}
-          <div className="bg-surface rounded-card shadow-card overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-surface-raised">
-                  <th className="text-right px-4 py-3">شماره سفارش</th>
-                  <th className="text-right px-4 py-3 hidden md:table-cell">مشتری</th>
-                  <th className="text-center px-4 py-3">مبلغ</th>
-                  <th className="text-center px-4 py-3 hidden sm:table-cell">وضعیت</th>
-                  <th className="text-center px-4 py-3 hidden sm:table-cell">پرداخت</th>
-                  <th className="text-center px-4 py-3 hidden lg:table-cell">تاریخ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  [...Array(5)].map((_, i) => (
-                    <tr key={i} className="border-b border-border">
-                      <td colSpan={6} className="px-4 py-4"><div className="h-4 bg-surface-raised rounded animate-pulse-soft" /></td>
-                    </tr>
-                  ))
-                ) : data?.data?.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-12 text-text-secondary">سفارشی یافت نشد</td></tr>
-                ) : (
-                  data?.data?.map((order: any) => (
-                    <tr
-                      key={order.id}
-                      onClick={() => router.push(`/admin/orders/${order.id}`)}
-                      className="border-b border-border hover:bg-surface-raised/50 cursor-pointer"
-                    >
-                      <td className="px-4 py-3 font-medium text-primary">{order.order_number}</td>
-                      <td className="px-4 py-3 hidden md:table-cell text-text-secondary">
+          <Table>
+            <THead>
+              <TH align="right">شماره سفارش</TH>
+              <TH align="right" hideBelow="md">مشتری</TH>
+              <TH align="center">مبلغ</TH>
+              <TH align="center" hideBelow="sm">وضعیت</TH>
+              <TH align="center" hideBelow="sm">پرداخت</TH>
+              <TH align="center" hideBelow="lg">تاریخ</TH>
+            </THead>
+            <TBody>
+              {isLoading ? (
+                <TableSkeleton rows={5} columns={6} />
+              ) : data?.data?.length === 0 ? (
+                <TableEmpty colSpan={6} message="سفارشی یافت نشد" icon={MdiPackageVariantClosed} />
+              ) : (
+                data?.data?.map((order: any) => {
+                  const status = orderStatusBadge(order.order_status);
+                  const payment = paymentStatusBadge(order.payment_status);
+                  return (
+                    <TRow key={order.id} hover onClick={() => router.push(`/admin/orders/${order.id}`)}>
+                      <TD align="right" label="شماره سفارش" className="font-medium text-primary">
+                        {order.order_number}
+                      </TD>
+                      <TD align="right" label="مشتری" hideBelow="md" className="text-text-secondary">
                         {order.user?.full_name || order.customer_phone || '-'}
-                      </td>
-                      <td className="px-4 py-3 text-center font-bold">{formatPrice(order.total_amount)}</td>
-                      <td className="px-4 py-3 text-center hidden sm:table-cell">
-                        <span className={`px-2 py-1 rounded-full text-xs ${statusColors[order.order_status]}`}>
-                          {statusLabels[order.order_status]}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center hidden sm:table-cell">
-                        <span className={`px-2 py-1 rounded-full text-xs ${paymentColors[order.payment_status] || 'bg-warning-light text-warning'}`}>
-                          {order.payment_status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center text-text-muted hidden lg:table-cell">
+                      </TD>
+                      <TD align="center" label="مبلغ" className="font-bold">
+                        {formatPrice(order.total_amount)}
+                      </TD>
+                      <TD align="center" label="وضعیت" hideBelow="sm">
+                        <Badge variant={status.variant} size="sm">{status.label}</Badge>
+                      </TD>
+                      <TD align="center" label="پرداخت" hideBelow="sm">
+                        <Badge variant={payment.variant} size="sm">{payment.label}</Badge>
+                      </TD>
+                      <TD align="center" label="تاریخ" hideBelow="lg" className="text-text-muted">
                         {new Date(order.created_at).toLocaleDateString('fa-IR')}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </TD>
+                    </TRow>
+                  );
+                })
+              )}
+            </TBody>
+          </Table>
 
           {/* Pagination */}
-          {data?.meta && data.meta.totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-                <MdiChevronRight className="w-5 h-5" />
-              </button>
-              {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
-                .slice(Math.max(0, page - 3), Math.min(data.meta.totalPages, page + 2))
-                .map(p => (
-                  <button key={p} onClick={() => setPage(p)}
-                    className={`w-10 h-10 rounded-button text-sm ${p === page ? 'bg-primary text-white' : 'hover:bg-surface'}`}>
-                    {p}
-                  </button>
-                ))}
-              <button onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))} disabled={page === data.meta.totalPages} className="p-2 hover:bg-surface rounded-button disabled:opacity-50">
-                <MdiChevronLeft className="w-5 h-5" />
-              </button>
-            </div>
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="سفارش" className="mt-6" />
           )}
         </div>
       </main>

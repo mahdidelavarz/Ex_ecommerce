@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { useProtectedRoute } from '@/modules/auth/hooks/useProtectedRoute';
-import Button from '@/components/ui/Button';
+import { Badge, Button, Card, Checkbox, EmptyState, Input } from '@/components/ui';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import { LucidePencil, LucidePlus, LucideTrash2, MdiMapMarkerOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
@@ -136,59 +136,41 @@ export default function ProfileAddressesPage() {
 
       {/* Address Form */}
       {showForm && (
-        <div className="bg-surface rounded-card shadow-card p-6 mb-6">
+        <Card className="p-6 mb-6">
           <h2 className="font-bold text-text-primary mb-4">
             {editingAddress ? 'ویرایش آدرس' : 'آدرس جدید'}
           </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-text-secondary block mb-1">نام کامل *</label>
-              <input value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} required className="w-full px-3 py-2 bg-surface border rounded-input text-sm" />
-            </div>
-            <div>
-              <label className="text-xs text-text-secondary block mb-1">شماره تماس *</label>
-              <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} required className="w-full px-3 py-2 bg-surface border rounded-input text-sm" />
-            </div>
-            <div>
-              <label className="text-xs text-text-secondary block mb-1">استان *</label>
-              <input value={form.state} onChange={e => setForm({...form, state: e.target.value})} required className="w-full px-3 py-2 bg-surface border rounded-input text-sm" />
-            </div>
-            <div>
-              <label className="text-xs text-text-secondary block mb-1">شهر *</label>
-              <input value={form.city} onChange={e => setForm({...form, city: e.target.value})} required className="w-full px-3 py-2 bg-surface border rounded-input text-sm" />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-xs text-text-secondary block mb-1">آدرس *</label>
-              <input value={form.address_line_1} onChange={e => setForm({...form, address_line_1: e.target.value})} required className="w-full px-3 py-2 bg-surface border rounded-input text-sm" />
-            </div>
-            <div>
-              <label className="text-xs text-text-secondary block mb-1">کد پستی *</label>
-              <input value={form.postal_code} onChange={e => setForm({...form, postal_code: e.target.value})} required className="w-full px-3 py-2 bg-surface border rounded-input text-sm" />
-            </div>
+            <Input label="نام کامل *" value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} required className="text-sm" />
+            <Input label="شماره تماس *" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} required className="text-sm" />
+            <Input label="استان *" value={form.state} onChange={e => setForm({...form, state: e.target.value})} required className="text-sm" />
+            <Input label="شهر *" value={form.city} onChange={e => setForm({...form, city: e.target.value})} required className="text-sm" />
+            <Input label="آدرس *" wrapperClassName="md:col-span-2" value={form.address_line_1} onChange={e => setForm({...form, address_line_1: e.target.value})} required className="text-sm" />
+            <Input label="کد پستی *" value={form.postal_code} onChange={e => setForm({...form, postal_code: e.target.value})} required className="text-sm" />
             <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input type="checkbox" checked={form.is_default_shipping} onChange={e => setForm({...form, is_default_shipping: e.target.checked})} />
-                آدرس پیش‌فرض ارسال
-              </label>
+              <Checkbox
+                label="آدرس پیش‌فرض ارسال"
+                checked={form.is_default_shipping}
+                onChange={e => setForm({...form, is_default_shipping: e.target.checked})}
+              />
             </div>
             <div className="md:col-span-2 flex gap-3">
               <Button type="submit" loading={saveMutation.isPending}>{editingAddress ? 'بروزرسانی' : 'ذخیره'}</Button>
               <Button type="button" variant="outline" onClick={resetForm}>انصراف</Button>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
       {/* Addresses List */}
       {addresses?.length === 0 && !showForm ? (
-        <div className="text-center py-16 bg-surface rounded-card shadow-card">
-          <MdiMapMarkerOff className="text-text-muted mx-auto mb-4" width={64} />
-          <p className="text-text-secondary">هیچ آدرسی ثبت نشده</p>
-        </div>
+        <Card className="py-4">
+          <EmptyState icon={MdiMapMarkerOff} title="هیچ آدرسی ثبت نشده" />
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {addresses?.map((address) => (
-            <div key={address.id} className="bg-surface rounded-card shadow-card p-6 relative">
+            <Card key={address.id} className="p-6 relative">
               <div className="absolute top-3 left-3 flex gap-1">
                 <button onClick={() => handleEdit(address)} className="p-2 hover:bg-primary-light rounded-button text-primary">
                   <LucidePencil className="w-4 h-4" />
@@ -206,13 +188,13 @@ export default function ProfileAddressesPage() {
               <p className="text-text-muted text-xs mt-2">کد پستی: {address.postal_code}</p>
               <div className="flex gap-2 mt-3">
                 {address.is_default_shipping && (
-                  <span className="bg-primary-light text-primary text-xs px-2 py-1 rounded-full">ارسال پیش‌فرض</span>
+                  <Badge variant="primary" size="sm">ارسال پیش‌فرض</Badge>
                 )}
                 {address.is_default_billing && (
-                  <span className="bg-success-light text-success text-xs px-2 py-1 rounded-full">صورتحساب پیش‌فرض</span>
+                  <Badge variant="success" size="sm">صورتحساب پیش‌فرض</Badge>
                 )}
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

@@ -33,6 +33,16 @@ export {
 export { default as Pagination } from "./Pagination";
 export type { PaginationProps, PaginationMeta } from "./Pagination";
 
+// Overlays & feedback
+export { default as Modal } from "./Modal";
+export type { ModalProps } from "./Modal";
+export { default as Drawer } from "./Drawer";
+export type { DrawerProps } from "./Drawer";
+export { default as EmptyState } from "./EmptyState";
+export type { EmptyStateProps } from "./EmptyState";
+export { default as Skeleton } from "./Skeleton";
+export type { SkeletonProps } from "./Skeleton";
+
 // Existing primitives (re-exported for a single import surface)
 export { default as Button } from "./Button";
 export { default as PhoneInput } from "./PhoneInput";

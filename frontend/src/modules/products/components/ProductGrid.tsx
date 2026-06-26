@@ -1,6 +1,7 @@
 // src/modules/products/components/ProductGrid.tsx
 import ProductCard from './ProductCard';
 import type { ProductListResponse } from '../types/product.types';
+import { Card, EmptyState, Skeleton } from '@/components/ui';
 import { MdiPackageVariantClosed } from '@/components/icons/Icons';
 
 interface ProductGridProps {
@@ -14,15 +15,15 @@ export default function ProductGrid({ products, isLoading, emptyMessage }: Produ
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="bg-surface rounded-card shadow-card animate-pulse-soft">
-            <div className="aspect-[4/5] bg-surface-raised rounded-t-card" />
+          <Card key={i}>
+            <Skeleton className="aspect-[4/5] rounded-t-card rounded-b-none" />
             <div className="p-4 space-y-2.5">
-              <div className="h-3 bg-surface-raised rounded w-1/3" />
-              <div className="h-4 bg-surface-raised rounded w-3/4" />
-              <div className="h-4 bg-surface-raised rounded w-1/2" />
-              <div className="h-11 bg-surface-raised rounded-button mt-3" />
+              <Skeleton className="h-3 w-1/3" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-11 rounded-button mt-3" />
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     );
@@ -30,13 +31,13 @@ export default function ProductGrid({ products, isLoading, emptyMessage }: Produ
 
   if (products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center text-center py-20 bg-surface rounded-card shadow-card">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary-light mb-5">
-          <MdiPackageVariantClosed className="text-primary" width={40} />
-        </div>
-        <p className="text-text-primary font-medium">{emptyMessage || 'محصولی یافت نشد'}</p>
-        <p className="text-text-muted text-sm mt-1">فیلترها را تغییر دهید یا دوباره جستجو کنید</p>
-      </div>
+      <Card className="py-8">
+        <EmptyState
+          icon={MdiPackageVariantClosed}
+          title={emptyMessage || 'محصولی یافت نشد'}
+          message="فیلترها را تغییر دهید یا دوباره جستجو کنید"
+        />
+      </Card>
     );
   }
 

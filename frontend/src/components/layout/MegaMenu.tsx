@@ -9,6 +9,7 @@ import type {
   CategoryTreeNode,
 } from "@/modules/categories/types/category.types";
 import { MdiChevronDown } from "../icons/Icons";
+import { Skeleton } from "@/components/ui";
 import { Icon } from "@iconify/react";
 
 export default function MegaMenu() {
@@ -19,10 +20,7 @@ export default function MegaMenu() {
     return (
       <div className="hidden lg:flex items-center gap-2">
         {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="h-8 w-24 bg-surface-raised rounded animate-pulse-soft"
-          />
+          <Skeleton key={i} className="h-8 w-24" />
         ))}
       </div>
     );

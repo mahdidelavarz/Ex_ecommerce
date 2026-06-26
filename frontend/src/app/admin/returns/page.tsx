@@ -8,25 +8,32 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
+import {
+  Badge,
+  Input,
+  Pagination,
+  Select,
+  Table,
+  TBody,
+  TD,
+  TableEmpty,
+  TableSkeleton,
+  TH,
+  THead,
+  TRow,
+} from '@/components/ui';
 import { formatPrice } from '@/utils/formatPrice';
+import { returnStatusBadge } from '@/utils/statusBadge';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
-import { MdiChevronLeft, MdiChevronRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { MdiKeyboardReturn, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
-const statusLabels: Record<string, string> = {
-  pending:  'در انتظار',
-  approved: 'تایید شده',
-  rejected: 'رد شده',
-  received: 'دریافت شده',
-  refunded: 'مسترد شده',
-};
-
-const statusColors: Record<string, string> = {
-  pending:  'bg-warning-light text-warning',
-  approved: 'bg-info-light text-info',
-  rejected: 'bg-error-light text-error',
-  received: 'bg-primary-light text-primary',
-  refunded: 'bg-success-light text-success',
-};
+const statusOptions = [
+  { value: 'pending', label: 'در انتظار' },
+  { value: 'approved', label: 'تایید شده' },
+  { value: 'rejected', label: 'رد شده' },
+  { value: 'received', label: 'دریافت شده' },
+  { value: 'refunded', label: 'مسترد شده' },
+];
 
 export default function AdminReturnsPage() {
   const router = useRouter();
@@ -88,69 +95,56 @@ export default function AdminReturnsPage() {
           {/* Filters */}
           <div className="bg-surface rounded-card shadow-card p-4 mb-6">
             <div className="flex gap-4">
-              <select
+              <Select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                className="px-4 py-2 bg-surface border border-border rounded-input text-sm"
-              >
-                <option value="">همه وضعیت‌ها</option>
-                {Object.entries(statusLabels).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
-                ))}
-              </select>
+                placeholder="همه وضعیت‌ها"
+                options={statusOptions}
+              />
             </div>
           </div>
 
           {/* Table */}
-          <div className="bg-surface rounded-card shadow-card overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-surface-raised">
-                  <th className="text-right px-4 py-3">شماره</th>
-                  <th className="text-right px-4 py-3 hidden md:table-cell">سفارش</th>
-                  <th className="text-right px-4 py-3 hidden lg:table-cell">علت</th>
-                  <th className="text-center px-4 py-3">مبلغ</th>
-                  <th className="text-center px-4 py-3">وضعیت</th>
-                  <th className="text-center px-4 py-3">عملیات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  [...Array(5)].map((_, i) => (
-                    <tr key={i} className="border-b border-border">
-                      <td colSpan={6} className="px-4 py-4">
-                        <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
-                      </td>
-                    </tr>
-                  ))
-                ) : data?.data?.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center py-12 text-text-secondary">مرجوعی یافت نشد</td>
-                  </tr>
-                ) : (
-                  data?.data?.map((ret: any) => (
-                    <tr key={ret.id} className="border-b border-border hover:bg-surface-raised/50">
-                      <td className="px-4 py-3">
-                        <span className="font-medium text-primary">{ret.return_number}</span>
-                        <p className="text-xs text-text-muted">
-                          {new Date(ret.created_at).toLocaleDateString('fa-IR')}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell text-text-secondary">
+          <Table className="text-sm">
+            <THead>
+              <TH align="right">شماره</TH>
+              <TH align="right" hideBelow="md">سفارش</TH>
+              <TH align="right" hideBelow="lg">علت</TH>
+              <TH align="center">مبلغ</TH>
+              <TH align="center">وضعیت</TH>
+              <TH align="center">عملیات</TH>
+            </THead>
+            <TBody>
+              {isLoading ? (
+                <TableSkeleton rows={5} columns={6} />
+              ) : data?.data?.length === 0 ? (
+                <TableEmpty colSpan={6} message="مرجوعی یافت نشد" icon={MdiKeyboardReturn} />
+              ) : (
+                data?.data?.map((ret: any) => {
+                  const status = returnStatusBadge(ret.status);
+                  return (
+                    <TRow key={ret.id} hover>
+                      <TD align="right" label="شماره">
+                        <div>
+                          <span className="font-medium text-primary">{ret.return_number}</span>
+                          <p className="text-xs text-text-muted">
+                            {new Date(ret.created_at).toLocaleDateString('fa-IR')}
+                          </p>
+                        </div>
+                      </TD>
+                      <TD align="right" label="سفارش" hideBelow="md" className="text-text-secondary">
                         {ret.order?.order_number || '-'}
-                      </td>
-                      <td className="px-4 py-3 hidden lg:table-cell">
+                      </TD>
+                      <TD align="right" label="علت" hideBelow="lg">
                         <p className="text-text-secondary text-xs line-clamp-2">{ret.reason}</p>
-                      </td>
-                      <td className="px-4 py-3 text-center font-medium">
+                      </TD>
+                      <TD align="center" label="مبلغ" className="font-medium">
                         {ret.refund_amount > 0 ? formatPrice(ret.refund_amount) : '-'}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-1 rounded-full text-xs ${statusColors[ret.status] || 'bg-warning-light text-warning'}`}>
-                          {statusLabels[ret.status] || ret.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
+                      </TD>
+                      <TD align="center" label="وضعیت">
+                        <Badge variant={status.variant} size="sm">{status.label}</Badge>
+                      </TD>
+                      <TD align="center" label="عملیات">
                         <div className="flex flex-col justify-center gap-1 items-center">
                           {ret.status === 'pending' && (
                             <div className="flex gap-1">
@@ -181,10 +175,11 @@ export default function AdminReturnsPage() {
                           )}
                           {ret.status === 'received' && (
                             <div className="flex items-center gap-1">
-                              <input
+                              <Input
                                 type="number"
                                 placeholder="مبلغ (تومان)"
-                                className="border border-border rounded px-2 py-1 w-28 text-xs"
+                                wrapperClassName="w-28"
+                                className="text-xs py-1"
                                 value={refundAmounts[ret.id] ?? ''}
                                 onChange={(e) =>
                                   setRefundAmounts((prev) => ({ ...prev, [ret.id]: e.target.value }))
@@ -206,33 +201,17 @@ export default function AdminReturnsPage() {
                             جزئیات
                           </button>
                         </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </TD>
+                    </TRow>
+                  );
+                })
+              )}
+            </TBody>
+          </Table>
 
           {/* Pagination */}
-          {data?.meta && data.meta.totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-              >
-                <MdiChevronRight className="w-5 h-5" />
-              </button>
-              <span className="px-4 py-2 text-sm">{page} از {data.meta.totalPages}</span>
-              <button
-                onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))}
-                disabled={page === data.meta.totalPages}
-                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-              >
-                <MdiChevronLeft className="w-5 h-5" />
-              </button>
-            </div>
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="مرجوعی" className="mt-6" />
           )}
         </div>
       </main>

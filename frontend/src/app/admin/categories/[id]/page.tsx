@@ -12,7 +12,7 @@ import { categoryService } from '@/modules/categories/services/category.service'
 import { useCategoryTree } from '@/modules/categories/hooks/useCategories';
 import type { CategoryTreeNode } from '@/modules/categories/types/category.types';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
+import { Button, Card, Input, Select, Textarea, Toggle } from '@/components/ui';
 import { MdiArrowRight, SolarFolderWithFilesBold, SvgSpinnersRingResize } from '@/components/icons/Icons';
 import { Icon } from '@iconify/react';
 
@@ -190,89 +190,57 @@ export default function AdminCategoryFormPage() {
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-6">
               {/* Basic Info */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-6">اطلاعات پایه</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      نام دسته‌بندی *
-                    </label>
-                    <input
-                      type="text"
-                      {...register('name')}
-                      className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    {errors.name && (
-                      <p className="text-sm text-error">{errors.name.message}</p>
-                    )}
-                  </div>
+                  <Input
+                    label="نام دسته‌بندی *"
+                    type="text"
+                    wrapperClassName="md:col-span-2"
+                    {...register('name')}
+                    error={errors.name?.message}
+                  />
 
                   {/* Parent */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      والد
-                    </label>
-                    <select
-                      {...register('parent_id')}
-                      className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="">بدون والد (دسته اصلی)</option>
-                      {validParents.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {'—'.repeat(cat.depth)} {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <Select label="والد" {...register('parent_id')}>
+                    <option value="">بدون والد (دسته اصلی)</option>
+                    {validParents.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {'—'.repeat(cat.depth)} {cat.name}
+                      </option>
+                    ))}
+                  </Select>
 
                   {/* Sort Order */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      ترتیب نمایش
-                    </label>
-                    <input
-                      type="number"
-                      {...register('sort_order', { valueAsNumber: true })}
-                      className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
+                  <Input
+                    label="ترتیب نمایش"
+                    type="number"
+                    {...register('sort_order', { valueAsNumber: true })}
+                  />
 
                   {/* Active */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      وضعیت
-                    </label>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isActive}
-                        onChange={(e) => setValue('is_active', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-border rounded-full peer peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-                      <span className="mr-3 text-sm text-text-secondary">
-                        {isActive ? 'فعال' : 'غیرفعال'}
-                      </span>
-                    </label>
+                    <label className="block text-sm font-medium text-text-secondary">وضعیت</label>
+                    <Toggle
+                      label={isActive ? 'فعال' : 'غیرفعال'}
+                      checked={isActive}
+                      onChange={(e) => setValue('is_active', e.target.checked)}
+                    />
                   </div>
 
                   {/* Description */}
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      توضیحات
-                    </label>
-                    <textarea
-                      {...register('description')}
-                      rows={4}
-                      className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                    />
-                  </div>
+                  <Textarea
+                    label="توضیحات"
+                    wrapperClassName="md:col-span-2"
+                    {...register('description')}
+                    rows={4}
+                  />
                 </div>
-              </div>
+              </Card>
 
               {/* Appearance */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-6">ظاهر</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Color */}
@@ -287,38 +255,21 @@ export default function AdminCategoryFormPage() {
                         onChange={(e) => setValue('color', e.target.value)}
                         className="w-12 h-12 rounded-lg cursor-pointer border-0"
                       />
-                      <input
-                        type="text"
-                        {...register('color')}
-                        className="flex-1 px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                      <Input wrapperClassName="flex-1" type="text" {...register('color')} />
                     </div>
                   </div>
 
                   {/* Icon */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      آیکون (Iconify)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        {...register('icon')}
-                        placeholder="mdi:folder"
-                        className="w-full pl-10 px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                       {/* dynamic icon must add */}
-                      {selectedIcon && (
-                        <Icon
-                          icon={selectedIcon}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-                          width={20}
-                        />
-                      )}
-                    </div>
-                    {errors.icon && (
-                      <p className="text-sm text-error">{errors.icon.message}</p>
-                    )}
+                    <Input
+                      label="آیکون (Iconify)"
+                      type="text"
+                      dir="ltr"
+                      {...register('icon')}
+                      placeholder="mdi:folder"
+                      trailingIcon={selectedIcon ? (() => <Icon icon={selectedIcon} width={20} />) : undefined}
+                      error={errors.icon?.message}
+                    />
                     <p className="text-xs text-text-muted">
                       آیکون‌ها از{' '}
                       <a
@@ -333,17 +284,13 @@ export default function AdminCategoryFormPage() {
                   </div>
 
                   {/* Image URL */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      آدرس تصویر
-                    </label>
-                    <input
-                      type="text"
-                      {...register('image')}
-                      placeholder="https://..."
-                      className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
+                  <Input
+                    label="آدرس تصویر"
+                    type="text"
+                    dir="ltr"
+                    {...register('image')}
+                    placeholder="https://..."
+                  />
 
                   {/* Preview */}
                   <div className="md:col-span-3">
@@ -367,34 +314,16 @@ export default function AdminCategoryFormPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Card>
 
               {/* SEO */}
-              <div className="bg-surface rounded-card shadow-card p-6">
+              <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-6">سئو</h2>
                 <div className="grid grid-cols-1 gap-6">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      عنوان سئو
-                    </label>
-                    <input
-                      type="text"
-                      {...register('seo_title')}
-                      className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      توضیحات سئو
-                    </label>
-                    <textarea
-                      {...register('seo_description')}
-                      rows={3}
-                      className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                    />
-                  </div>
+                  <Input label="عنوان سئو" type="text" {...register('seo_title')} />
+                  <Textarea label="توضیحات سئو" {...register('seo_description')} rows={3} />
                 </div>
-              </div>
+              </Card>
 
               {/* Actions */}
               <div className="flex items-center gap-4">

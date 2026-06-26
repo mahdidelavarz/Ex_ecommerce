@@ -13,10 +13,20 @@ import {
 } from '@/modules/shipments/types/shipment.types';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import {
+  Input,
+  Pagination,
+  Table,
+  TBody,
+  TD,
+  TableEmpty,
+  TableSkeleton,
+  TH,
+  THead,
+  TRow,
+} from '@/components/ui';
+import {
   LucideSearch,
   MdiTruckDelivery,
-  MdiChevronLeft,
-  MdiChevronRight,
   MdiOpenInNew,
   SvgSpinnersRingResize,
 } from '@/components/icons/Icons';
@@ -69,15 +79,12 @@ export default function AdminShipmentsPage() {
 
           {/* Filters */}
           <div className="flex flex-col gap-3 mb-6">
-            <div className="relative">
-              <LucideSearch className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-              <input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="جستجو بر اساس کد رهگیری یا شماره سفارش"
-                className="w-full pr-10 pl-4 py-2 bg-surface border border-border rounded-input text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="جستجو بر اساس کد رهگیری یا شماره سفارش"
+              icon={LucideSearch}
+            />
             <div className="flex gap-2 flex-wrap">
               {(['all', ...STATUSES] as StatusFilter[]).map((s) => (
                 <button
@@ -96,103 +103,78 @@ export default function AdminShipmentsPage() {
           </div>
 
           {/* List */}
-          <div className="bg-surface rounded-card shadow-card overflow-hidden">
-            {isLoading ? (
-              <div className="p-6 space-y-3">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-14 bg-surface-raised rounded animate-pulse-soft" />
-                ))}
-              </div>
-            ) : data?.data?.length === 0 ? (
-              <div className="text-center py-12">
-                <MdiTruckDelivery className="text-text-muted mx-auto mb-3" width={40} />
-                <p className="text-text-secondary text-sm">مرسوله‌ای یافت نشد</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-text-muted text-xs border-b border-border bg-surface-raised/50">
-                      <th className="text-right font-medium p-4">سفارش</th>
-                      <th className="text-right font-medium p-4">مشتری</th>
-                      <th className="text-right font-medium p-4">پیک / کد رهگیری</th>
-                      <th className="text-right font-medium p-4">وضعیت</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {data?.data?.map((shipment: AdminShipment) => (
-                      <tr key={shipment.id} className="hover:bg-surface-raised/50 transition-colors">
-                        <td className="p-4">
-                          <Link
-                            href={`/admin/orders/${shipment.order_id}`}
-                            className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+          <Table className="text-sm">
+            <THead>
+              <TH align="right">سفارش</TH>
+              <TH align="right">مشتری</TH>
+              <TH align="right">پیک / کد رهگیری</TH>
+              <TH align="right">وضعیت</TH>
+            </THead>
+            <TBody>
+              {isLoading ? (
+                <TableSkeleton rows={6} columns={4} />
+              ) : data?.data?.length === 0 ? (
+                <TableEmpty colSpan={4} message="مرسوله‌ای یافت نشد" icon={MdiTruckDelivery} />
+              ) : (
+                data?.data?.map((shipment: AdminShipment) => (
+                  <TRow key={shipment.id} hover>
+                    <TD align="right" label="سفارش">
+                      <div>
+                        <Link
+                          href={`/admin/orders/${shipment.order_id}`}
+                          className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+                        >
+                          {shipment.order_number || '—'}
+                          <MdiOpenInNew className="w-3.5 h-3.5" />
+                        </Link>
+                        <p className="text-xs text-text-muted mt-0.5">
+                          {new Date(shipment.created_at).toLocaleDateString('fa-IR')}
+                        </p>
+                      </div>
+                    </TD>
+                    <TD align="right" label="مشتری" className="text-text-secondary">
+                      {shipment.customer_name || '—'}
+                    </TD>
+                    <TD align="right" label="پیک / کد رهگیری">
+                      <div>
+                        <p className="text-text-primary">{shipment.courier_name}</p>
+                        {shipment.tracking_url ? (
+                          <a
+                            href={shipment.tracking_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline"
                           >
-                            {shipment.order_number || '—'}
-                            <MdiOpenInNew className="w-3.5 h-3.5" />
-                          </Link>
-                          <p className="text-xs text-text-muted mt-0.5">
-                            {new Date(shipment.created_at).toLocaleDateString('fa-IR')}
-                          </p>
-                        </td>
-                        <td className="p-4 text-text-secondary">{shipment.customer_name || '—'}</td>
-                        <td className="p-4">
-                          <p className="text-text-primary">{shipment.courier_name}</p>
-                          {shipment.tracking_url ? (
-                            <a
-                              href={shipment.tracking_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-primary hover:underline"
-                            >
-                              {shipment.tracking_number}
-                            </a>
-                          ) : (
-                            <span className="text-xs text-text-muted">{shipment.tracking_number}</span>
-                          )}
-                        </td>
-                        <td className="p-4">
-                          <select
-                            value={shipment.status}
-                            onChange={(e) =>
-                              updateShipment.mutate({ id: shipment.id, data: { status: e.target.value as ShipmentStatus } })
-                            }
-                            disabled={updateShipment.isPending}
-                            className={`text-xs font-medium px-2 py-1 rounded-full border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary ${shipmentStatusColors[shipment.status]}`}
-                          >
-                            {STATUSES.map((s) => (
-                              <option key={s} value={s}>{shipmentStatusLabels[s]}</option>
-                            ))}
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                            {shipment.tracking_number}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-text-muted">{shipment.tracking_number}</span>
+                        )}
+                      </div>
+                    </TD>
+                    <TD align="right" label="وضعیت">
+                      <select
+                        value={shipment.status}
+                        onChange={(e) =>
+                          updateShipment.mutate({ id: shipment.id, data: { status: e.target.value as ShipmentStatus } })
+                        }
+                        disabled={updateShipment.isPending}
+                        className={`text-xs font-medium px-2 py-1 rounded-full border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary ${shipmentStatusColors[shipment.status]}`}
+                      >
+                        {STATUSES.map((s) => (
+                          <option key={s} value={s}>{shipmentStatusLabels[s]}</option>
+                        ))}
+                      </select>
+                    </TD>
+                  </TRow>
+                ))
+              )}
+            </TBody>
+          </Table>
 
           {/* Pagination */}
-          {data?.meta && data.meta.totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-              >
-                <MdiChevronRight className="w-5 h-5" />
-              </button>
-              <span className="px-4 py-2 text-sm text-text-secondary">
-                {page} از {data.meta.totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(data.meta.totalPages, p + 1))}
-                disabled={page === data.meta.totalPages}
-                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-              >
-                <MdiChevronLeft className="w-5 h-5" />
-              </button>
-            </div>
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="مرسوله" className="mt-6" />
           )}
         </div>
       </main>

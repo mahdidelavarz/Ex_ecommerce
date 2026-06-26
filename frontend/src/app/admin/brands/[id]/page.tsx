@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import { brandService } from "@/modules/brands/services/brand.service";
 import AdminSidebar from "@/components/layout/AdminSidebar";
-import Button from "@/components/ui/Button";
+import { Button, Card, Input, Textarea, Toggle } from "@/components/ui";
 import { MdiArrowRight, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
 const urlPattern = /^https?:\/\/.+/;
@@ -128,37 +128,26 @@ export default function AdminBrandFormPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="bg-surface rounded-card shadow-card p-6 space-y-6">
+            <Card className="p-6 space-y-6">
               {/* Name */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text-secondary">
-                  نام برند *
-                </label>
-                <input
-                  type="text"
-                  {...register("name")}
-                  placeholder="مثال: سامسونگ"
-                  className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                {errors.name && (
-                  <p className="text-sm text-error">{errors.name.message}</p>
-                )}
-              </div>
+              <Input
+                label="نام برند *"
+                type="text"
+                {...register("name")}
+                placeholder="مثال: سامسونگ"
+                error={errors.name?.message}
+              />
 
               {/* Logo URL */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text-secondary">
-                  آدرس لوگو
-                </label>
-                <input
+                <Input
+                  label="آدرس لوگو"
                   type="text"
+                  dir="ltr"
                   {...register("logo")}
                   placeholder="https://..."
-                  className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
+                  error={errors.logo?.message}
                 />
-                {errors.logo && (
-                  <p className="text-sm text-error">{errors.logo.message}</p>
-                )}
                 {logoUrl && urlPattern.test(logoUrl) && (
                   <img
                     src={logoUrl}
@@ -172,35 +161,21 @@ export default function AdminBrandFormPage() {
               </div>
 
               {/* Description */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text-secondary">
-                  توضیحات
-                </label>
-                <textarea
-                  {...register("description")}
-                  rows={4}
-                  placeholder="توضیحات برند..."
-                  className="w-full px-4 py-2 bg-surface border border-border rounded-input text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                />
-              </div>
+              <Textarea
+                label="توضیحات"
+                {...register("description")}
+                rows={4}
+                placeholder="توضیحات برند..."
+              />
 
               {/* Active toggle */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-text-secondary">
-                  وضعیت
-                </label>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isActive}
-                    onChange={(e) => setValue("is_active", e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-border rounded-full peer peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-                  <span className="mr-3 text-sm text-text-secondary">
-                    {isActive ? "فعال" : "غیرفعال"}
-                  </span>
-                </label>
+                <label className="block text-sm font-medium text-text-secondary">وضعیت</label>
+                <Toggle
+                  label={isActive ? "فعال" : "غیرفعال"}
+                  checked={isActive}
+                  onChange={(e) => setValue("is_active", e.target.checked)}
+                />
               </div>
 
               {/* Actions */}
@@ -217,7 +192,7 @@ export default function AdminBrandFormPage() {
                   انصراف
                 </Button>
               </div>
-            </div>
+            </Card>
           </form>
         </div>
       </main>

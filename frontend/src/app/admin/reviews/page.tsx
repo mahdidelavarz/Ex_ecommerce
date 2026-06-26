@@ -4,8 +4,7 @@
 import { useState } from 'react';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import AdminSidebar from '@/components/layout/AdminSidebar';
-import Button from '@/components/ui/Button';
-import StarRating from '@/components/ui/StarRating';
+import { Badge, Button, EmptyState, Input, Pagination, Skeleton, StarRating } from '@/components/ui';
 import type { Review } from '@/modules/reviews/types/review.types';
 import {
   useAdminReviews,
@@ -13,7 +12,7 @@ import {
   useReplyReview,
   useAdminDeleteReview,
 } from '@/modules/reviews/hooks/useReviews';
-import { MdiChevronLeft, MdiChevronRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { MdiCommentTextOutline, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 type ApprovalFilter = 'all' | 'pending' | 'approved';
 
@@ -93,14 +92,12 @@ export default function AdminReviewsPage() {
           <div className="space-y-4">
             {isLoading ? (
               [...Array(3)].map((_, i) => (
-                <div key={i} className="bg-surface rounded-card p-6 animate-pulse-soft">
-                  <div className="h-16 bg-surface-raised rounded" />
+                <div key={i} className="bg-surface rounded-card p-6">
+                  <Skeleton className="h-16 w-full" />
                 </div>
               ))
             ) : data?.data?.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-text-secondary">نظری یافت نشد</p>
-              </div>
+              <EmptyState icon={MdiCommentTextOutline} title="نظری یافت نشد" />
             ) : (
               data?.data?.map((review: Review) => (
                 <div key={review.id} className="bg-surface rounded-card shadow-card p-6">
@@ -110,19 +107,11 @@ export default function AdminReviewsPage() {
                       <StarRating rating={review.rating} size={14} />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          review.is_approved
-                            ? 'bg-success-light text-success'
-                            : 'bg-warning-light text-warning'
-                        }`}
-                      >
+                      <Badge variant={review.is_approved ? 'success' : 'warning'} size="sm">
                         {review.is_approved ? 'تایید شده' : 'در انتظار'}
-                      </span>
+                      </Badge>
                       {review.verified_purchase && (
-                        <span className="bg-info-light text-info text-xs px-2 py-1 rounded-full">
-                          خریدار
-                        </span>
+                        <Badge variant="info" size="sm">خریدار</Badge>
                       )}
                     </div>
                   </div>
@@ -144,13 +133,13 @@ export default function AdminReviewsPage() {
                   {/* Reply Form */}
                   {replyingTo === review.id && (
                     <div className="mt-3 flex gap-2">
-                      <input
+                      <Input
+                        wrapperClassName="flex-1"
                         value={replyText[review.id] || ''}
                         onChange={(e) =>
                           setReplyText((prev) => ({ ...prev, [review.id]: e.target.value }))
                         }
                         placeholder="پاسخ شما..."
-                        className="flex-1 px-3 py-2 border rounded-input text-sm"
                       />
                       <Button
                         size="sm"
@@ -198,26 +187,8 @@ export default function AdminReviewsPage() {
             )}
           </div>
 
-          {data?.meta && data.meta.totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-              >
-                <MdiChevronRight className="w-5 h-5" />
-              </button>
-              <span className="px-4 py-2 text-sm">
-                {page} از {data.meta.totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(data.meta.totalPages, p + 1))}
-                disabled={page === data.meta.totalPages}
-                className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-              >
-                <MdiChevronLeft className="w-5 h-5" />
-              </button>
-            </div>
+          {data?.meta && (
+            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="نظر" className="mt-6" />
           )}
         </div>
       </main>
