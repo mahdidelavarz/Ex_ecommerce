@@ -18,6 +18,10 @@ export type { ToggleProps } from "./Toggle";
 export { default as Badge } from "./Badge";
 export type { BadgeProps } from "./Badge";
 export { default as Card } from "./Card";
+export { default as PageHeader } from "./PageHeader";
+export type { PageHeaderProps, PageHeaderAction } from "./PageHeader";
+export { default as PageFilters } from "./PageFilters";
+export type { PageFiltersProps } from "./PageFilters";
 
 // Table
 export {
@@ -32,6 +36,10 @@ export {
 } from "./Table";
 export { default as Pagination } from "./Pagination";
 export type { PaginationProps, PaginationMeta } from "./Pagination";
+export { default as RowActions } from "./RowActions";
+export type { RowAction, RowActionsProps } from "./RowActions";
+export { default as useTableSelection } from "./useTableSelection";
+export type { TableSelection } from "./useTableSelection";
 
 // Overlays & feedback
 export { default as Modal } from "./Modal";

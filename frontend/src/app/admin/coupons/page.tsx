@@ -5,11 +5,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCoupons, useDeleteCoupon } from "@/modules/coupons/hooks/useCoupons";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
-import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminPage from "@/components/layout/AdminPage";
 import {
   Badge,
-  Button,
+  Input,
+  PageFilters,
+  PageHeader,
   Pagination,
+  RowActions,
   Table,
   TBody,
   TD,
@@ -23,9 +26,9 @@ import type { Coupon } from "@/modules/coupons/types/coupon.types";
 import {
   LucidePencil,
   LucidePlus,
+  LucideSearch,
   MdiTagOff,
   MdiTrashCan,
-  SvgSpinnersRingResize,
 } from "@/components/icons/Icons";
 
 const typeLabels: Record<string, string> = {
@@ -38,8 +41,13 @@ export default function AdminCouponsPage() {
   const router = useRouter();
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
 
-  const { data, isLoading } = useCoupons({ page, limit: 20 });
+  const { data, isLoading } = useCoupons({
+    page,
+    limit: 20,
+    search: search || undefined,
+  });
   const deleteCoupon = useDeleteCoupon();
 
   const handleDelete = async (coupon: Coupon) => {
@@ -47,40 +55,46 @@ export default function AdminCouponsPage() {
     deleteCoupon.mutate(coupon.id);
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize
-          className="  text-primary"
-          width={48}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">
-                کدهای تخفیف
-              </h1>
-              <p className="text-text-secondary text-sm mt-1">
-                مدیریت کوپن‌های تخفیف
-              </p>
-            </div>
-            <Button
-              onClick={() => router.push("/admin/coupons/new")}
-              icon={LucidePlus}
-            >
-              کد تخفیف جدید
-            </Button>
-          </div>
-
-          <Table>
+    <AdminPage
+      maxWidth="6xl"
+      loading={isAuthLoading}
+      header={
+        <PageHeader
+          title="کدهای تخفیف"
+          subtitle="مدیریت کوپن‌های تخفیف"
+          action={{
+            label: "کد تخفیف جدید",
+            icon: LucidePlus,
+            onClick: () => router.push("/admin/coupons/new"),
+          }}
+        />
+      }
+      filters={
+        <PageFilters>
+          <Input
+            type="text"
+            placeholder="جستجو بر اساس کد..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            icon={LucideSearch}
+          />
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="کد تخفیف"
+          />
+        )
+      }
+    >
+      <Table>
             <THead>
               <TH align="right">کد</TH>
               <TH align="center">نوع</TH>
@@ -137,32 +151,28 @@ export default function AdminCouponsPage() {
                       </Badge>
                     </TD>
                     <TD align="center" label="عملیات">
-                      <div className="flex justify-center gap-1">
-                        <button
-                          onClick={() => router.push(`/admin/coupons/${coupon.id}`)}
-                          className="p-2 hover:bg-primary-light rounded-button text-primary"
-                        >
-                          <LucidePencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(coupon)}
-                          className="p-2 hover:bg-error-light rounded-button text-error"
-                        >
-                          <MdiTrashCan className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <RowActions
+                        actions={[
+                          {
+                            icon: LucidePencil,
+                            title: "ویرایش",
+                            onClick: () =>
+                              router.push(`/admin/coupons/${coupon.id}`),
+                          },
+                          {
+                            icon: MdiTrashCan,
+                            title: "حذف",
+                            variant: "error",
+                            onClick: () => handleDelete(coupon),
+                          },
+                        ]}
+                      />
                     </TD>
                   </TRow>
                 ))
               )}
             </TBody>
           </Table>
-
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="کد تخفیف" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+    </AdminPage>
   );
 }

@@ -7,12 +7,14 @@ import toast from "react-hot-toast";
 import { useCategories } from "@/modules/categories/hooks/useCategories";
 import { categoryService } from "@/modules/categories/services/category.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
-import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminPage from "@/components/layout/AdminPage";
 import {
   Badge,
-  Button,
   Input,
+  PageFilters,
+  PageHeader,
   Pagination,
+  RowActions,
   Select,
   Table,
   TBody,
@@ -33,7 +35,6 @@ import {
   MdiFolderOpenOutline,
   MdiTrashCan,
   SolarFolderWithFilesBold,
-  SvgSpinnersRingResize,
 } from "@/components/icons/Icons";
 
 export default function AdminCategoriesPage() {
@@ -72,75 +73,65 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize
-          className="  text-primary"
-          width={48}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">
-                دسته‌بندی‌ها
-              </h1>
-              <p className="text-text-secondary mt-1">
-                مدیریت دسته‌بندی‌های فروشگاه
-              </p>
-            </div>
-            <Button
-              onClick={() => router.push("/admin/categories/new")}
-              icon={LucidePlus}
+    <AdminPage
+      maxWidth="7xl"
+      loading={isAuthLoading}
+      header={
+        <PageHeader
+          title="دسته‌بندی‌ها"
+          subtitle="مدیریت دسته‌بندی‌های فروشگاه"
+          action={{
+            label: "دسته‌بندی جدید",
+            icon: LucidePlus,
+            onClick: () => router.push("/admin/categories/new"),
+          }}
+        />
+      }
+      filters={
+        <PageFilters>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Input
+              wrapperClassName="flex-1"
+              type="text"
+              placeholder="جستجو در دسته‌بندی‌ها..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              icon={LucideSearch}
+            />
+            <Select
+              value={parentFilter || ""}
+              onChange={(e) => {
+                setParentFilter(e.target.value || null);
+                setPage(1);
+              }}
             >
-              دسته‌بندی جدید
-            </Button>
+              <option value="">همه دسته‌بندی‌ها</option>
+              <option value="null">دسته‌های اصلی</option>
+              {data?.data?.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </Select>
           </div>
-
-          {/* Filters */}
-          <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Input
-                wrapperClassName="flex-1"
-                type="text"
-                placeholder="جستجو در دسته‌بندی‌ها..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                icon={LucideSearch}
-              />
-              <Select
-                value={parentFilter || ""}
-                onChange={(e) => {
-                  setParentFilter(e.target.value || null);
-                  setPage(1);
-                }}
-              >
-                <option value="">همه دسته‌بندی‌ها</option>
-                <option value="null">دسته‌های اصلی</option>
-                {data?.data?.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-
-          {/* Table */}
-          <Table>
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="دسته‌بندی"
+          />
+        )
+      }
+    >
+      {/* Table */}
+      <Table>
             <THead>
               <TH align="right">نام</TH>
               <TH align="center" hideBelow="md">اسلاگ</TH>
@@ -203,35 +194,28 @@ export default function AdminCategoriesPage() {
                       </Badge>
                     </TD>
                     <TD align="center" label="عملیات">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => router.push(`/admin/categories/${category.id}`)}
-                          className="p-2 hover:bg-primary-light rounded-button transition-colors text-primary"
-                          title="ویرایش"
-                        >
-                          <LucidePencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(category)}
-                          className="p-2 hover:bg-error-light rounded-button transition-colors text-error"
-                          title="حذف"
-                        >
-                          <MdiTrashCan className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <RowActions
+                        actions={[
+                          {
+                            icon: LucidePencil,
+                            title: "ویرایش",
+                            onClick: () =>
+                              router.push(`/admin/categories/${category.id}`),
+                          },
+                          {
+                            icon: MdiTrashCan,
+                            title: "حذف",
+                            variant: "error",
+                            onClick: () => handleDelete(category),
+                          },
+                        ]}
+                      />
                     </TD>
                   </TRow>
                 ))
               )}
             </TBody>
           </Table>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="دسته‌بندی" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+    </AdminPage>
   );
 }

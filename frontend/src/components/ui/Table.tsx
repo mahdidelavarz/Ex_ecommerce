@@ -23,6 +23,24 @@ const alignClass: Record<Align, string> = {
   left: "md:text-left",
 };
 
+// Static class maps so Tailwind sees every breakpoint variant as a literal
+// string (interpolated `${bp}:table-cell` names get purged and never emitted).
+const thHideBelow: Record<"sm" | "md" | "lg", string> = {
+  sm: "hidden sm:table-cell",
+  md: "hidden md:table-cell",
+  lg: "hidden lg:table-cell",
+};
+
+// The table is stacked cards below `md` and a real table at `md+`, so a hidden
+// column's "show" breakpoint must be `md`+ to use `table-cell`; `sm` shows as a
+// flex card-field in the sm→md range. `none` is the default (always visible).
+const tdDisplay: Record<"none" | "sm" | "md" | "lg", string> = {
+  none: "flex md:table-cell",
+  sm: "hidden sm:flex md:table-cell",
+  md: "hidden md:table-cell",
+  lg: "hidden lg:table-cell",
+};
+
 /** Outer container + horizontal scroll + <table>. */
 export function Table({
   className = "",
@@ -68,7 +86,7 @@ export function TH({
   children,
   ...props
 }: THProps) {
-  const hidden = hideBelow ? `hidden ${hideBelow}:table-cell` : "";
+  const hidden = hideBelow ? thHideBelow[hideBelow] : "";
   return (
     <th
       className={`px-4 py-3 text-sm font-medium text-text-secondary ${alignClass[align]} ${hidden} ${className}`}
@@ -137,13 +155,13 @@ export function TD({
   children,
   ...props
 }: TDProps) {
-  const hidden = hideBelow ? `hidden ${hideBelow}:table-cell` : "";
+  const display = tdDisplay[hideBelow ?? "none"];
   return (
     <td
       className={`
-        flex items-center justify-between gap-4 py-1.5
-        md:table-cell md:px-4 md:py-3 text-sm text-text-primary
-        ${alignClass[align]} ${hidden} ${className}
+        items-center justify-between gap-4 py-1.5
+        ${display} md:px-4 md:py-3 text-sm text-text-primary
+        ${alignClass[align]} ${className}
       `}
       {...props}
     >

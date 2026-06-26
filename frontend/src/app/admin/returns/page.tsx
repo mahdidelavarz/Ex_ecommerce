@@ -7,10 +7,12 @@ import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
-import AdminSidebar from '@/components/layout/AdminSidebar';
+import AdminPage from '@/components/layout/AdminPage';
 import {
   Badge,
   Input,
+  PageFilters,
+  PageHeader,
   Pagination,
   Select,
   Table,
@@ -25,7 +27,7 @@ import {
 import { formatPrice } from '@/utils/formatPrice';
 import { returnStatusBadge } from '@/utils/statusBadge';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
-import { MdiKeyboardReturn, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { MdiKeyboardReturn } from '@/components/icons/Icons';
 
 const statusOptions = [
   { value: 'pending', label: 'در انتظار' },
@@ -77,35 +79,35 @@ export default function AdminReturnsPage() {
     handleUpdateStatus(id, 'refunded', amount);
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold text-text-primary mb-8">مرجوعی‌ها</h1>
-
-          {/* Filters */}
-          <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <div className="flex gap-4">
-              <Select
-                value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                placeholder="همه وضعیت‌ها"
-                options={statusOptions}
-              />
-            </div>
+    <AdminPage
+      maxWidth="6xl"
+      loading={isAuthLoading}
+      header={<PageHeader title="مرجوعی‌ها" />}
+      filters={
+        <PageFilters>
+          <div className="flex gap-4">
+            <Select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              placeholder="همه وضعیت‌ها"
+              options={statusOptions}
+            />
           </div>
-
-          {/* Table */}
-          <Table className="text-sm">
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="مرجوعی"
+          />
+        )
+      }
+    >
+      {/* Table */}
+      <Table className="text-sm">
             <THead>
               <TH align="right">شماره</TH>
               <TH align="right" hideBelow="md">سفارش</TH>
@@ -208,13 +210,6 @@ export default function AdminReturnsPage() {
               )}
             </TBody>
           </Table>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="مرجوعی" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+    </AdminPage>
   );
 }

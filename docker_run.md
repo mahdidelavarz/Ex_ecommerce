@@ -6,6 +6,10 @@
 # Start full dev stack (postgres + backend + frontend)
 docker compose -f docker-compose.dev.yml up -d --build
 
+# Restart Frontend
+docker compose -f docker-compose.dev.yml restart frontend
+
+
 # Start only postgres (if running backend locally with npm run dev)
 docker compose -f docker-compose.dev.yml up -d postgres
 

@@ -5,10 +5,13 @@ import { useState, useEffect } from 'react';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { useUsers, useUpdateUserRole, useUpdateUserStatus } from '@/modules/users/hooks/useUsers';
 import type { AdminUser, UserRole } from '@/modules/users/types/user.types';
-import AdminSidebar from '@/components/layout/AdminSidebar';
+import AdminPage from '@/components/layout/AdminPage';
 import {
   Input,
+  PageFilters,
+  PageHeader,
   Pagination,
+  Select,
   Table,
   TBody,
   TD,
@@ -21,7 +24,6 @@ import {
 import {
   LucideSearch,
   MdiAccount,
-  SvgSpinnersRingResize,
 } from '@/components/icons/Icons';
 
 const roleLabels: Record<UserRole, string> = {
@@ -35,6 +37,12 @@ const roleClasses: Record<UserRole, string> = {
   admin: 'bg-primary-light text-primary',
   support: 'bg-warning-light text-warning',
 };
+
+const roleFilterOptions = [
+  { value: 'customer', label: roleLabels.customer },
+  { value: 'admin', label: roleLabels.admin },
+  { value: 'support', label: roleLabels.support },
+];
 
 type RoleFilter = 'all' | UserRole;
 
@@ -66,49 +74,45 @@ export default function AdminUsersPage() {
     updateRole.mutate({ id: user.id, role });
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl font-bold text-text-primary mb-6">کاربران</h1>
-
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+    <AdminPage
+      maxWidth="5xl"
+      loading={isAuthLoading}
+      header={<PageHeader title="کاربران" />}
+      filters={
+        <PageFilters>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input
-              wrapperClassName="flex-1"
+              wrapperClassName="sm:col-span-2"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="جستجو بر اساس نام، تلفن یا ایمیل"
               icon={LucideSearch}
             />
-            <div className="flex gap-2">
-              {(['all', 'customer', 'admin', 'support'] as RoleFilter[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => { setRoleFilter(r); setPage(1); }}
-                  className={`px-3 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap ${
-                    roleFilter === r
-                      ? 'bg-primary text-white'
-                      : 'bg-surface border border-border text-text-secondary hover:bg-surface-raised'
-                  }`}
-                >
-                  {r === 'all' ? 'همه' : roleLabels[r]}
-                </button>
-              ))}
-            </div>
+            <Select
+              value={roleFilter === 'all' ? '' : roleFilter}
+              onChange={(e) => {
+                setRoleFilter((e.target.value || 'all') as RoleFilter);
+                setPage(1);
+              }}
+              placeholder="همه نقش‌ها"
+              options={roleFilterOptions}
+            />
           </div>
-
-          {/* List */}
-          <Table className="text-sm">
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="کاربر"
+          />
+        )
+      }
+    >
+      {/* List */}
+      <Table className="text-sm">
             <THead>
               <TH align="right">کاربر</TH>
               <TH align="right">تماس</TH>
@@ -175,13 +179,6 @@ export default function AdminUsersPage() {
               )}
             </TBody>
           </Table>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="کاربر" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+    </AdminPage>
   );
 }

@@ -11,10 +11,13 @@ import {
   type AdminShipment,
   type ShipmentStatus,
 } from '@/modules/shipments/types/shipment.types';
-import AdminSidebar from '@/components/layout/AdminSidebar';
+import AdminPage from '@/components/layout/AdminPage';
 import {
   Input,
+  PageFilters,
+  PageHeader,
   Pagination,
+  Select,
   Table,
   TBody,
   TD,
@@ -28,13 +31,17 @@ import {
   LucideSearch,
   MdiTruckDelivery,
   MdiOpenInNew,
-  SvgSpinnersRingResize,
 } from '@/components/icons/Icons';
 
 const STATUSES: ShipmentStatus[] = [
   'pending', 'processing', 'shipped', 'in_transit',
   'out_for_delivery', 'delivered', 'failed', 'returned',
 ];
+
+const statusFilterOptions = STATUSES.map((s) => ({
+  value: s,
+  label: shipmentStatusLabels[s],
+}));
 
 type StatusFilter = 'all' | ShipmentStatus;
 
@@ -59,51 +66,45 @@ export default function AdminShipmentsPage() {
 
   const updateShipment = useAdminUpdateShipment();
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <MdiTruckDelivery className="w-7 h-7 text-primary" />
-            <h1 className="text-2xl font-bold text-text-primary">مرسولات</h1>
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-col gap-3 mb-6">
+    <AdminPage
+      maxWidth="6xl"
+      loading={isAuthLoading}
+      header={<PageHeader title="مرسولات" icon={MdiTruckDelivery} />}
+      filters={
+        <PageFilters>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input
+              wrapperClassName="sm:col-span-2"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="جستجو بر اساس کد رهگیری یا شماره سفارش"
               icon={LucideSearch}
             />
-            <div className="flex gap-2 flex-wrap">
-              {(['all', ...STATUSES] as StatusFilter[]).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => { setStatusFilter(s); setPage(1); }}
-                  className={`px-3 py-1.5 rounded-button text-xs font-medium transition-colors whitespace-nowrap ${
-                    statusFilter === s
-                      ? 'bg-primary text-white'
-                      : 'bg-surface border border-border text-text-secondary hover:bg-surface-raised'
-                  }`}
-                >
-                  {s === 'all' ? 'همه' : shipmentStatusLabels[s]}
-                </button>
-              ))}
-            </div>
+            <Select
+              value={statusFilter === 'all' ? '' : statusFilter}
+              onChange={(e) => {
+                setStatusFilter((e.target.value || 'all') as StatusFilter);
+                setPage(1);
+              }}
+              placeholder="همه وضعیت‌ها"
+              options={statusFilterOptions}
+            />
           </div>
-
-          {/* List */}
-          <Table className="text-sm">
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="مرسوله"
+          />
+        )
+      }
+    >
+      {/* List */}
+      <Table className="text-sm">
             <THead>
               <TH align="right">سفارش</TH>
               <TH align="right">مشتری</TH>
@@ -171,13 +172,6 @@ export default function AdminShipmentsPage() {
               )}
             </TBody>
           </Table>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="مرسوله" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+    </AdminPage>
   );
 }

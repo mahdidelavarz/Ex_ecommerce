@@ -9,13 +9,16 @@ import { useCategories } from "@/modules/categories/hooks/useCategories";
 import { useAllBrands } from "@/modules/brands/hooks/useBrands";
 import { productService } from "@/modules/products/services/product.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
-import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminPage from "@/components/layout/AdminPage";
 import {
   Badge,
   Button,
   Checkbox,
   Input,
+  PageFilters,
+  PageHeader,
   Pagination,
+  RowActions,
   Select,
   Table,
   TBody,
@@ -25,6 +28,7 @@ import {
   TH,
   THead,
   TRow,
+  useTableSelection,
 } from "@/components/ui";
 import { formatPrice } from "@/utils/formatPrice";
 import type { ProductListResponse } from "@/modules/products/types/product.types";
@@ -35,7 +39,6 @@ import {
   MdiImageOff,
   MdiPackageVariantClosed,
   MdiTrashCan,
-  SvgSpinnersRingResize,
 } from "@/components/icons/Icons";
 
 export default function AdminProductsPage() {
@@ -45,19 +48,20 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { data: categoriesData } = useCategories({ limit: 100 });
   const { data: brandsData } = useAllBrands();
 
   const { data, isLoading, refetch } = useProducts({
     page,
-    limit: 20,
+    limit: 8,
     search: search || undefined,
     category_id: categoryFilter || undefined,
     brand_id: brandFilter || undefined,
     is_public: undefined, // Show all in admin
   });
+
+  const selection = useTableSelection(data?.data, (p) => p.id);
 
   const handleDelete = async (product: ProductListResponse) => {
     if (!window.confirm(`آیا از حذف "${product.title}" اطمینان دارید؟`)) return;
@@ -71,56 +75,35 @@ export default function AdminProductsPage() {
   };
 
   const handleBulkStatus = async (is_active: boolean) => {
-    if (selectedIds.size === 0) return;
+    if (selection.count === 0) return;
     try {
-      await productService.bulkStatus(Array.from(selectedIds), is_active);
+      await productService.bulkStatus(Array.from(selection.selectedIds), is_active);
       toast.success("وضعیت محصولات بروزرسانی شد");
-      setSelectedIds(new Set());
+      selection.clear();
       refetch();
     } catch (error: any) {
       toast.error(error.response?.data?.message || "خطا در بروزرسانی");
     }
   };
 
-  const toggleSelect = (id: string) => {
-    const newSet = new Set(selectedIds);
-    newSet.has(id) ? newSet.delete(id) : newSet.add(id);
-    setSelectedIds(newSet);
-  };
-
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize
-          className="  text-primary"
-          width={48}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">محصولات</h1>
-              <p className="text-text-secondary mt-1">مدیریت محصولات فروشگاه</p>
-            </div>
-            <Button
-              onClick={() => router.push("/admin/products/new")}
-              icon={LucidePlus}
-            >
-              محصول جدید
-            </Button>
-          </div>
-
-          {/* Filters */}
-          <div className="bg-surface rounded-card shadow-card p-4 mb-6">
+    <AdminPage
+      maxWidth="7xl"
+      loading={isAuthLoading}
+      header={
+        <PageHeader
+          title="محصولات"
+          subtitle="مدیریت محصولات فروشگاه"
+          action={{
+            label: "محصول جدید",
+            icon: LucidePlus,
+            onClick: () => router.push("/admin/products/new"),
+          }}
+        />
+      }
+      filters={
+        <>
+          <PageFilters>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Input
                 type="text"
@@ -161,13 +144,13 @@ export default function AdminProductsPage() {
                 ))}
               </Select>
             </div>
-          </div>
+          </PageFilters>
 
           {/* Bulk Actions */}
-          {selectedIds.size > 0 && (
-            <div className="bg-primary-light rounded-card p-3 mb-4 flex items-center gap-3">
+          {selection.count > 0 && (
+            <div className="shrink-0 bg-primary-light rounded-card p-3 mb-4 flex items-center gap-3">
               <span className="text-sm text-primary font-medium">
-                {selectedIds.size} محصول انتخاب شده
+                {selection.count} محصول انتخاب شده
               </span>
               <Button size="sm" onClick={() => handleBulkStatus(true)}>
                 فعال کردن
@@ -181,19 +164,25 @@ export default function AdminProductsPage() {
               </Button>
             </div>
           )}
-
-          {/* Table */}
-          <Table>
+        </>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="محصول"
+          />
+        )
+      }
+    >
+      {/* Table */}
+      <Table>
             <THead>
               <TH className="w-10">
                 <Checkbox
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedIds(new Set(data?.data?.map((p) => p.id) || []));
-                    } else {
-                      setSelectedIds(new Set());
-                    }
-                  }}
+                  checked={selection.allSelected}
+                  onChange={(e) => selection.toggleAll(e.target.checked)}
                 />
               </TH>
               <TH align="right">محصول</TH>
@@ -212,8 +201,8 @@ export default function AdminProductsPage() {
                   <TRow key={product.id} hover>
                     <TD label="">
                       <Checkbox
-                        checked={selectedIds.has(product.id)}
-                        onChange={() => toggleSelect(product.id)}
+                        checked={selection.isSelected(product)}
+                        onChange={() => selection.toggle(product)}
                       />
                     </TD>
                     <TD align="right" label="محصول">
@@ -249,35 +238,28 @@ export default function AdminProductsPage() {
                       </Badge>
                     </TD>
                     <TD align="center" label="عملیات">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => router.push(`/admin/products/${product.id}`)}
-                          className="p-2 hover:bg-primary-light rounded-button text-primary"
-                          title="ویرایش"
-                        >
-                          <LucidePencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product)}
-                          className="p-2 hover:bg-error-light rounded-button text-error"
-                          title="حذف"
-                        >
-                          <MdiTrashCan className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <RowActions
+                        actions={[
+                          {
+                            icon: LucidePencil,
+                            title: "ویرایش",
+                            onClick: () =>
+                              router.push(`/admin/products/${product.id}`),
+                          },
+                          {
+                            icon: MdiTrashCan,
+                            title: "حذف",
+                            variant: "error",
+                            onClick: () => handleDelete(product),
+                          },
+                        ]}
+                      />
                     </TD>
                   </TRow>
                 ))
               )}
             </TBody>
           </Table>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="محصول" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+    </AdminPage>
   );
 }

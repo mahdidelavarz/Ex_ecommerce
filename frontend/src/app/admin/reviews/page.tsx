@@ -3,8 +3,19 @@
 
 import { useState } from 'react';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import { Badge, Button, EmptyState, Input, Pagination, Skeleton, StarRating } from '@/components/ui';
+import AdminPage from '@/components/layout/AdminPage';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  Input,
+  PageFilters,
+  PageHeader,
+  Pagination,
+  Select,
+  Skeleton,
+  StarRating,
+} from '@/components/ui';
 import type { Review } from '@/modules/reviews/types/review.types';
 import {
   useAdminReviews,
@@ -12,9 +23,14 @@ import {
   useReplyReview,
   useAdminDeleteReview,
 } from '@/modules/reviews/hooks/useReviews';
-import { MdiCommentTextOutline, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { MdiCommentTextOutline } from '@/components/icons/Icons';
 
 type ApprovalFilter = 'all' | 'pending' | 'approved';
+
+const approvalFilterOptions = [
+  { value: 'pending', label: 'در انتظار' },
+  { value: 'approved', label: 'تایید شده' },
+];
 
 export default function AdminReviewsPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
@@ -57,39 +73,35 @@ export default function AdminReviewsPage() {
     deleteReview.mutate(review.id);
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-text-primary mb-6">نظرات</h1>
-
-          {/* Approval Filter */}
-          <div className="flex gap-2 mb-6">
-            {(['all', 'pending', 'approved'] as ApprovalFilter[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => { setApprovalFilter(f); setPage(1); }}
-                className={`px-4 py-2 rounded-button text-sm font-medium transition-colors ${
-                  approvalFilter === f
-                    ? 'bg-primary text-white'
-                    : 'bg-surface border border-border text-text-secondary hover:bg-surface-raised'
-                }`}
-              >
-                {f === 'all' ? 'همه' : f === 'pending' ? 'در انتظار' : 'تایید شده'}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-4">
+    <AdminPage
+      maxWidth="4xl"
+      loading={isAuthLoading}
+      header={<PageHeader title="نظرات" />}
+      filters={
+        <PageFilters>
+          <Select
+            value={approvalFilter === 'all' ? '' : approvalFilter}
+            onChange={(e) => {
+              setApprovalFilter((e.target.value || 'all') as ApprovalFilter);
+              setPage(1);
+            }}
+            placeholder="همه نظرات"
+            options={approvalFilterOptions}
+          />
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="نظر"
+          />
+        )
+      }
+    >
+      <div className="space-y-4">
             {isLoading ? (
               [...Array(3)].map((_, i) => (
                 <div key={i} className="bg-surface rounded-card p-6">
@@ -185,13 +197,7 @@ export default function AdminReviewsPage() {
                 </div>
               ))
             )}
-          </div>
-
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="نظر" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+      </div>
+    </AdminPage>
   );
 }

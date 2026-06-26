@@ -7,8 +7,17 @@ import toast from "react-hot-toast";
 import { useBrands } from "@/modules/brands/hooks/useBrands";
 import { brandService } from "@/modules/brands/services/brand.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
-import AdminSidebar from "@/components/layout/AdminSidebar";
-import { Badge, Button, EmptyState, Input, Pagination, Skeleton } from "@/components/ui";
+import AdminPage from "@/components/layout/AdminPage";
+import {
+  Badge,
+  EmptyState,
+  Input,
+  PageFilters,
+  PageHeader,
+  Pagination,
+  RowActions,
+  Skeleton,
+} from "@/components/ui";
 import type { Brand } from "@/modules/brands/types/brand.types";
 import {
   LucidePencil,
@@ -18,7 +27,6 @@ import {
   MdiCloseCircle,
   MdiTagOff,
   MdiTrashCan,
-  SvgSpinnersRingResize,
 } from "@/components/icons/Icons";
 
 export default function AdminBrandsPage() {
@@ -46,88 +54,75 @@ export default function AdminBrandsPage() {
     }
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className=" text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">برندها</h1>
-              <p className="text-text-secondary mt-1">مدیریت برندهای فروشگاه</p>
-            </div>
-            <Button
-              onClick={() => router.push("/admin/brands/new")}
-              icon={LucidePlus}
-            >
-              برند جدید
-            </Button>
-          </div>
-
-          {/* Search */}
-          <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <Input
-              type="text"
-              placeholder="جستجو در برندها..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              icon={LucideSearch}
-            />
-          </div>
-
-          {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {isLoading ? (
-              [...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-surface rounded-card shadow-card p-6"
-                >
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="w-16 h-16 rounded-xl" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
+    <AdminPage
+      maxWidth="7xl"
+      loading={isAuthLoading}
+      header={
+        <PageHeader
+          title="برندها"
+          subtitle="مدیریت برندهای فروشگاه"
+          action={{
+            label: "برند جدید",
+            icon: LucidePlus,
+            onClick: () => router.push("/admin/brands/new"),
+          }}
+        />
+      }
+      filters={
+        <PageFilters>
+          <Input
+            type="text"
+            placeholder="جستجو در برندها..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            icon={LucideSearch}
+          />
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="برند"
+          />
+        )
+      }
+    >
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {isLoading ? (
+          [...Array(6)].map((_, i) => (
+            <div key={i} className="bg-surface rounded-card shadow-card p-6">
+              <div className="flex items-center gap-4">
+                <Skeleton className="w-16 h-16 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
-              ))
-            ) : data?.data?.length === 0 ? (
-              <div className="col-span-full">
-                <EmptyState icon={MdiTagOff} title="برندی یافت نشد" />
               </div>
-            ) : (
-              data?.data?.map((brand) => (
-                <BrandCard
-                  key={brand.id}
-                  brand={brand}
-                  onEdit={() => router.push(`/admin/brands/${brand.id}`)}
-                  onDelete={() => handleDelete(brand)}
-                />
-              ))
-            )}
+            </div>
+          ))
+        ) : data?.data?.length === 0 ? (
+          <div className="col-span-full">
+            <EmptyState icon={MdiTagOff} title="برندی یافت نشد" />
           </div>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="برند" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+        ) : (
+          data?.data?.map((brand) => (
+            <BrandCard
+              key={brand.id}
+              brand={brand}
+              onEdit={() => router.push(`/admin/brands/${brand.id}`)}
+              onDelete={() => handleDelete(brand)}
+            />
+          ))
+        )}
+      </div>
+    </AdminPage>
   );
 }
 
@@ -164,22 +159,18 @@ function BrandCard({
             </code>
           </div>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={onEdit}
-            className="p-2 hover:bg-primary-light rounded-button transition-colors text-primary"
-            title="ویرایش"
-          >
-            <LucidePencil className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-2 hover:bg-error-light rounded-button transition-colors text-error"
-            title="حذف"
-          >
-            <MdiTrashCan className="w-4 h-4" />
-          </button>
-        </div>
+        <RowActions
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          actions={[
+            { icon: LucidePencil, title: "ویرایش", onClick: onEdit },
+            {
+              icon: MdiTrashCan,
+              title: "حذف",
+              variant: "error",
+              onClick: onDelete,
+            },
+          ]}
+        />
       </div>
       {brand.description && (
         <p className="text-sm text-text-secondary line-clamp-2">

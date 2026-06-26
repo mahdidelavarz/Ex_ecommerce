@@ -4,10 +4,10 @@
 import { useState } from 'react';
 import { useTags, useCreateTag, useUpdateTag, useDeleteTag } from '@/modules/tags/hooks/useTags';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import { Button, Input, Pagination, Skeleton } from '@/components/ui';
+import AdminPage from '@/components/layout/AdminPage';
+import { Button, Input, Modal, PageFilters, PageHeader, Pagination, RowActions, Skeleton } from '@/components/ui';
 import type { Tag } from '@/modules/tags/types/tag.types';
-import { LucidePencil, LucidePlus, LucideSearch, MdiCheck, MdiClose, MdiTag, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { LucidePencil, LucidePlus, LucideSearch, MdiCheck, MdiClose, MdiTag, MdiTrashCan } from '@/components/icons/Icons';
 
 const LIMIT = 50;
 
@@ -15,6 +15,7 @@ export default function AdminTagsPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [newTagError, setNewTagError] = useState('');
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
@@ -41,7 +42,10 @@ export default function AdminTagsPage() {
     }
     setNewTagError('');
     createMutation.mutate({ name }, {
-      onSuccess: () => setNewTagName(''),
+      onSuccess: () => {
+        setNewTagName('');
+        setCreateOpen(false);
+      },
     });
   };
 
@@ -63,50 +67,69 @@ export default function AdminTagsPage() {
     deleteMutation.mutate(tag.id);
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold text-text-primary mb-8">تگ‌ها</h1>
+    <AdminPage
+      maxWidth="3xl"
+      loading={isAuthLoading}
+      header={
+        <PageHeader
+          title="تگ‌ها"
+          action={{
+            label: "تگ جدید",
+            icon: LucidePlus,
+            onClick: () => { setNewTagName(''); setNewTagError(''); setCreateOpen(true); },
+          }}
+        />
+      }
+      filters={
+        <PageFilters>
+          <Input
+            value={search}
+            onChange={handleSearch}
+            placeholder="جستجو..."
+            icon={LucideSearch}
+          />
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={{ page, limit: LIMIT, total: data.meta.total, totalPages }}
+            onPageChange={setPage}
+            itemLabel="تگ"
+          />
+        )
+      }
+    >
+      {/* Create Tag Modal */}
+      <Modal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="تگ جدید"
+        size="sm"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+              انصراف
+            </Button>
+            <Button onClick={handleCreate} loading={createMutation.isPending}>
+              ایجاد
+            </Button>
+          </>
+        }
+      >
+        <Input
+          value={newTagName}
+          onChange={(e) => { setNewTagName(e.target.value); setNewTagError(''); }}
+          onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+          placeholder="نام تگ جدید..."
+          error={newTagError || undefined}
+          autoFocus
+        />
+      </Modal>
 
-          {/* Create */}
-          <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <div className="flex gap-3 items-start">
-              <Input
-                wrapperClassName="flex-1"
-                value={newTagName}
-                onChange={(e) => { setNewTagName(e.target.value); setNewTagError(''); }}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                placeholder="نام تگ جدید..."
-                error={newTagError || undefined}
-              />
-              <Button onClick={handleCreate} icon={LucidePlus} loading={createMutation.isPending}>
-                ایجاد
-              </Button>
-            </div>
-          </div>
-
-          {/* Search */}
-          <div className="mb-6">
-            <Input
-              value={search}
-              onChange={handleSearch}
-              placeholder="جستجو..."
-              icon={LucideSearch}
-            />
-          </div>
-
-          {/* Tags List */}
-          <div className="bg-surface rounded-card shadow-card">
+      {/* Tags List */}
+      <div className="bg-surface rounded-card shadow-card">
             {isLoading ? (
               <div className="p-6 space-y-3">
                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
@@ -149,21 +172,22 @@ export default function AdminTagsPage() {
                           </div>
                           <span className="text-xs text-text-muted">({tag.products_count} محصول)</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => { setEditingTag(tag); setEditName(tag.name); setEditError(''); }}
-                            className="p-2 hover:bg-primary-light rounded-button text-primary"
-                          >
-                            <LucidePencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(tag)}
-                            disabled={deleteMutation.isPending}
-                            className="p-2 hover:bg-error-light rounded-button text-error disabled:opacity-50"
-                          >
-                            <MdiTrashCan className="w-4 h-4" />
-                          </button>
-                        </div>
+                        <RowActions
+                          actions={[
+                            {
+                              icon: LucidePencil,
+                              title: 'ویرایش',
+                              onClick: () => { setEditingTag(tag); setEditName(tag.name); setEditError(''); },
+                            },
+                            {
+                              icon: MdiTrashCan,
+                              title: 'حذف',
+                              variant: 'error',
+                              onClick: () => handleDelete(tag),
+                              disabled: deleteMutation.isPending,
+                            },
+                          ]}
+                        />
                       </>
                     )}
                   </div>
@@ -173,19 +197,7 @@ export default function AdminTagsPage() {
                 )}
               </div>
             )}
-          </div>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination
-              meta={{ page, limit: LIMIT, total: data.meta.total, totalPages }}
-              onPageChange={setPage}
-              itemLabel="تگ"
-              className="mt-4"
-            />
-          )}
-        </div>
-      </main>
-    </div>
+      </div>
+    </AdminPage>
   );
 }

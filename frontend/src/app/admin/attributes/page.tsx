@@ -7,8 +7,16 @@ import toast from "react-hot-toast";
 import { useAttributes } from "@/modules/attributes/hooks/useAttributes";
 import { attributeService } from "@/modules/attributes/services/attribute.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
-import AdminSidebar from "@/components/layout/AdminSidebar";
-import { Button, EmptyState, Input, Pagination, Skeleton } from "@/components/ui";
+import AdminPage from "@/components/layout/AdminPage";
+import {
+  EmptyState,
+  Input,
+  PageFilters,
+  PageHeader,
+  Pagination,
+  RowActions,
+  Skeleton,
+} from "@/components/ui";
 import type { Attribute } from "@/modules/attributes/types/attribute.types";
 import {
   LucidePencil,
@@ -17,7 +25,6 @@ import {
   MdiClose,
   MdiShape,
   MdiTrashCan,
-  SvgSpinnersRingResize,
 } from "@/components/icons/Icons";
 
 export default function AdminAttributesPage() {
@@ -59,91 +66,75 @@ export default function AdminAttributesPage() {
     }
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize
-          className="  text-primary"
-          width={48}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">ویژگی‌ها</h1>
-              <p className="text-text-secondary mt-1">
-                مدیریت ویژگی‌های محصولات (رنگ، سایز، حافظه و...)
-              </p>
+    <AdminPage
+      maxWidth="7xl"
+      loading={isAuthLoading}
+      header={
+        <PageHeader
+          title="ویژگی‌ها"
+          subtitle="مدیریت ویژگی‌های محصولات (رنگ، سایز، حافظه و...)"
+          action={{
+            label: "ویژگی جدید",
+            icon: LucidePlus,
+            onClick: () => router.push("/admin/attributes/new"),
+          }}
+        />
+      }
+      filters={
+        <PageFilters>
+          <Input
+            type="text"
+            placeholder="جستجو در ویژگی‌ها..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            icon={LucideSearch}
+          />
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="ویژگی"
+          />
+        )
+      }
+    >
+      {/* Attributes Cards */}
+      <div className="space-y-4">
+        {isLoading ? (
+          [...Array(3)].map((_, i) => (
+            <div key={i} className="bg-surface rounded-card shadow-card p-6">
+              <Skeleton className="h-5 w-1/4 mb-4" />
+              <div className="flex gap-3">
+                {[...Array(4)].map((_, j) => (
+                  <Skeleton key={j} className="h-10 w-24 rounded-lg" />
+                ))}
+              </div>
             </div>
-            <Button
-              onClick={() => router.push("/admin/attributes/new")}
-              icon={LucidePlus}
-            >
-              ویژگی جدید
-            </Button>
-          </div>
-
-          {/* Search */}
-          <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <Input
-              type="text"
-              placeholder="جستجو در ویژگی‌ها..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              icon={LucideSearch}
+          ))
+        ) : data?.data?.length === 0 ? (
+          <EmptyState icon={MdiShape} title="ویژگی یافت نشد" />
+        ) : (
+          data?.data?.map((attribute) => (
+            <AttributeCard
+              key={attribute.id}
+              attribute={attribute}
+              onEdit={() => router.push(`/admin/attributes/${attribute.id}`)}
+              onDelete={() => handleDelete(attribute)}
+              onDeleteValue={(valueId, valueName) =>
+                handleDeleteValue(attribute.id, valueId, valueName)
+              }
             />
-          </div>
-
-          {/* Attributes Cards */}
-          <div className="space-y-4">
-            {isLoading ? (
-              [...Array(3)].map((_, i) => (
-                <div key={i} className="bg-surface rounded-card shadow-card p-6">
-                  <Skeleton className="h-5 w-1/4 mb-4" />
-                  <div className="flex gap-3">
-                    {[...Array(4)].map((_, j) => (
-                      <Skeleton key={j} className="h-10 w-24 rounded-lg" />
-                    ))}
-                  </div>
-                </div>
-              ))
-            ) : data?.data?.length === 0 ? (
-              <EmptyState icon={MdiShape} title="ویژگی یافت نشد" />
-            ) : (
-              data?.data?.map((attribute) => (
-                <AttributeCard
-                  key={attribute.id}
-                  attribute={attribute}
-                  onEdit={() =>
-                    router.push(`/admin/attributes/${attribute.id}`)
-                  }
-                  onDelete={() => handleDelete(attribute)}
-                  onDeleteValue={(valueId, valueName) =>
-                    handleDeleteValue(attribute.id, valueId, valueName)
-                  }
-                />
-              ))
-            )}
-          </div>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="ویژگی" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+          ))
+        )}
+      </div>
+    </AdminPage>
   );
 }
 
@@ -170,22 +161,17 @@ function AttributeCard({
             ({attribute.values_count} مقدار)
           </span>
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onEdit}
-            className="p-2 hover:bg-primary-light rounded-button text-primary"
-            title="ویرایش"
-          >
-            <LucidePencil className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-2 hover:bg-error-light rounded-button text-error"
-            title="حذف"
-          >
-            <MdiTrashCan className="w-4 h-4" />
-          </button>
-        </div>
+        <RowActions
+          actions={[
+            { icon: LucidePencil, title: "ویرایش", onClick: onEdit },
+            {
+              icon: MdiTrashCan,
+              title: "حذف",
+              variant: "error",
+              onClick: onDelete,
+            },
+          ]}
+        />
       </div>
 
       {/* Values */}

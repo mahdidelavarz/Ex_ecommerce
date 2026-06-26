@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { orderService } from '@/modules/orders/services/order.service';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
-import AdminSidebar from '@/components/layout/AdminSidebar';
+import AdminPage from '@/components/layout/AdminPage';
 import { formatPrice } from '@/utils/formatPrice';
 import {
   Badge,
   Input,
+  PageFilters,
+  PageHeader,
   Pagination,
   Select,
   Table,
@@ -23,7 +25,7 @@ import {
   TRow,
 } from '@/components/ui';
 import { orderStatusBadge, paymentStatusBadge } from '@/utils/statusBadge';
-import { LucideSearch, MdiPackageVariantClosed, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { LucideSearch, MdiPackageVariantClosed } from '@/components/icons/Icons';
 
 const statusOptions = [
   { value: 'pending', label: 'در انتظار' },
@@ -59,47 +61,47 @@ export default function AdminOrdersPage() {
     }),
   });
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="animate-spin text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold text-text-primary mb-8">سفارشات</h1>
-
-          {/* Filters */}
-          <div className="bg-surface rounded-card shadow-card p-4 mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                placeholder="جستجو..."
-                icon={LucideSearch}
-              />
-              <Select
-                value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                placeholder="همه وضعیت‌ها"
-                options={statusOptions}
-              />
-              <Select
-                value={paymentFilter}
-                onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }}
-                placeholder="همه پرداخت‌ها"
-                options={paymentOptions}
-              />
-            </div>
+    <AdminPage
+      maxWidth="7xl"
+      loading={isAuthLoading}
+      header={<PageHeader title="سفارشات" />}
+      filters={
+        <PageFilters>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="جستجو..."
+              icon={LucideSearch}
+            />
+            <Select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              placeholder="همه وضعیت‌ها"
+              options={statusOptions}
+            />
+            <Select
+              value={paymentFilter}
+              onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }}
+              placeholder="همه پرداخت‌ها"
+              options={paymentOptions}
+            />
           </div>
-
-          {/* Table */}
-          <Table>
+        </PageFilters>
+      }
+      footer={
+        data?.meta && (
+          <Pagination
+            meta={data.meta}
+            onPageChange={setPage}
+            itemLabel="سفارش"
+          />
+        )
+      }
+    >
+      {/* Table */}
+      <Table>
             <THead>
               <TH align="right">شماره سفارش</TH>
               <TH align="right" hideBelow="md">مشتری</TH>
@@ -143,13 +145,6 @@ export default function AdminOrdersPage() {
               )}
             </TBody>
           </Table>
-
-          {/* Pagination */}
-          {data?.meta && (
-            <Pagination meta={data.meta} onPageChange={setPage} itemLabel="سفارش" className="mt-6" />
-          )}
-        </div>
-      </main>
-    </div>
+    </AdminPage>
   );
 }
