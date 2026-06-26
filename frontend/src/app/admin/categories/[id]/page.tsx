@@ -12,9 +12,16 @@ import { categoryService } from '@/modules/categories/services/category.service'
 import { useCategoryTree } from '@/modules/categories/hooks/useCategories';
 import { numberField } from '@/lib/forms';
 import type { CategoryTreeNode } from '@/modules/categories/types/category.types';
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import { Button, Card, Input, Select, Textarea, Toggle } from '@/components/ui';
-import { MdiArrowRight, SolarFolderWithFilesBold, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import AdminFormLayout from '@/components/layout/AdminFormLayout';
+import { FormSection, Input, Select, Textarea, Toggle } from '@/components/ui';
+import {
+  SolarFolderWithFilesBold,
+  MdiInformation,
+  MdiImageMultiple,
+  LucideSearch,
+  MdiCheckCircle,
+  MdiFolderOpenOutline,
+} from '@/components/icons/Icons';
 import { Icon } from '@iconify/react';
 
 const iconifyPattern = /^[a-z0-9-]+:[a-z0-9-]+$/;
@@ -127,6 +134,7 @@ export default function AdminCategoryFormPage() {
   const selectedIcon = watch('icon');
   const selectedImage = watch('image');
   const isActive = watch('is_active');
+  const watchedName = watch('name');
 
   const handleMediaTypeChange = (type: 'icon' | 'image') => {
     setMediaType(type);
@@ -195,250 +203,209 @@ export default function AdminCategoryFormPage() {
     }
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className=" text-primary" width={48} />
-      </div>
-    );
-  }
+  const aside = (
+    <>
+      {/* Status */}
+      <FormSection title="وضعیت" icon={MdiCheckCircle}>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-text-secondary">نمایش در فروشگاه</span>
+          <Toggle
+            label={isActive ? 'فعال' : 'غیرفعال'}
+            checked={isActive}
+            onChange={(e) => setValue('is_active', e.target.checked)}
+          />
+        </div>
+      </FormSection>
+
+      {/* Organization */}
+      <FormSection
+        title="سازمان‌دهی"
+        description="جایگاه دسته در ساختار درختی"
+        icon={MdiFolderOpenOutline}
+      >
+        <Select label="دسته والد" {...register('parent_id')}>
+          <option value="">بدون والد (دسته اصلی)</option>
+          {validParents.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {'—'.repeat(cat.depth)} {cat.name}
+            </option>
+          ))}
+        </Select>
+        <Input
+          label="ترتیب نمایش"
+          type="number"
+          {...register('sort_order', numberField)}
+          error={errors.sort_order?.message}
+          hint="عدد کوچک‌تر، بالاتر نمایش داده می‌شود"
+        />
+      </FormSection>
+
+      {/* Live preview */}
+      <FormSection title="پیش‌نمایش">
+        <div className="flex items-center gap-3 p-4 bg-surface-raised rounded-card">
+          <div
+            className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden shrink-0"
+            style={{ backgroundColor: selectedColor || '#ccc' }}
+          >
+            {mediaType === 'image' && selectedImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={selectedImage} alt="" className="w-full h-full object-cover" />
+            ) : selectedIcon ? (
+              <Icon icon={selectedIcon} className="w-6 h-6 text-white" />
+            ) : (
+              <SolarFolderWithFilesBold className="w-6 h-6 text-white" />
+            )}
+          </div>
+          <p className="font-medium text-text-primary truncate">
+            {watchedName || 'نام دسته‌بندی'}
+          </p>
+        </div>
+      </FormSection>
+    </>
+  );
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <button
-              onClick={() => router.back()}
-              className="p-2 hover:bg-surface-raised rounded-button transition-colors"
-            >
-              <MdiArrowRight className="w-5 h-5 text-text-secondary" />
-            </button>
-            <h1 className="text-2xl font-bold text-text-primary">
-              {isEdit ? 'ویرایش دسته‌بندی' : 'دسته‌بندی جدید'}
-            </h1>
+    <AdminFormLayout
+      title={isEdit ? 'ویرایش دسته‌بندی' : 'دسته‌بندی جدید'}
+      subtitle={isEdit ? watchedName || undefined : 'افزودن دسته‌بندی جدید به فروشگاه'}
+      loading={isAuthLoading}
+      onBack={() => router.back()}
+      onSubmit={handleSubmit(onSubmit)}
+      isSubmitting={isSubmitting}
+      submitLabel={isEdit ? 'بروزرسانی' : 'ایجاد'}
+      aside={aside}
+      maxWidth='7xl'
+    >
+      {/* Basic info */}
+      <FormSection title="اطلاعات پایه" icon={MdiInformation}>
+        <Input
+          label="نام دسته‌بندی *"
+          type="text"
+          {...register('name')}
+          error={errors.name?.message}
+        />
+        <Textarea
+          label="توضیحات"
+          {...register('description')}
+          error={errors.description?.message}
+          rows={4}
+        />
+      </FormSection>
+
+      {/* Appearance */}
+      <FormSection
+        title="ظاهر"
+        description="رنگ و نماد نمایشی دسته‌بندی"
+        icon={MdiImageMultiple}
+        columns={2}
+      >
+        {/* Color */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-text-secondary">رنگ</label>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={selectedColor || '#000000'}
+              onChange={(e) => setValue('color', e.target.value)}
+              className="w-12 h-12 rounded-lg cursor-pointer border-0 shrink-0"
+              aria-label="انتخاب رنگ"
+            />
+            <Input
+              wrapperClassName="flex-1"
+              type="text"
+              dir="ltr"
+              {...register('color')}
+              error={errors.color?.message}
+            />
           </div>
-
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="space-y-6">
-              {/* Basic Info */}
-              <Card className="p-6">
-                <h2 className="text-lg font-bold text-text-primary mb-6">اطلاعات پایه</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Name */}
-                  <Input
-                    label="نام دسته‌بندی *"
-                    type="text"
-                    wrapperClassName="md:col-span-2"
-                    {...register('name')}
-                    error={errors.name?.message}
-                  />
-
-                  {/* Parent */}
-                  <Select label="والد" {...register('parent_id')}>
-                    <option value="">بدون والد (دسته اصلی)</option>
-                    {validParents.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {'—'.repeat(cat.depth)} {cat.name}
-                      </option>
-                    ))}
-                  </Select>
-
-                  {/* Sort Order */}
-                  <Input
-                    label="ترتیب نمایش"
-                    type="number"
-                    {...register('sort_order', numberField)}
-                    error={errors.sort_order?.message}
-                  />
-
-                  {/* Active */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">وضعیت</label>
-                    <Toggle
-                      label={isActive ? 'فعال' : 'غیرفعال'}
-                      checked={isActive}
-                      onChange={(e) => setValue('is_active', e.target.checked)}
-                    />
-                  </div>
-
-                  {/* Description */}
-                  <Textarea
-                    label="توضیحات"
-                    wrapperClassName="md:col-span-2"
-                    {...register('description')}
-                    error={errors.description?.message}
-                    rows={4}
-                  />
-                </div>
-              </Card>
-
-              {/* Appearance */}
-              <Card className="p-6">
-                <h2 className="text-lg font-bold text-text-primary mb-6">ظاهر</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Color */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      رنگ
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={selectedColor || '#000000'}
-                        onChange={(e) => setValue('color', e.target.value)}
-                        className="w-12 h-12 rounded-lg cursor-pointer border-0"
-                      />
-                      <Input
-                        wrapperClassName="flex-1"
-                        type="text"
-                        {...register('color')}
-                        error={errors.color?.message}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Media type selector: icon OR image */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      نوع نمایش
-                    </label>
-                    <div className="flex rounded-button border border-border overflow-hidden w-fit">
-                      <button
-                        type="button"
-                        onClick={() => handleMediaTypeChange('icon')}
-                        className={`px-4 py-2 text-sm transition-colors ${
-                          mediaType === 'icon'
-                            ? 'bg-primary text-white'
-                            : 'bg-surface-raised text-text-secondary hover:bg-surface'
-                        }`}
-                      >
-                        آیکون
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleMediaTypeChange('image')}
-                        className={`px-4 py-2 text-sm transition-colors ${
-                          mediaType === 'image'
-                            ? 'bg-primary text-white'
-                            : 'bg-surface-raised text-text-secondary hover:bg-surface'
-                        }`}
-                      >
-                        تصویر
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Conditional field: Icon */}
-                  {mediaType === 'icon' && (
-                    <div className="space-y-2 md:col-span-2">
-                      <Input
-                        label="آیکون (Iconify)"
-                        type="text"
-                        dir="ltr"
-                        {...register('icon')}
-                        placeholder="mdi:folder"
-                        trailingIcon={selectedIcon ? (() => <Icon icon={selectedIcon} width={20} />) : undefined}
-                        error={errors.icon?.message}
-                      />
-                      <p className="text-xs text-text-muted">
-                        آیکون‌ها از{' '}
-                        <a
-                          href="https://icon-sets.iconify.design"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          Iconify
-                        </a>
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Conditional field: Image URL */}
-                  {mediaType === 'image' && (
-                    <Input
-                      label="آدرس تصویر"
-                      type="text"
-                      dir="ltr"
-                      wrapperClassName="md:col-span-2"
-                      {...register('image')}
-                      placeholder="https://..."
-                      error={errors.image?.message}
-                    />
-                  )}
-
-                  {/* Preview */}
-                  <div className="md:col-span-2">
-                    <p className="text-sm font-medium text-text-secondary mb-3">پیش‌نمایش</p>
-                    <div className="flex items-center gap-3 p-4 bg-surface-raised rounded-card">
-                      <div
-                        className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden"
-                        style={{ backgroundColor: selectedColor || '#ccc' }}
-                      >
-                        {mediaType === 'image' && selectedImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={selectedImage} alt="" className="w-full h-full object-cover" />
-                        ) : selectedIcon ? (
-                          <Icon icon={selectedIcon} className="w-6 h-6 text-white" />
-                        ) : (
-                          <SolarFolderWithFilesBold className="w-6 h-6 text-white" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-text-primary">
-                          {watch('name') || 'نام دسته‌بندی'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {/* SEO */}
-              <Card className="p-6">
-                <h2 className="text-lg font-bold text-text-primary mb-6">سئو</h2>
-                <div className="grid grid-cols-1 gap-6">
-                  <Input
-                    label="عنوان سئو"
-                    type="text"
-                    {...register('seo_title')}
-                    error={errors.seo_title?.message}
-                  />
-                  <Textarea
-                    label="توضیحات سئو"
-                    {...register('seo_description')}
-                    error={errors.seo_description?.message}
-                    rows={3}
-                  />
-                </div>
-              </Card>
-
-              {/* Actions */}
-              <div className="flex items-center gap-4">
-                <Button
-                  type="submit"
-                  loading={isSubmitting}
-                  size="lg"
-                >
-                  {isEdit ? 'بروزرسانی' : 'ایجاد'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={isSubmitting}
-                >
-                  انصراف
-                </Button>
-              </div>
-            </div>
-          </form>
         </div>
-      </main>
-    </div>
+
+        {/* Media type selector */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-text-secondary">نوع نمایش</label>
+          <div className="inline-flex rounded-button border border-border overflow-hidden">
+            <button
+              type="button"
+              onClick={() => handleMediaTypeChange('icon')}
+              className={`px-5 py-2.5 text-sm transition-colors cursor-pointer ${
+                mediaType === 'icon'
+                  ? 'bg-primary text-white'
+                  : 'bg-surface-raised text-text-secondary hover:bg-surface'
+              }`}
+            >
+              آیکون
+            </button>
+            <button
+              type="button"
+              onClick={() => handleMediaTypeChange('image')}
+              className={`px-5 py-2.5 text-sm transition-colors cursor-pointer ${
+                mediaType === 'image'
+                  ? 'bg-primary text-white'
+                  : 'bg-surface-raised text-text-secondary hover:bg-surface'
+              }`}
+            >
+              تصویر
+            </button>
+          </div>
+        </div>
+
+        {/* Conditional: Icon */}
+        {mediaType === 'icon' && (
+          <div className="space-y-2 md:col-span-2">
+            <Input
+              label="آیکون (Iconify)"
+              type="text"
+              dir="ltr"
+              {...register('icon')}
+              placeholder="mdi:folder"
+              trailingIcon={
+                selectedIcon ? () => <Icon icon={selectedIcon} width={20} /> : undefined
+              }
+              error={errors.icon?.message}
+            />
+            <p className="text-xs text-text-muted">
+              آیکون‌ها از{' '}
+              <a
+                href="https://icon-sets.iconify.design"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Iconify
+              </a>
+            </p>
+          </div>
+        )}
+
+        {/* Conditional: Image URL */}
+        {mediaType === 'image' && (
+          <Input
+            label="آدرس تصویر"
+            type="text"
+            dir="ltr"
+            wrapperClassName="md:col-span-2"
+            {...register('image')}
+            placeholder="https://..."
+            error={errors.image?.message}
+          />
+        )}
+      </FormSection>
+
+      {/* SEO */}
+      <FormSection title="سئو" description="بهینه‌سازی برای موتورهای جستجو" icon={LucideSearch}>
+        <Input
+          label="عنوان سئو"
+          type="text"
+          {...register('seo_title')}
+          error={errors.seo_title?.message}
+        />
+        <Textarea
+          label="توضیحات سئو"
+          {...register('seo_description')}
+          error={errors.seo_description?.message}
+          rows={3}
+        />
+      </FormSection>
+    </AdminFormLayout>
   );
 }
