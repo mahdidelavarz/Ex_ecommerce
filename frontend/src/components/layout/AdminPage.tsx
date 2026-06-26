@@ -1,8 +1,9 @@
 // src/components/layout/AdminPage.tsx
 // Shared admin scaffold: sidebar + viewport-locked content column.
-// The header and filters slots stay pinned (shrink-0); only `children`
-// (the table/grid/cards) scrolls, so the content area is sized
-// 100vh − (header + filters + footer). `footer` (pagination) stays pinned too.
+// The shell is exactly `100dvh − header` tall (`--header-h` from globals.css +
+// 1px header border) and never scrolls the page. The header and filters slots stay
+// pinned (shrink-0); only `children` (the table/grid/cards) scrolls. `footer`
+// (pagination) stays pinned too.
 "use client";
 
 import { ReactNode } from "react";
@@ -46,17 +47,17 @@ export default function AdminPage({
 }: AdminPageProps) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-[calc(100dvh-var(--header-h)-1px)]">
         <SvgSpinnersRingResize className="text-primary" width={48} />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-[calc(100dvh-var(--header-h)-1px)] overflow-hidden">
       <AdminSidebar />
 
-      <main className="flex-1 lg:mr-64 h-auto flex flex-col">
+      <main className="flex-1 lg:mr-64 flex flex-col min-h-0">
         <div
           className={`${maxWidthClass[maxWidth]} mx-auto w-full flex flex-col flex-1 min-h-0 p-4 lg:p-8`}
         >

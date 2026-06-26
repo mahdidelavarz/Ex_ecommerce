@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Global site header row height (see Header.tsx). The admin shell sizes
+     itself to `100dvh - var(--header-h) - 1px` (the 1px is the header border). */
+  --header-h: 4rem;
 }
 
 html {
@@ -133,23 +136,15 @@ body {
 }
 
 /* ──────────────────────────────────────────────
-   Scrollbar Styling
+   Scrollbar — hidden app-wide (scrolling still works)
    ────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 8px;
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
 }
 
-::-webkit-scrollbar-track {
-  background: var(--color-surface);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-text-muted);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-secondary);
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, other WebKit */
 }
 
 /* ──────────────────────────────────────────────

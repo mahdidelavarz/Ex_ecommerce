@@ -24,6 +24,9 @@ export const createCategorySchema = z.object({
   is_active: z.boolean().optional(),
   seo_title: z.string().max(200, 'عنوان سئو نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد').nullable().optional(),
   seo_description: z.string().max(500, 'توضیحات سئو نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد').nullable().optional(),
+}).refine((d) => !(d.icon && d.image), {
+  message: 'فقط یکی از آیکون یا تصویر مجاز است',
+  path: ['icon'],
 });
 
 export const updateCategorySchema = z.object({
@@ -48,6 +51,9 @@ export const updateCategorySchema = z.object({
   is_active: z.boolean().optional(),
   seo_title: z.string().max(200, 'عنوان سئو نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد').nullable().optional(),
   seo_description: z.string().max(500, 'توضیحات سئو نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد').nullable().optional(),
+}).refine((d) => !(d.icon && d.image), {
+  message: 'فقط یکی از آیکون یا تصویر مجاز است',
+  path: ['icon'],
 });
 
 export const bulkSortSchema = z.object({

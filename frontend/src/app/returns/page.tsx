@@ -15,7 +15,7 @@ export default function ReturnsPage() {
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<string>('');
   const [reason, setReason] = useState('');
-  const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
+  const [selectedItems, setSelectedItems] = useState<Record<string, number | "">>({});
 
   const { data: orders } = useMyOrders({ limit: 50 });
   const { data: orderDetail } = useOrder(selectedOrder);
@@ -48,8 +48,8 @@ export default function ReturnsPage() {
   const handleSubmit = () => {
     if (!selectedOrder || !reason) return;
     const items = Object.entries(selectedItems)
-      .filter(([_, qty]) => qty > 0)
-      .map(([id, qty]) => ({ order_item_id: id, quantity: qty }));
+      .filter(([_, qty]) => typeof qty === "number" && qty > 0)
+      .map(([id, qty]) => ({ order_item_id: id, quantity: Number(qty) }));
 
     if (items.length === 0) {
       toast.error('حداقل یک کالا انتخاب کنید');
@@ -102,11 +102,14 @@ export default function ReturnsPage() {
                         max={item.quantity}
                         wrapperClassName="w-16"
                         className="text-sm text-center py-1"
-                        value={selectedItems[item.id] ?? 0}
+                        value={selectedItems[item.id] ?? ""}
                         onChange={(e) =>
                           setSelectedItems((prev) => ({
                             ...prev,
-                            [item.id]: Math.min(parseInt(e.target.value) || 0, item.quantity),
+                            [item.id]:
+                              e.target.value === ""
+                                ? ""
+                                : Math.min(parseInt(e.target.value), item.quantity),
                           }))
                         }
                       />

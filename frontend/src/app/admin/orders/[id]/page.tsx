@@ -75,7 +75,11 @@ export default function AdminOrderDetailPage() {
   const [showShipmentForm, setShowShipmentForm] = useState(false);
   const [showStatusForm, setShowStatusForm] = useState(false);
 
-  const [paymentForm, setPaymentForm] = useState({
+  const [paymentForm, setPaymentForm] = useState<{
+    provider: string;
+    method: string;
+    amount: number | "";
+  }>({
     provider: "درگاه پرداخت",
     method: "آنلاین",
     amount: order?.total_amount || 0,
@@ -95,7 +99,11 @@ export default function AdminOrderDetailPage() {
 
   const handleAddPayment = async () => {
     try {
-      await paymentService.create({ order_id: orderId, ...paymentForm });
+      await paymentService.create({
+        order_id: orderId,
+        ...paymentForm,
+        amount: paymentForm.amount === "" ? 0 : paymentForm.amount,
+      });
       toast.success("پرداخت ثبت شد");
       setShowPaymentForm(false);
       queryClient.invalidateQueries({ queryKey: ["payments", orderId] });
@@ -449,7 +457,7 @@ export default function AdminOrderDetailPage() {
               <Input
                 type="number"
                 value={paymentForm.amount}
-                onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseInt(e.target.value) || 0 })}
+                onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value === "" ? "" : parseInt(e.target.value) })}
                 placeholder="مبلغ (تومان)"
               />
             </div>

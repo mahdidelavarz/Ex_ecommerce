@@ -31,12 +31,12 @@ export default function AdminReturnDetailPage() {
   });
 
   const [adminNote, setAdminNote] = useState('');
-  const [refundAmount, setRefundAmount] = useState<number>(0);
+  const [refundAmount, setRefundAmount] = useState<number | "">("");
 
   const updateStatus = async (status: string) => {
     try {
       const body: any = { status };
-      if (status === 'refunded' && refundAmount > 0) body.refund_amount = refundAmount;
+      if (status === 'refunded' && typeof refundAmount === 'number' && refundAmount > 0) body.refund_amount = refundAmount;
       if (adminNote) body.admin_note = adminNote;
 
       await apiClient.patch(`/returns/${returnId}/status`, body);
@@ -167,8 +167,8 @@ export default function AdminReturnDetailPage() {
                     <Input
                       type="number"
                       wrapperClassName="w-48"
-                      value={refundAmount || ''}
-                      onChange={(e) => setRefundAmount(parseInt(e.target.value) || 0)}
+                      value={refundAmount}
+                      onChange={(e) => setRefundAmount(e.target.value === '' ? '' : parseInt(e.target.value))}
                       placeholder="مبلغ بازگشتی (تومان)"
                     />
                     <Button onClick={() => updateStatus('refunded')} className="bg-info">بازگشت وجه</Button>

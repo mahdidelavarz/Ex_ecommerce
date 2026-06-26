@@ -32,7 +32,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 bg-surface border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-[var(--header-h)]">
           {/* Logo & Mobile Menu Toggle */}
           <div className="flex items-center gap-4">
             <button

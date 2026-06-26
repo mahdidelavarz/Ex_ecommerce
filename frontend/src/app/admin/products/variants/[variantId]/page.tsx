@@ -14,16 +14,17 @@ import { useAllAttributes } from '@/modules/attributes/hooks/useAttributes';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import { Button, Card, Checkbox, Input, Toggle } from '@/components/ui';
 import type { VariantImage } from '@/modules/variants/types/variant.types';
+import { numberField, nullableNumberField } from '@/lib/forms';
 import { MdiArrowRight, MdiClose, MdiImageMultiple, MdiImageOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const variantFormSchema = z.object({
   sku: z.string().min(1, 'کد محصول الزامی است'),
   barcode: z.string().nullable(),
-  price: z.number().min(0, 'قیمت الزامی است'),
+  price: z.number({ error: 'قیمت الزامی است' }).min(0, 'قیمت الزامی است'),
   compare_at_price: z.number().min(0).nullable(),
-  cost: z.number().min(0),
+  cost: z.number().min(0).optional(),
   weight: z.number().min(0).nullable(),
-  stock_quantity: z.number().int().min(0),
+  stock_quantity: z.number().int().min(0).optional(),
   low_stock_threshold: z.number().int().min(0).nullable(),
   is_active: z.boolean(),
   attribute_value_ids: z.array(z.string()).optional(),
@@ -64,11 +65,11 @@ export default function AdminVariantFormPage() {
     defaultValues: {
       sku: '',
       barcode: null,
-      price: 0,
+      price: undefined,
       compare_at_price: null,
-      cost: 0,
+      cost: undefined,
       weight: null,
-      stock_quantity: 0,
+      stock_quantity: undefined,
       low_stock_threshold: null,
       is_active: true,
       attribute_value_ids: [],
@@ -139,6 +140,8 @@ export default function AdminVariantFormPage() {
       const payload = {
         ...data,
         barcode: data.barcode || null,
+        cost: data.cost ?? 0,
+        stock_quantity: data.stock_quantity ?? 0,
         compare_at_price: data.compare_at_price || null,
         weight: data.weight || null,
         low_stock_threshold: data.low_stock_threshold || null,
@@ -189,10 +192,10 @@ export default function AdminVariantFormPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Input label="کد محصول (SKU) *" {...register('sku')} error={errors.sku?.message} />
                   <Input label="بارکد" {...register('barcode')} />
-                  <Input label="قیمت (تومان) *" type="number" {...register('price', { valueAsNumber: true })} error={errors.price?.message} />
-                  <Input label="قیمت مقایسه (تومان)" type="number" {...register('compare_at_price', { valueAsNumber: true })} error={errors.compare_at_price?.message} />
-                  <Input label="قیمت تمام شده (تومان)" type="number" {...register('cost', { valueAsNumber: true })} error={errors.cost?.message} />
-                  <Input label="وزن (گرم)" type="number" {...register('weight', { valueAsNumber: true })} />
+                  <Input label="قیمت (تومان) *" type="number" {...register('price', numberField)} error={errors.price?.message} />
+                  <Input label="قیمت مقایسه (تومان)" type="number" {...register('compare_at_price', nullableNumberField)} error={errors.compare_at_price?.message} />
+                  <Input label="قیمت تمام شده (تومان)" type="number" {...register('cost', numberField)} error={errors.cost?.message} />
+                  <Input label="وزن (گرم)" type="number" {...register('weight', nullableNumberField)} error={errors.weight?.message} />
                 </div>
               </Card>
 
@@ -200,8 +203,8 @@ export default function AdminVariantFormPage() {
               <Card className="p-6">
                 <h2 className="text-lg font-bold text-text-primary mb-6">موجودی</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input label="تعداد موجودی" type="number" {...register('stock_quantity', { valueAsNumber: true })} />
-                  <Input label="هشدار موجودی کم" type="number" {...register('low_stock_threshold', { valueAsNumber: true })} />
+                  <Input label="تعداد موجودی" type="number" {...register('stock_quantity', numberField)} error={errors.stock_quantity?.message} />
+                  <Input label="هشدار موجودی کم" type="number" {...register('low_stock_threshold', nullableNumberField)} error={errors.low_stock_threshold?.message} />
                 </div>
               </Card>
 

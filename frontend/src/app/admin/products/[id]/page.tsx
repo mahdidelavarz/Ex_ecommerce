@@ -135,11 +135,11 @@ export default function AdminProductFormPage() {
   const [variantForm, setVariantForm] = useState({
     sku: "",
     barcode: "",
-    price: 0,
+    price: "" as number | "",
     compare_at_price: null as number | null,
-    cost: 0,
+    cost: "" as number | "",
     weight: null as number | null,
-    stock_quantity: 0,
+    stock_quantity: "" as number | "",
     low_stock_threshold: null as number | null,
     is_active: true,
     attribute_value_ids: [] as string[],
@@ -234,17 +234,24 @@ export default function AdminProductFormPage() {
 
   // Variant handlers
   const handleSaveVariant = async () => {
-    if (!variantForm.sku || !variantForm.price) {
+    if (!variantForm.sku || variantForm.price === "" || variantForm.price == null) {
       toast.error("کد محصول و قیمت الزامی است");
       return;
     }
 
+    const variantPayload = {
+      ...variantForm,
+      price: Number(variantForm.price),
+      cost: variantForm.cost === "" ? 0 : Number(variantForm.cost),
+      stock_quantity: variantForm.stock_quantity === "" ? 0 : Number(variantForm.stock_quantity),
+    };
+
     try {
       if (editingVariant) {
-        await variantService.update(editingVariant.id, variantForm);
+        await variantService.update(editingVariant.id, variantPayload);
         toast.success("واریانت بروزرسانی شد");
       } else {
-        await variantService.create(productId, variantForm as any);
+        await variantService.create(productId, variantPayload as any);
         toast.success("واریانت اضافه شد");
       }
       resetVariantForm();
@@ -287,11 +294,11 @@ export default function AdminProductFormPage() {
     setVariantForm({
       sku: "",
       barcode: "",
-      price: 0,
+      price: "",
       compare_at_price: null,
-      cost: 0,
+      cost: "",
       weight: null,
-      stock_quantity: 0,
+      stock_quantity: "",
       low_stock_threshold: null,
       is_active: true,
       attribute_value_ids: [],
@@ -658,7 +665,7 @@ export default function AdminProductFormPage() {
                         label="قیمت (تومان) *"
                         type="number"
                         value={variantForm.price}
-                        onChange={(e) => setVariantForm({ ...variantForm, price: parseInt(e.target.value) || 0 })}
+                        onChange={(e) => setVariantForm({ ...variantForm, price: e.target.value === "" ? "" : parseInt(e.target.value) })}
                         className="text-sm"
                       />
                       <Input
@@ -672,7 +679,7 @@ export default function AdminProductFormPage() {
                         label="موجودی"
                         type="number"
                         value={variantForm.stock_quantity}
-                        onChange={(e) => setVariantForm({ ...variantForm, stock_quantity: parseInt(e.target.value) || 0 })}
+                        onChange={(e) => setVariantForm({ ...variantForm, stock_quantity: e.target.value === "" ? "" : parseInt(e.target.value) })}
                         className="text-sm"
                       />
                       <Input

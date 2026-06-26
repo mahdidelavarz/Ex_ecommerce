@@ -41,15 +41,26 @@ const tdDisplay: Record<"none" | "sm" | "md" | "lg", string> = {
   lg: "hidden lg:table-cell",
 };
 
-/** Outer container + horizontal scroll + <table>. */
+interface TableProps extends HTMLAttributes<HTMLTableElement> {
+  /**
+   * Tailwind max-height class for the scroll viewport (md+ only). The body
+   * scrolls vertically within this height while the header stays pinned.
+   * Defaults to `md:max-h-[70vh]`.
+   */
+  maxHeight?: string;
+}
+
+/** Outer container + scroll viewport (sticky header / scrollable body) + <table>. */
 export function Table({
   className = "",
+  maxHeight = "md:max-h-[60vh]",
   children,
   ...props
-}: HTMLAttributes<HTMLTableElement>) {
+}: TableProps) {
   return (
     <div className="bg-surface rounded-card shadow-card md:overflow-hidden">
-      <div className="md:overflow-x-auto p-3 md:p-0">
+      {/* This div is the scroll container that the sticky header pins to. */}
+      <div className={`md:overflow-auto p-3 md:p-0 ${maxHeight}`}>
         <table className={`block md:table w-full ${className}`} {...props}>
           {children}
         </table>
@@ -66,9 +77,7 @@ export function THead({
   return (
     // Header is meaningless in the mobile card layout — hide it there.
     <thead className="hidden md:table-header-group" {...props}>
-      <tr className={`border-b border-border bg-surface-raised ${className}`}>
-        {children}
-      </tr>
+      <tr className={`border-b border-border ${className}`}>{children}</tr>
     </thead>
   );
 }
@@ -89,7 +98,9 @@ export function TH({
   const hidden = hideBelow ? thHideBelow[hideBelow] : "";
   return (
     <th
-      className={`px-4 py-3 text-sm font-medium text-text-secondary ${alignClass[align]} ${hidden} ${className}`}
+      // Pin to the scroll viewport. The bg sits on each cell (not the row) so
+      // sticky elements stay opaque as rows scroll underneath.
+      className={`px-4 py-3 text-sm font-medium text-text-secondary md:sticky md:top-0 md:z-10 md:bg-surface-raised ${alignClass[align]} ${hidden} ${className}`}
       {...props}
     >
       {children}
@@ -109,10 +120,11 @@ export function TBody({
   );
 }
 
-/** Mobile = bordered card; md+ = normal table row. */
+/** Mobile = bordered card; md+ = normal table row with zebra striping. */
 const rowCardClass = `
   block rounded-card border border-border bg-surface p-4 mb-3
   md:table-row md:rounded-none md:border-0 md:border-b md:bg-transparent md:p-0 md:mb-0
+  md:even:bg-surface-raised/40
 `;
 
 interface TRowProps extends HTMLAttributes<HTMLTableRowElement> {
@@ -130,7 +142,7 @@ export function TRow({
     <tr
       className={`${rowCardClass} ${
         hover
-          ? "cursor-pointer transition-colors hover:border-primary md:hover:bg-surface-raised"
+          ? "transition-colors hover:border-primary md:hover:bg-surface-raised"
           : ""
       } ${className}`}
       {...props}

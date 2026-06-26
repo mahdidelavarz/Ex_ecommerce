@@ -127,7 +127,7 @@ function VariantCard({
   onStockUpdate: (stock: number) => void;
 }) {
   const [editingStock, setEditingStock] = useState(false);
-  const [stockValue, setStockValue] = useState(variant.stock_quantity);
+  const [stockValue, setStockValue] = useState<number | "">(variant.stock_quantity);
   const hasDiscount = variant.compare_at_price && variant.compare_at_price > variant.price;
 
   return (
@@ -194,12 +194,12 @@ function VariantCard({
                   type="number"
                   wrapperClassName="w-20"
                   value={stockValue}
-                  onChange={(e) => setStockValue(parseInt(e.target.value) || 0)}
+                  onChange={(e) => setStockValue(e.target.value === "" ? "" : parseInt(e.target.value))}
                   className="text-sm text-center py-1"
                   autoFocus
                 />
                 <button
-                  onClick={() => { onStockUpdate(stockValue); setEditingStock(false); }}
+                  onClick={() => { onStockUpdate(stockValue === "" ? 0 : stockValue); setEditingStock(false); }}
                   className="p-1 text-success hover:bg-success-light rounded"
                 >
                   <MdiCheckCircle className="w-4 h-4" />

@@ -51,7 +51,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         describedById={describedById}
         className={wrapperClassName}
       >
-        <div className="relative">
+        <div className="relative" dir={props.dir}>
           {Icon && (
             <span className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none text-text-muted">
               <Icon className="w-5 h-5" />

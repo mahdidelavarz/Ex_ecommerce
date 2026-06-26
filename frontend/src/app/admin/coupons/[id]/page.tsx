@@ -14,6 +14,7 @@ import { useCategories } from '@/modules/categories/hooks/useCategories';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import { Button, Card, Checkbox, Input, Select } from '@/components/ui';
 import { useProducts } from '@/modules/products/hooks/useProducts';
+import { numberField, nullableNumberField } from '@/lib/forms';
 import { MdiArrowRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 const typeOptions = [
@@ -25,7 +26,7 @@ const typeOptions = [
 const formSchema = z.object({
   code: z.string().min(1, 'کد الزامی است').max(50),
   type: z.enum(['percentage', 'fixed', 'free_shipping']),
-  value: z.number().min(0),
+  value: z.number({ error: 'مقدار الزامی است' }).min(0),
   min_order_amount: z.number().min(0).nullable(),
   max_discount: z.number().min(0).nullable(),
   usage_limit: z.number().int().min(1).nullable(),
@@ -54,8 +55,8 @@ export default function AdminCouponFormPage() {
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      code: '', type: 'percentage', value: 10, min_order_amount: null, max_discount: null,
-      usage_limit: null, usage_per_user: 1, starts_at: '', expires_at: '', is_active: true,
+      code: '', type: 'percentage', value: undefined, min_order_amount: null, max_discount: null,
+      usage_limit: null, usage_per_user: null, starts_at: '', expires_at: '', is_active: true,
       product_ids: [], category_ids: [],
     },
   });
@@ -125,31 +126,35 @@ export default function AdminCouponFormPage() {
                 <Input
                   label={`${type === 'percentage' ? 'درصد' : 'مبلغ (تومان)'} *`}
                   type="number"
-                  {...register('value', { valueAsNumber: true })}
+                  {...register('value', numberField)}
                   error={errors.value?.message}
                 />
               )}
               <Input
                 label="حداقل سفارش (تومان)"
                 type="number"
-                {...register('min_order_amount', { valueAsNumber: true })}
+                {...register('min_order_amount', nullableNumberField)}
+                error={errors.min_order_amount?.message}
               />
               {type === 'percentage' && (
                 <Input
                   label="حداکثر تخفیف (تومان)"
                   type="number"
-                  {...register('max_discount', { valueAsNumber: true })}
+                  {...register('max_discount', nullableNumberField)}
+                  error={errors.max_discount?.message}
                 />
               )}
               <Input
                 label="محدودیت تعداد"
                 type="number"
-                {...register('usage_limit', { valueAsNumber: true })}
+                {...register('usage_limit', nullableNumberField)}
+                error={errors.usage_limit?.message}
               />
               <Input
                 label="محدودیت برای هر کاربر"
                 type="number"
-                {...register('usage_per_user', { valueAsNumber: true })}
+                {...register('usage_per_user', nullableNumberField)}
+                error={errors.usage_per_user?.message}
               />
               <Input
                 label="تاریخ شروع *"

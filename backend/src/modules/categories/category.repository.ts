@@ -252,10 +252,11 @@ export class CategoryRepository {
       throw new NotFoundError("دسته‌بندی والد یافت نشد");
     }
 
-    // Check circular reference
+    // Check circular reference: the chosen parent must not be one of this
+    // category's own descendants (which would create a loop in the tree).
     if (currentId) {
-      const children = await this.getAllChildrenIds(parent_id);
-      if (children.includes(currentId)) {
+      const descendants = await this.getAllChildrenIds(currentId);
+      if (descendants.includes(parent_id)) {
         throw new BadRequestError(
           "یک دسته‌بندی نمی‌تواند زیرمجموعه خودش قرار گیرد",
         );

@@ -19,8 +19,8 @@ export interface RowAction {
 }
 
 const variantClass: Record<NonNullable<RowAction["variant"]>, string> = {
-  primary: "hover:bg-primary-light text-primary",
-  error: "hover:bg-error-light text-error",
+  primary: "bg-primary-light/50 hover:bg-primary-light text-primary",
+  error: "bg-error-light/50 hover:bg-error-light text-error",
 };
 
 export interface RowActionsProps {
@@ -44,7 +44,7 @@ export default function RowActions({ actions, className = "" }: RowActionsProps)
                 e.stopPropagation();
                 a.onClick();
               }}
-              className={`p-2 rounded-button disabled:opacity-50 disabled:cursor-not-allowed ${variantClass[a.variant ?? "primary"]}`}
+              className={`p-2 rounded-button cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantClass[a.variant ?? "primary"]}`}
               title={a.title}
               aria-label={a.title}
             >
