@@ -14,10 +14,24 @@ type SliderFrameProps = {
   style?: CSSProperties;
 };
 
-type PathOpts = Required<Omit<SliderFrameProps, "fill" | "className" | "style">>;
+export type PathOpts = Required<Omit<SliderFrameProps, "fill" | "className" | "style">>;
 
-function buildFramePath(w: number, h: number, o: PathOpts) {
-  if (w <= 0 || h <= 0) return "";
+/** Default frame geometry — shared so the frame and any overlay stay in sync. */
+export const DEFAULT_FRAME_OPTS: PathOpts = {
+  radius: 40,
+  notchWidth: 240,
+  notchDepth: 72,
+  notchFlat: 96,
+  notchRound: 28,
+  inset: 0,
+};
+
+/**
+ * Resolves the clamped frame metrics for a given size. Both `buildFramePath`
+ * and consumers that need to position content inside the notch use this, so the
+ * notch never drifts from the rendered path.
+ */
+export function frameMetrics(w: number, h: number, o: PathOpts) {
   const left = o.inset, top = o.inset, right = w - o.inset, bottom = h - o.inset;
   const cx = w / 2;
   const innerW = right - left, innerH = bottom - top;
@@ -31,6 +45,28 @@ function buildFramePath(w: number, h: number, o: PathOpts) {
 
   const by = bottom, ty = bottom - depth;
   const drawNotch = oHalf > s + fHalf + 1 && depth > 1;
+
+  return { left, top, right, bottom, cx, r, oHalf, depth, s, fHalf, by, ty, drawNotch };
+}
+
+/**
+ * Notch placement helper for positioning overlay content (e.g. slider dots)
+ * inside the carved bottom-center notch.
+ * - `cx`        horizontal center of the notch (px)
+ * - `top`       y of the notch's inner flat edge (px)
+ * - `halfWidth` half the notch opening width at the bottom edge (px)
+ * - `depth`     how far the notch rises into the frame (px)
+ */
+export function frameNotchRect(w: number, h: number, o: PathOpts) {
+  if (w <= 0 || h <= 0) return { cx: 0, top: 0, halfWidth: 0, depth: 0, visible: false };
+  const m = frameMetrics(w, h, o);
+  return { cx: m.cx, top: m.ty, halfWidth: m.oHalf, depth: m.depth, visible: m.drawNotch };
+}
+
+export function buildFramePath(w: number, h: number, o: PathOpts) {
+  if (w <= 0 || h <= 0) return "";
+  const { left, top, right, bottom, cx, r, oHalf, s, fHalf, by, ty, drawNotch } =
+    frameMetrics(w, h, o);
 
   const head =
     `M ${left + r} ${top}` +

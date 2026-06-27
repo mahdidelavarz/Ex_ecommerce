@@ -10,7 +10,7 @@ import {
   SolarArrowLeftLineDuotone,
   SolarFolderWithFilesBold,
 } from "@/components/icons/Icons";
-import { SliderFrame } from "@/components/ui/SliderFrame";
+import { HeroSlider } from "@/components/ui/HeroSlider";
 
 export default function HomePage() {
   const { data: categoriesData } = useCategories({ parent_id: null });
@@ -34,11 +34,8 @@ export default function HomePage() {
             <SolarArrowLeftLineDuotone className="w-6 h-6" />
           </Link>
         </div> */}
-      <div
-     className="w-full h-[92vh] flex justify-center items-center p-2 text-surface"
-      >
-        <SliderFrame />
-        {/* slider content goes here, positioned absolutely on top */}
+      <div className="w-full h-[94vh] flex justify-center items-center ">
+        <HeroSlider />
       </div>
       {/* </section> */}
 
