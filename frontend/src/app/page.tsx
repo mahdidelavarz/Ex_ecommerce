@@ -35,7 +35,7 @@ export default function HomePage() {
           </Link>
         </div> */}
       <div
-     className="w-full h-[92vh] flex justify-center items-center p-2"
+     className="w-full h-[92vh] flex justify-center items-center p-2 text-surface"
       >
         <SliderFrame />
         {/* slider content goes here, positioned absolutely on top */}

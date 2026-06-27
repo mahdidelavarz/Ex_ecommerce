@@ -59,7 +59,7 @@ export default function AdminPage({
 
       <main className="flex-1 lg:mr-64 flex flex-col min-h-0">
         <div
-          className={`${maxWidthClass[maxWidth]} mx-auto w-full flex flex-col flex-1 min-h-0 p-4 lg:p-8`}
+          className={`${maxWidthClass[maxWidth]} mx-auto w-full flex flex-col flex-1 min-h-0 p-3 sm:p-4 lg:p-8`}
         >
           {header}
           {filters}

@@ -35,27 +35,27 @@ export default function PageHeader({
   children,
 }: PageHeaderProps) {
   return (
-    <div className="shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="shrink-0 flex flex-row items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         {onBack && (
           <button
             type="button"
             onClick={onBack}
             aria-label="بازگشت"
-            className="p-2 -mr-2 rounded-button text-text-secondary hover:bg-surface-raised hover:text-text-primary transition-colors cursor-pointer"
+            className="p-2 -mr-2 rounded-button text-text-secondary hover:bg-surface-raised hover:text-text-primary transition-colors cursor-pointer shrink-0"
           >
             <MdiArrowRight className="w-5 h-5" />
           </button>
         )}
-        {Icon && <Icon className="w-7 h-7 text-primary shrink-0" />}
+        {Icon && <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-primary shrink-0" />}
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-text-primary truncate">{title}</h1>
-          {subtitle && <p className="text-text-secondary mt-1 truncate">{subtitle}</p>}
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary truncate">{title}</h1>
+          {subtitle && <p className="hidden sm:block text-text-secondary mt-1 truncate">{subtitle}</p>}
         </div>
       </div>
 
       {(action || children) && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {children}
           {action && (
             <Button onClick={action.onClick} icon={action.icon}>
