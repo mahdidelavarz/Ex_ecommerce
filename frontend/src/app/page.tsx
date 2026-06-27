@@ -7,6 +7,7 @@ import {
   HugeiconsCustomerSupport,
   MdiShieldCheck,
   MdiTruckFast,
+  SliderFrame,
   SolarArrowLeftLineDuotone,
   SolarFolderWithFilesBold,
 } from "@/components/icons/Icons";
@@ -17,8 +18,8 @@ export default function HomePage() {
   return (
     <div className="bg-background">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-secondary text-white py-20">
-        <div className="container mx-auto px-4 text-center">
+      {/* <section className="bg-gradient-to-br from-primary to-secondary text-white"> */}
+        {/* <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             به نازی شاپ خوش آمدید
           </h1>
@@ -32,8 +33,9 @@ export default function HomePage() {
             مشاهده محصولات
             <SolarArrowLeftLineDuotone className="w-6 h-6" />
           </Link>
-        </div>
-      </section>
+        </div> */}
+        <SliderFrame className="w-full text-surface "/>
+      {/* </section> */}
 
       {/* Categories Section */}
       <section className="py-16">
@@ -56,7 +58,7 @@ export default function HomePage() {
                       category.color || "var(--color-primary-light)",
                   }}
                 >
-                  <SolarFolderWithFilesBold className="w-8 h-8 text-white" /> 
+                  <SolarFolderWithFilesBold className="w-8 h-8 text-white" />
                   {/* dynamic icon must add */}
                 </div>
                 <h3 className="font-medium text-text-primary">

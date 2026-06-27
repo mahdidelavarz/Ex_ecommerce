@@ -274,7 +274,6 @@ export default function AdminCategoryFormPage() {
       isSubmitting={isSubmitting}
       submitLabel={isEdit ? 'بروزرسانی' : 'ایجاد'}
       aside={aside}
-      maxWidth='7xl'
     >
       {/* Basic info */}
       <FormSection title="اطلاعات پایه" icon={MdiInformation}>

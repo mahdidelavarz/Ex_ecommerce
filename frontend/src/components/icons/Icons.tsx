@@ -1,5 +1,45 @@
 import { SVGProps } from "react";
 
+export function SliderFrame(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 800 550"
+      fill="none"
+      {...props}
+    >
+      <path
+        fill="currentColor"
+        d="
+          M40 40
+          H760
+          Q790 40 790 70
+          V480
+          Q790 510 760 510
+
+          H490
+
+          Q470 510 470 490
+          Q470 455 430 455
+
+          H370
+
+          Q330 455 330 490
+          Q330 510 310 510
+
+          H40
+          Q10 510 10 480
+
+          V70
+          Q10 40 40 40
+          Z
+        "
+      />
+    </svg>
+  );
+}
+
+
 export function SolarArrowLeftLineDuotone(props: SVGProps<SVGSVGElement>) {
   return (
     <svg

@@ -9,9 +9,9 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import { brandService } from "@/modules/brands/services/brand.service";
-import AdminSidebar from "@/components/layout/AdminSidebar";
-import { Button, Card, Input, Textarea, Toggle } from "@/components/ui";
-import { MdiArrowRight, SvgSpinnersRingResize } from "@/components/icons/Icons";
+import AdminFormLayout from "@/components/layout/AdminFormLayout";
+import { FormSection, Input, Textarea, Toggle } from "@/components/ui";
+import { MdiInformation, MdiCheckCircle, MdiImageMultiple } from "@/components/icons/Icons";
 
 const urlPattern = /^https?:\/\/.+/;
 
@@ -53,6 +53,7 @@ export default function AdminBrandFormPage() {
 
   const logoUrl = watch("logo");
   const isActive = watch("is_active");
+  const watchedName = watch("name");
 
   useEffect(() => {
     if (isEdit) {
@@ -100,102 +101,72 @@ export default function AdminBrandFormPage() {
     }
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="text-primary" width={48} />
-      </div>
-    );
-  }
+  const aside = (
+    <>
+      {/* Status */}
+      <FormSection title="وضعیت" icon={MdiCheckCircle}>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-text-secondary">نمایش در فروشگاه</span>
+          <Toggle
+            label={isActive ? "فعال" : "غیرفعال"}
+            checked={isActive}
+            onChange={(e) => setValue("is_active", e.target.checked)}
+          />
+        </div>
+      </FormSection>
+
+      {/* Logo */}
+      <FormSection title="لوگو" description="آدرس تصویر لوگوی برند" icon={MdiImageMultiple}>
+        <Input
+          label="آدرس لوگو"
+          type="text"
+          dir="ltr"
+          {...register("logo")}
+          placeholder="https://..."
+          error={errors.logo?.message}
+        />
+        {logoUrl && urlPattern.test(logoUrl) && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt="پیش‌نمایش لوگو"
+            className="h-16 object-contain border border-border rounded-lg p-1 bg-white"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+        )}
+      </FormSection>
+    </>
+  );
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <button
-              onClick={() => router.back()}
-              className="p-2 hover:bg-surface-raised rounded-button transition-colors"
-            >
-              <MdiArrowRight className="w-5 h-5 text-text-secondary" />
-            </button>
-            <h1 className="text-2xl font-bold text-text-primary">
-              {isEdit ? "ویرایش برند" : "برند جدید"}
-            </h1>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Card className="p-6 space-y-6">
-              {/* Name */}
-              <Input
-                label="نام برند *"
-                type="text"
-                {...register("name")}
-                placeholder="مثال: سامسونگ"
-                error={errors.name?.message}
-              />
-
-              {/* Logo URL */}
-              <div className="space-y-2">
-                <Input
-                  label="آدرس لوگو"
-                  type="text"
-                  dir="ltr"
-                  {...register("logo")}
-                  placeholder="https://..."
-                  error={errors.logo?.message}
-                />
-                {logoUrl && urlPattern.test(logoUrl) && (
-                  <img
-                    src={logoUrl}
-                    alt="پیش‌نمایش لوگو"
-                    className="h-16 object-contain border border-border rounded-lg p-1 bg-white"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* Description */}
-              <Textarea
-                label="توضیحات"
-                {...register("description")}
-                rows={4}
-                placeholder="توضیحات برند..."
-              />
-
-              {/* Active toggle */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text-secondary">وضعیت</label>
-                <Toggle
-                  label={isActive ? "فعال" : "غیرفعال"}
-                  checked={isActive}
-                  onChange={(e) => setValue("is_active", e.target.checked)}
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-4 pt-4">
-                <Button type="submit" loading={isSubmitting} size="lg">
-                  {isEdit ? "بروزرسانی" : "ایجاد برند"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={isSubmitting}
-                >
-                  انصراف
-                </Button>
-              </div>
-            </Card>
-          </form>
-        </div>
-      </main>
-    </div>
+    <AdminFormLayout
+      title={isEdit ? "ویرایش برند" : "برند جدید"}
+      subtitle={isEdit ? watchedName || undefined : "افزودن برند جدید به فروشگاه"}
+      loading={isAuthLoading}
+      onBack={() => router.back()}
+      onSubmit={handleSubmit(onSubmit)}
+      isSubmitting={isSubmitting}
+      submitLabel={isEdit ? "بروزرسانی" : "ایجاد برند"}
+      aside={aside}
+    >
+      {/* Basic info */}
+      <FormSection title="اطلاعات پایه" icon={MdiInformation}>
+        <Input
+          label="نام برند *"
+          type="text"
+          {...register("name")}
+          placeholder="مثال: سامسونگ"
+          error={errors.name?.message}
+        />
+        <Textarea
+          label="توضیحات"
+          {...register("description")}
+          rows={4}
+          placeholder="توضیحات برند..."
+        />
+      </FormSection>
+    </AdminFormLayout>
   );
 }

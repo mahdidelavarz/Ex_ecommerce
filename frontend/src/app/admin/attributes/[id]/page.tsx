@@ -9,15 +9,15 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import { Button, Card, Input, Select } from '@/components/ui';
+import AdminFormLayout from '@/components/layout/AdminFormLayout';
+import { Button, FormSection, Input, Select } from '@/components/ui';
 import { attributeService } from '@/modules/attributes/services/attribute.service';
 import {
   useCreateAttribute,
   useUpdateAttribute,
   useDeleteAttributeValue,
 } from '@/modules/attributes/hooks/useAttributes';
-import { MdiArrowRight, MdiClose, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { MdiClose, MdiInformation, MdiTagMultiple, LucidePlus } from '@/components/icons/Icons';
 import type { AttributeValue } from '@/modules/attributes/types/attribute.types';
 
 const valueSchema = z.object({
@@ -65,6 +65,8 @@ export default function AdminAttributeFormPage() {
     control,
     name: 'values',
   });
+
+  const watchedName = watch('name');
 
   useEffect(() => {
     if (isEdit) loadAttribute(params.id as string);
@@ -125,160 +127,127 @@ export default function AdminAttributeFormPage() {
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
-            <button onClick={() => router.back()} className="p-2 hover:bg-surface-raised rounded-button">
-              <MdiArrowRight className="w-5 h-5 text-text-secondary" />
-            </button>
-            <h1 className="text-2xl font-bold text-text-primary">
-              {isEdit ? 'ویرایش ویژگی' : 'ویژگی جدید'}
-            </h1>
-          </div>
+    <AdminFormLayout
+      title={isEdit ? 'ویرایش ویژگی' : 'ویژگی جدید'}
+      subtitle={isEdit ? watchedName || undefined : 'افزودن ویژگی جدید برای محصولات'}
+      loading={isAuthLoading}
+      onBack={() => router.back()}
+      onSubmit={handleSubmit(onSubmit)}
+      isSubmitting={isSubmitting}
+      submitLabel={isEdit ? 'بروزرسانی' : 'ایجاد ویژگی'}
+      maxWidth="3xl"
+    >
+      {/* Basic info */}
+      <FormSection title="اطلاعات پایه" icon={MdiInformation} columns={2}>
+        <Input
+          label="نام ویژگی *"
+          {...register('name')}
+          placeholder="مثال: رنگ، سایز، حافظه"
+          error={errors.name?.message}
+        />
+        <Select
+          label="نوع ویژگی"
+          {...register('type')}
+          options={[
+            { value: 'text', label: 'متن' },
+            { value: 'size', label: 'سایز' },
+            { value: 'color', label: 'رنگ' },
+          ]}
+        />
+      </FormSection>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="space-y-6">
-              {/* Name */}
-              <Card className="p-6">
-                <h2 className="text-lg font-bold text-text-primary mb-4">نام ویژگی</h2>
-                <Input
-                  {...register('name')}
-                  placeholder="مثال: رنگ، سایز، حافظه"
-                  error={errors.name?.message}
-                />
-              </Card>
-
-              {/* Type */}
-              <Card className="p-6">
-                <h2 className="text-lg font-bold text-text-primary mb-4">نوع ویژگی</h2>
-                <Select
-                  {...register('type')}
-                  options={[
-                    { value: 'text', label: 'متن' },
-                    { value: 'size', label: 'سایز' },
-                    { value: 'color', label: 'رنگ' },
-                  ]}
-                />
-              </Card>
-
-              {/* Values */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-text-primary">مقادیر</h2>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => append({ value: '', color_code: '' })}
-                  >
-                    + افزودن مقدار
-                  </Button>
-                </div>
-
-                {/* Existing values (edit mode only) */}
-                {isEdit && existingValues.length > 0 && (
-                  <div className="mb-5 space-y-2">
-                    <p className="text-sm text-text-secondary mb-2">مقادیر موجود:</p>
-                    {existingValues.map((val) => (
-                      <div
-                        key={val.id}
-                        className="flex items-center gap-3 px-3 py-2 bg-surface-raised rounded-input"
-                      >
-                        {val.color_code && (
-                          <div
-                            className="w-6 h-6 rounded-full border border-border flex-shrink-0"
-                            style={{ backgroundColor: val.color_code }}
-                          />
-                        )}
-                        <span className="flex-1 text-sm">{val.value}</span>
-                        {val.color_code && (
-                          <span className="text-xs font-mono text-text-secondary">{val.color_code}</span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteValue(val.id)}
-                          disabled={deleteValueMutation.isPending}
-                          className="p-1 hover:bg-error-light rounded text-error disabled:opacity-50"
-                        >
-                          <MdiClose className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* New values form rows */}
-                {isEdit && (
-                  <p className="text-sm text-text-secondary mb-2">مقادیر جدید برای افزودن:</p>
-                )}
-                <div className="space-y-3">
-                  {fields.map((field, index) => {
-                    const colorCode = watch(`values.${index}.color_code`);
-                    return (
-                      <div key={field.id} className="flex items-center gap-3">
-                        <Input
-                          wrapperClassName="flex-1"
-                          {...register(`values.${index}.value`)}
-                          placeholder="مقدار (مثال: قرمز، XL، 256GB)"
-                          className="text-sm"
-                        />
-                        <Input
-                          wrapperClassName="w-32"
-                          dir="ltr"
-                          {...register(`values.${index}.color_code`)}
-                          placeholder="#FF0000"
-                          className="text-sm"
-                        />
-                        <input
-                          type="color"
-                          value={colorCode || '#000000'}
-                          onChange={(e) => setValue(`values.${index}.color_code`, e.target.value)}
-                          className="w-10 h-10 rounded cursor-pointer border-0"
-                        />
-                        {fields.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => remove(index)}
-                            className="p-2 hover:bg-error-light rounded-button text-error"
-                          >
-                            <MdiClose className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-
-              {/* Actions */}
-              <div className="flex gap-4">
-                <Button type="submit" loading={isSubmitting} size="lg">
-                  {isEdit ? 'بروزرسانی' : 'ایجاد ویژگی'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={isSubmitting}
-                >
-                  انصراف
-                </Button>
-              </div>
-            </div>
-          </form>
+      {/* Values */}
+      <FormSection
+        title="مقادیر"
+        description="گزینه‌های قابل انتخاب این ویژگی (مثل قرمز، آبی، XL)"
+        icon={MdiTagMultiple}
+      >
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            icon={LucidePlus}
+            onClick={() => append({ value: '', color_code: '' })}
+          >
+            افزودن مقدار
+          </Button>
         </div>
-      </main>
-    </div>
+
+        {/* Existing values (edit mode only) */}
+        {isEdit && existingValues.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm text-text-secondary">مقادیر موجود:</p>
+            {existingValues.map((val) => (
+              <div
+                key={val.id}
+                className="flex items-center gap-3 px-3 py-2 bg-surface-raised rounded-input"
+              >
+                {val.color_code && (
+                  <div
+                    className="w-6 h-6 rounded-full border border-border shrink-0"
+                    style={{ backgroundColor: val.color_code }}
+                  />
+                )}
+                <span className="flex-1 text-sm">{val.value}</span>
+                {val.color_code && (
+                  <span className="text-xs font-mono text-text-secondary">{val.color_code}</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleDeleteValue(val.id)}
+                  disabled={deleteValueMutation.isPending}
+                  className="p-1 hover:bg-error-light rounded text-error disabled:opacity-50 cursor-pointer"
+                >
+                  <MdiClose className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* New values form rows */}
+        {isEdit && <p className="text-sm text-text-secondary">مقادیر جدید برای افزودن:</p>}
+        <div className="space-y-3">
+          {fields.map((field, index) => {
+            const colorCode = watch(`values.${index}.color_code`);
+            return (
+              <div key={field.id} className="flex items-center gap-3">
+                <Input
+                  wrapperClassName="flex-1"
+                  {...register(`values.${index}.value`)}
+                  placeholder="مقدار (مثال: قرمز، XL، 256GB)"
+                  className="text-sm"
+                />
+                <Input
+                  wrapperClassName="w-32"
+                  dir="ltr"
+                  {...register(`values.${index}.color_code`)}
+                  placeholder="#FF0000"
+                  className="text-sm"
+                />
+                <input
+                  type="color"
+                  value={colorCode || '#000000'}
+                  onChange={(e) => setValue(`values.${index}.color_code`, e.target.value)}
+                  className="w-10 h-10 rounded cursor-pointer border-0 shrink-0"
+                  aria-label="انتخاب رنگ"
+                />
+                {fields.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="p-2 hover:bg-error-light rounded-button text-error cursor-pointer"
+                  >
+                    <MdiClose className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </FormSection>
+    </AdminFormLayout>
   );
 }

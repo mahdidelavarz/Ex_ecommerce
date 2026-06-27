@@ -3,10 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import { Button, Card, Input } from '@/components/ui';
+import AdminPage from '@/components/layout/AdminPage';
+import { Button, Card, Input, PageHeader } from '@/components/ui';
 import { useAdminSettings, useUpdateSetting } from '@/modules/settings/hooks/useSettings';
-import { SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { MdiCog, MdiCheck, SvgSpinnersRingResize } from '@/components/icons/Icons';
 import type { AppSetting } from '@/modules/settings/services/setting.service';
 
 export default function AdminSettingsPage() {
@@ -16,6 +16,7 @@ export default function AdminSettingsPage() {
 
   const [values, setValues] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState<Record<string, boolean>>({});
+  const [savingKey, setSavingKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (settings) {
@@ -32,61 +33,63 @@ export default function AdminSettingsPage() {
   };
 
   const handleSave = (setting: AppSetting) => {
+    setSavingKey(setting.key);
     updateSetting.mutate(
       { key: setting.key, value: values[setting.key] ?? setting.value },
-      { onSuccess: () => setDirty((prev) => ({ ...prev, [setting.key]: false })) }
+      {
+        onSuccess: () => setDirty((prev) => ({ ...prev, [setting.key]: false })),
+        onSettled: () => setSavingKey(null),
+      }
     );
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold text-text-primary mb-8">تنظیمات فروشگاه</h1>
-
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <SvgSpinnersRingResize className="text-primary" width={48} />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {settings?.map((setting) => (
-                <Card key={setting.key} className="p-6">
-                  <label className="block text-sm font-medium text-text-secondary mb-1">
-                    {setting.label}
-                  </label>
-                  <p className="text-xs text-text-muted mb-3 font-mono">{setting.key}</p>
-                  <div className="flex gap-3 items-start">
-                    <Input
-                      wrapperClassName="flex-1"
-                      type="text"
-                      value={values[setting.key] ?? setting.value}
-                      onChange={(e) => handleChange(setting.key, e.target.value)}
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleSave(setting)}
-                      disabled={!dirty[setting.key]}
-                      loading={updateSetting.isPending}
-                    >
-                      ذخیره
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
+    <AdminPage
+      maxWidth="3xl"
+      loading={isAuthLoading}
+      header={<PageHeader title="تنظیمات فروشگاه" subtitle="پیکربندی عمومی فروشگاه" icon={MdiCog} />}
+    >
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <SvgSpinnersRingResize className="text-primary" width={48} />
         </div>
-      </main>
-    </div>
+      ) : (
+        <Card>
+          <div className="divide-y divide-border">
+            {settings?.map((setting) => {
+              const isDirty = !!dirty[setting.key];
+              return (
+                <div
+                  key={setting.key}
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 p-5"
+                >
+                  <div className="sm:w-56 shrink-0">
+                    <p className="text-sm font-medium text-text-primary">{setting.label}</p>
+                    <p className="text-xs text-text-muted font-mono mt-0.5">{setting.key}</p>
+                  </div>
+                  <Input
+                    wrapperClassName="flex-1"
+                    type="text"
+                    value={values[setting.key] ?? setting.value}
+                    onChange={(e) => handleChange(setting.key, e.target.value)}
+                  />
+                  <Button
+                    size="sm"
+                    variant={isDirty ? 'primary' : 'outline'}
+                    icon={MdiCheck}
+                    onClick={() => handleSave(setting)}
+                    disabled={!isDirty}
+                    loading={savingKey === setting.key}
+                    className="shrink-0"
+                  >
+                    ذخیره
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+    </AdminPage>
   );
 }

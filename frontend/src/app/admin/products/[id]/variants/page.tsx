@@ -7,11 +7,11 @@ import toast from 'react-hot-toast';
 import { useVariants } from '@/modules/variants/hooks/useVariants';
 import { variantService } from '@/modules/variants/services/variant.service';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import { Badge, Button, Card, EmptyState, Input, Skeleton } from '@/components/ui';
+import AdminPage from '@/components/layout/AdminPage';
+import { Badge, Button, Card, EmptyState, Input, PageHeader, Skeleton } from '@/components/ui';
 import { formatPrice } from '@/utils/formatPrice';
 import type { ProductVariant } from '@/modules/variants/types/variant.types';
-import { LucidePencil, LucidePlus, MdiArrowRight, MdiCheckCircle, MdiClose, MdiImageOff, MdiPackageVariantClosed, MdiTrashCan, SvgSpinnersRingResize } from '@/components/icons/Icons';
+import { LucidePencil, LucidePlus, MdiCheckCircle, MdiClose, MdiImageOff, MdiPackageVariantClosed, MdiTrashCan } from '@/components/icons/Icons';
 
 export default function AdminProductVariantsPage() {
   const router = useRouter();
@@ -20,6 +20,8 @@ export default function AdminProductVariantsPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
 
   const { data: variants, isLoading, refetch } = useVariants(productId);
+
+  const goToNew = () => router.push(`/admin/products/variants/new?productId=${productId}`);
 
   const handleDelete = async (variant: ProductVariant) => {
     if (!window.confirm(`آیا از حذف واریانت "${variant.sku}" اطمینان دارید؟`)) return;
@@ -42,76 +44,51 @@ export default function AdminProductVariantsPage() {
     }
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize className="  text-primary" width={48} />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <button onClick={() => router.back()} className="p-2 hover:bg-surface-raised rounded-button">
-                <MdiArrowRight className="w-5 h-5 text-text-secondary" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-text-primary">واریانت‌های محصول</h1>
-                <p className="text-text-secondary text-sm mt-1">مدیریت قیمت، موجودی و ویژگی‌ها</p>
-              </div>
+    <AdminPage
+      maxWidth="5xl"
+      loading={isAuthLoading}
+      header={
+        <PageHeader
+          title="واریانت‌های محصول"
+          subtitle="مدیریت قیمت، موجودی و ویژگی‌ها"
+          onBack={() => router.back()}
+          action={{ label: 'واریانت جدید', icon: LucidePlus, onClick: goToNew }}
+        />
+      }
+    >
+      <div className="space-y-4">
+        {isLoading ? (
+          [...Array(2)].map((_, i) => (
+            <div key={i} className="bg-surface rounded-card shadow-card p-6">
+              <Skeleton className="h-4 w-1/4 mb-4" />
+              <Skeleton className="h-10 w-full" />
             </div>
-            <Button
-              onClick={() => router.push(`/admin/products/variants/new?productId=${productId}`)}
-              icon={LucidePlus}
+          ))
+        ) : variants?.length === 0 ? (
+          <Card className="py-4">
+            <EmptyState
+              icon={MdiPackageVariantClosed}
+              title="هیچ واریانتی برای این محصول ثبت نشده"
             >
-              واریانت جدید
-            </Button>
-          </div>
-
-          {/* Variants List */}
-          <div className="space-y-4">
-            {isLoading ? (
-              [...Array(2)].map((_, i) => (
-                <div key={i} className="bg-surface rounded-card shadow-card p-6">
-                  <Skeleton className="h-4 w-1/4 mb-4" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ))
-            ) : variants?.length === 0 ? (
-              <Card className="py-4">
-                <EmptyState
-                  icon={MdiPackageVariantClosed}
-                  title="هیچ واریانتی برای این محصول ثبت نشده"
-                >
-                  <Button
-                    onClick={() => router.push(`/admin/products/variants/new?productId=${productId}`)}
-                    icon={LucidePlus}
-                  >
-                    ایجاد اولین واریانت
-                  </Button>
-                </EmptyState>
-              </Card>
-            ) : (
-              variants?.map((variant) => (
-                <VariantCard
-                  key={variant.id}
-                  variant={variant}
-                  onEdit={() => router.push(`/admin/products/variants/${variant.id}`)}
-                  onDelete={() => handleDelete(variant)}
-                  onStockUpdate={(stock) => handleStockUpdate(variant.id, stock)}
-                />
-              ))
-            )}
-          </div>
-        </div>
-      </main>
-    </div>
+              <Button onClick={goToNew} icon={LucidePlus}>
+                ایجاد اولین واریانت
+              </Button>
+            </EmptyState>
+          </Card>
+        ) : (
+          variants?.map((variant) => (
+            <VariantCard
+              key={variant.id}
+              variant={variant}
+              onEdit={() => router.push(`/admin/products/variants/${variant.id}`)}
+              onDelete={() => handleDelete(variant)}
+              onStockUpdate={(stock) => handleStockUpdate(variant.id, stock)}
+            />
+          ))
+        )}
+      </div>
+    </AdminPage>
   );
 }
 
@@ -137,6 +114,7 @@ function VariantCard({
         <div className="flex gap-2">
           {variant.images?.length > 0 ? (
             variant.images.map((img) => (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 key={img.id}
                 src={img.image_url}
@@ -200,13 +178,13 @@ function VariantCard({
                 />
                 <button
                   onClick={() => { onStockUpdate(stockValue === "" ? 0 : stockValue); setEditingStock(false); }}
-                  className="p-1 text-success hover:bg-success-light rounded"
+                  className="p-1 text-success hover:bg-success-light rounded cursor-pointer"
                 >
                   <MdiCheckCircle className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { setStockValue(variant.stock_quantity); setEditingStock(false); }}
-                  className="p-1 text-error hover:bg-error-light rounded"
+                  className="p-1 text-error hover:bg-error-light rounded cursor-pointer"
                 >
                   <MdiClose className="w-4 h-4" />
                 </button>
@@ -216,7 +194,7 @@ function VariantCard({
                 <span className={`text-sm font-medium ${variant.stock_quantity === 0 ? 'text-error' : 'text-success'}`}>
                   موجودی: {variant.stock_quantity}
                 </span>
-                <button onClick={() => setEditingStock(true)} className="p-1 hover:bg-surface-raised rounded text-text-muted">
+                <button onClick={() => setEditingStock(true)} className="p-1 hover:bg-surface-raised rounded text-text-muted cursor-pointer">
                   <LucidePencil className="w-3 h-3" />
                 </button>
               </div>
@@ -229,10 +207,10 @@ function VariantCard({
 
         {/* Actions */}
         <div className="flex lg:flex-col gap-1">
-          <button onClick={onEdit} className="p-2 hover:bg-primary-light rounded-button text-primary" title="ویرایش">
+          <button onClick={onEdit} className="p-2 hover:bg-primary-light rounded-button text-primary cursor-pointer" title="ویرایش">
             <LucidePencil className="w-4 h-4" />
           </button>
-          <button onClick={onDelete} className="p-2 hover:bg-error-light rounded-button text-error" title="حذف">
+          <button onClick={onDelete} className="p-2 hover:bg-error-light rounded-button text-error cursor-pointer" title="حذف">
             <MdiTrashCan className="w-4 h-4" />
           </button>
           <Badge variant={variant.is_active ? 'success' : 'error'} size="sm" className="justify-center">

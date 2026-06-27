@@ -15,11 +15,11 @@ import { useAllBrands } from "@/modules/brands/hooks/useBrands";
 import { useAllAttributes } from "@/modules/attributes/hooks/useAttributes";
 import { useAllTags } from "@/modules/tags/hooks/useTags";
 import { useVariants } from "@/modules/variants/hooks/useVariants";
-import AdminSidebar from "@/components/layout/AdminSidebar";
-import { Badge, Button, Card, Checkbox, EmptyState, Input, Select, Textarea, Toggle } from "@/components/ui";
+import AdminFormLayout from "@/components/layout/AdminFormLayout";
+import { Badge, Button, Card, Checkbox, EmptyState, FormSection, Input, Select, Textarea, Toggle } from "@/components/ui";
 import { formatPrice } from "@/utils/formatPrice";
 import type { ProductVariant } from "@/modules/variants/types/variant.types";
-import { LucidePencil, LucidePlus, LucideSearch, MdiArrowRight, MdiClose, MdiImageMultiple, MdiInformation, MdiPackageVariant, MdiPackageVariantClosed, MdiTrashCan, SvgSpinnersRingResize } from "@/components/icons/Icons";
+import { LucidePencil, LucidePlus, LucideSearch, MdiCheckCircle, MdiClose, MdiImageMultiple, MdiInformation, MdiPackageVariant, MdiPackageVariantClosed, MdiTagMultiple, MdiTrashCan, SvgSpinnersRingResize } from "@/components/icons/Icons";
 
 const productFormSchema = z.object({
   category_id: z.string().min(1, "دسته‌بندی الزامی است"),
@@ -125,6 +125,7 @@ export default function AdminProductFormPage() {
   const isActive = watch("is_active");
   const isPublic = watch("is_public");
   const watchedImages = watch("images");
+  const watchedTitle = watch("title");
   const selectedTags = watch("tag_ids") || [];
 
   // Variant form state (separate from product form)
@@ -314,546 +315,518 @@ export default function AdminProductFormPage() {
     setValue("tag_ids", updated);
   };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize
-          className="  text-primary"
-          width={48}
-        />
-      </div>
-    );
-  }
+  const tabs: { key: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
+    { key: "basic", label: "اطلاعات پایه", icon: <MdiInformation /> },
+    { key: "images", label: "تصاویر", icon: <MdiImageMultiple /> },
+    ...(isEdit
+      ? [
+          {
+            key: "variants" as Tab,
+            label: "واریانت‌ها",
+            icon: <MdiPackageVariant />,
+            count: variants?.length,
+          },
+        ]
+      : []),
+    { key: "seo", label: "سئو", icon: <LucideSearch /> },
+  ];
 
-  return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.back()}
-                className="p-2 hover:bg-surface-raised rounded-button"
-              >
-                <MdiArrowRight
-                  className="w-5 h-5 text-text-secondary"
-                />
-              </button>
-              <h1 className="text-2xl font-bold text-text-primary">
-                {isEdit ? "ویرایش محصول" : "محصول جدید"}
-              </h1>
-            </div>
-            <Button type="submit" form="product-form" loading={isSubmitting}>
-              ذخیره محصول
-            </Button>
-          </div>
+  const aside = (
+    <>
+      {/* Status */}
+      <FormSection title="وضعیت" icon={MdiCheckCircle}>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-text-secondary">فعال</span>
+          <Toggle
+            label={isActive ? "فعال" : "غیرفعال"}
+            checked={isActive}
+            onChange={(e) => setValue("is_active", e.target.checked)}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-text-secondary">انتشار</span>
+          <Toggle
+            label={isPublic ? "منتشر شده" : "پیش‌نویس"}
+            checked={isPublic}
+            onChange={(e) => setValue("is_public", e.target.checked)}
+          />
+        </div>
+      </FormSection>
 
-          {/* Tabs */}
-          <div className="flex border-b border-border mb-6">
-            {[
-              { key: "basic", label: "اطلاعات پایه", icon: <MdiInformation/> },
-              { key: "images", label: "تصاویر", icon: <MdiImageMultiple/> },
-              ...(isEdit
-                ? [
-                    {
-                      key: "variants",
-                      label: "واریانت‌ها",
-                      icon: <MdiPackageVariant/>,
-                      count: variants?.length,
-                    },
-                  ]
-                : []),
-              { key: "seo", label: "سئو", icon: <LucideSearch/>  },
-            ].map((tab) => (
+      {/* Tags */}
+      {tags && tags.length > 0 && (
+        <FormSection title="برچسب‌ها" icon={MdiTagMultiple}>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
               <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as Tab)}
-                className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                  activeTab === tab.key
-                    ? "border-primary text-primary"
-                    : "border-transparent text-text-secondary hover:text-text-primary"
+                key={tag.id}
+                type="button"
+                onClick={() => toggleTag(tag.id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors cursor-pointer ${
+                  selectedTags.includes(tag.id)
+                    ? "bg-primary text-white border-primary"
+                    : "bg-surface text-text-secondary border-border hover:border-primary"
                 }`}
               >
-                <div className="w-4 h-4">
-                  {tab.icon}
-                </div>
-                {tab.label}
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className="bg-primary-light text-primary text-xs px-1.5 py-0.5 rounded-full">
-                    {tab.count}
-                  </span>
-                )}
+                {tag.name}
               </button>
             ))}
           </div>
+        </FormSection>
+      )}
+    </>
+  );
 
-          <form id="product-form" onSubmit={handleSubmit(onSubmit)}>
-            {/* TAB: Basic Info */}
-            {activeTab === "basic" && (
-              <div className="space-y-6">
-                <Card className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  return (
+    <AdminFormLayout
+      title={isEdit ? "ویرایش محصول" : "محصول جدید"}
+      subtitle={isEdit ? watchedTitle || undefined : "افزودن محصول جدید به فروشگاه"}
+      loading={isAuthLoading}
+      onBack={() => router.back()}
+      onSubmit={handleSubmit(onSubmit)}
+      isSubmitting={isSubmitting}
+      submitLabel="ذخیره محصول"
+      aside={aside}
+    >
+      {/* Tabs */}
+      <div className="flex border-b border-border overflow-x-auto">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+              activeTab === tab.key
+                ? "border-primary text-primary"
+                : "border-transparent text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            <span className="w-4 h-4">{tab.icon}</span>
+            {tab.label}
+            {tab.count !== undefined && tab.count > 0 && (
+              <span className="bg-primary-light text-primary text-xs px-1.5 py-0.5 rounded-full">
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* TAB: Basic Info */}
+      {activeTab === "basic" && (
+        <>
+          <FormSection title="اطلاعات پایه" icon={MdiInformation} columns={2}>
+            <Input
+              label="عنوان *"
+              wrapperClassName="md:col-span-2"
+              {...register("title")}
+              error={errors.title?.message}
+            />
+
+            <Select label="دسته‌بندی *" {...register("category_id")} error={errors.category_id?.message}>
+              <option value="">انتخاب کنید</option>
+              {categoriesData?.data?.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </Select>
+
+            <Select label="برند" {...register("brand_id")}>
+              <option value="">بدون برند</option>
+              {brandsData?.map((brand) => (
+                <option key={brand.id} value={brand.id}>
+                  {brand.name}
+                </option>
+              ))}
+            </Select>
+
+            <Input
+              label="توضیح کوتاه"
+              wrapperClassName="md:col-span-2"
+              {...register("short_description")}
+            />
+
+            <Textarea
+              label="توضیحات کامل"
+              wrapperClassName="md:col-span-2"
+              {...register("full_description")}
+              rows={8}
+            />
+          </FormSection>
+
+          {/* Specifications (jsonb key/value pairs) */}
+          <FormSection title="مشخصات فنی" description="مثال: جنس → نخ پنبه">
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                icon={LucidePlus}
+                onClick={() => addSpec({ key: "", value: "" })}
+              >
+                افزودن مشخصه
+              </Button>
+            </div>
+
+            {specFields.length === 0 ? (
+              <p className="text-sm text-text-muted">
+                مشخصه‌ای ثبت نشده است. مثال: جنس → نخ پنبه
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {specFields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-3">
                     <Input
-                      label="عنوان *"
-                      wrapperClassName="md:col-span-2"
-                      {...register("title")}
-                      error={errors.title?.message}
+                      wrapperClassName="flex-1"
+                      {...register(`specifications.${index}.key`)}
+                      placeholder="عنوان (مثلاً: جنس)"
+                      className="text-sm"
                     />
-
-                    <Select label="دسته‌بندی *" {...register("category_id")} error={errors.category_id?.message}>
-                      <option value="">انتخاب کنید</option>
-                      {categoriesData?.data?.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </Select>
-
-                    <Select label="برند" {...register("brand_id")}>
-                      <option value="">بدون برند</option>
-                      {brandsData?.map((brand) => (
-                        <option key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </option>
-                      ))}
-                    </Select>
-
                     <Input
-                      label="توضیح کوتاه"
-                      wrapperClassName="md:col-span-2"
-                      {...register("short_description")}
+                      wrapperClassName="flex-1"
+                      {...register(`specifications.${index}.value`)}
+                      placeholder="مقدار (مثلاً: نخ پنبه)"
+                      className="text-sm"
                     />
-
-                    <Textarea
-                      label="توضیحات کامل"
-                      wrapperClassName="md:col-span-2"
-                      {...register("full_description")}
-                      rows={8}
-                    />
-                  </div>
-                </Card>
-
-                {/* Status */}
-                <Card className="p-6">
-                  <h3 className="font-medium text-text-primary mb-4">وضعیت</h3>
-                  <div className="flex gap-8">
-                    <Toggle
-                      label={isActive ? "فعال" : "غیرفعال"}
-                      checked={isActive}
-                      onChange={(e) => setValue("is_active", e.target.checked)}
-                    />
-                    <Toggle
-                      label={isPublic ? "منتشر شده" : "پیش‌نویس"}
-                      checked={isPublic}
-                      onChange={(e) => setValue("is_public", e.target.checked)}
-                    />
-                  </div>
-                </Card>
-
-                {/* Tags */}
-                {tags && tags.length > 0 && (
-                  <Card className="p-6">
-                    <h3 className="font-medium text-text-primary mb-4">
-                      برچسب‌ها
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag) => (
-                        <button
-                          key={tag.id}
-                          type="button"
-                          onClick={() => toggleTag(tag.id)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                            selectedTags.includes(tag.id)
-                              ? "bg-primary text-white border-primary"
-                              : "bg-surface text-text-secondary border-border hover:border-primary"
-                          }`}
-                        >
-                          {tag.name}
-                        </button>
-                      ))}
-                    </div>
-                  </Card>
-                )}
-
-                {/* Specifications (jsonb key/value pairs) */}
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-text-primary">مشخصات فنی</h3>
-                    <Button
+                    <button
                       type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => addSpec({ key: "", value: "" })}
+                      onClick={() => removeSpec(index)}
+                      className="p-2 hover:bg-error-light rounded-button text-error cursor-pointer"
+                      title="حذف"
                     >
-                      + افزودن مشخصه
-                    </Button>
+                      <MdiClose className="w-4 h-4" />
+                    </button>
                   </div>
-
-                  {specFields.length === 0 ? (
-                    <p className="text-sm text-text-muted">
-                      مشخصه‌ای ثبت نشده است. مثال: جنس → نخ پنبه
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {specFields.map((field, index) => (
-                        <div key={field.id} className="flex items-center gap-3">
-                          <Input
-                            wrapperClassName="flex-1"
-                            {...register(`specifications.${index}.key`)}
-                            placeholder="عنوان (مثلاً: جنس)"
-                            className="text-sm"
-                          />
-                          <Input
-                            wrapperClassName="flex-1"
-                            {...register(`specifications.${index}.value`)}
-                            placeholder="مقدار (مثلاً: نخ پنبه)"
-                            className="text-sm"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeSpec(index)}
-                            className="p-2 hover:bg-error-light rounded-button text-error"
-                            title="حذف"
-                          >
-                            <MdiClose className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </Card>
+                ))}
               </div>
             )}
+          </FormSection>
+        </>
+      )}
 
-            {/* TAB: Images */}
-            {activeTab === "images" && (
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-medium text-text-primary">
-                    تصاویر محصول
-                  </h3>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      addImage({
-                        image_url: "",
-                        alt_text: "",
-                        is_thumbnail: false,
-                      })
-                    }
-                  >
-                    + افزودن تصویر
-                  </Button>
+      {/* TAB: Images */}
+      {activeTab === "images" && (
+        <FormSection title="تصاویر محصول" icon={MdiImageMultiple}>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              icon={LucidePlus}
+              onClick={() =>
+                addImage({
+                  image_url: "",
+                  alt_text: "",
+                  is_thumbnail: false,
+                })
+              }
+            >
+              افزودن تصویر
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {imageFields.map((field, index) => (
+              <div
+                key={field.id}
+                className="flex items-start gap-4 p-4 bg-surface-raised rounded-card"
+              >
+                {/* Preview */}
+                <div className="w-20 h-20 shrink-0 rounded-card border border-border bg-surface overflow-hidden flex items-center justify-center">
+                  {watchedImages?.[index]?.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={watchedImages[index].image_url}
+                      alt="preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <MdiImageMultiple className="w-6 h-6 text-text-muted" />
+                  )}
                 </div>
-                <div className="space-y-4">
-                  {imageFields.map((field, index) => (
-                    <div
-                      key={field.id}
-                      className="flex items-start gap-4 p-4 bg-surface-raised rounded-card"
-                    >
-                      {/* Preview */}
-                      <div className="w-20 h-20 flex-shrink-0 rounded-card border border-border bg-surface overflow-hidden flex items-center justify-center">
-                        {watchedImages?.[index]?.image_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={watchedImages[index].image_url}
-                            alt="preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <MdiImageMultiple className="w-6 h-6 text-text-muted" />
-                        )}
-                      </div>
-                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="sm:col-span-2">
-                          <Input
-                            label="آدرس تصویر"
-                            dir="ltr"
-                            {...register(`images.${index}.image_url`)}
-                            placeholder="https://..."
-                            className="text-sm"
-                          />
-                          <label className="inline-flex items-center gap-2 mt-2 cursor-pointer text-xs text-primary hover:underline">
-                            {uploadingIndex === index ? (
-                              <>
-                                <SvgSpinnersRingResize className="w-4 h-4" />
-                                در حال بارگذاری...
-                              </>
-                            ) : (
-                              <>
-                                <MdiImageMultiple className="w-4 h-4" />
-                                بارگذاری فایل
-                              </>
-                            )}
-                            <input
-                              type="file"
-                              accept="image/jpeg,image/png,image/webp,image/gif"
-                              className="hidden"
-                              disabled={uploadingIndex !== null}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleImageUpload(index, file);
-                                e.target.value = "";
-                              }}
-                            />
-                          </label>
-                        </div>
-                        <Input
-                          label="متن جایگزین"
-                          {...register(`images.${index}.alt_text`)}
-                          placeholder="توضیح تصویر"
-                          className="text-sm"
-                        />
-                      </div>
-                      <div className="mt-6">
-                        <Checkbox
-                          label={<span className="text-xs">تصویر اصلی</span>}
-                          {...register(`images.${index}.is_thumbnail`)}
-                        />
-                      </div>
-                      {imageFields.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="p-2 hover:bg-error-light rounded-button text-error mt-5"
-                        >
-                          <MdiClose className="w-4 h-4" />
-                        </button>
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2">
+                    <Input
+                      label="آدرس تصویر"
+                      dir="ltr"
+                      {...register(`images.${index}.image_url`)}
+                      placeholder="https://..."
+                      className="text-sm"
+                    />
+                    <label className="inline-flex items-center gap-2 mt-2 cursor-pointer text-xs text-primary hover:underline">
+                      {uploadingIndex === index ? (
+                        <>
+                          <SvgSpinnersRingResize className="w-4 h-4" />
+                          در حال بارگذاری...
+                        </>
+                      ) : (
+                        <>
+                          <MdiImageMultiple className="w-4 h-4" />
+                          بارگذاری فایل
+                        </>
                       )}
-                    </div>
-                  ))}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="hidden"
+                        disabled={uploadingIndex !== null}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageUpload(index, file);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <Input
+                    label="متن جایگزین"
+                    {...register(`images.${index}.alt_text`)}
+                    placeholder="توضیح تصویر"
+                    className="text-sm"
+                  />
                 </div>
-              </Card>
-            )}
+                <div className="mt-6">
+                  <Checkbox
+                    label={<span className="text-xs">تصویر اصلی</span>}
+                    {...register(`images.${index}.is_thumbnail`)}
+                  />
+                </div>
+                {imageFields.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="p-2 hover:bg-error-light rounded-button text-error mt-5 cursor-pointer"
+                  >
+                    <MdiClose className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </FormSection>
+      )}
 
-            {/* TAB: Variants */}
-            {activeTab === "variants" && (
-              <div className="space-y-6">
-                {/* Add/Edit Variant Form */}
-                {showVariantForm && (
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="font-medium text-text-primary">
-                        {editingVariant ? "ویرایش واریانت" : "واریانت جدید"}
-                      </h3>
-                      <button
-                        onClick={resetVariantForm}
-                        className="p-2 hover:bg-surface-raised rounded-button"
-                      >
-                        <MdiClose className="w-5 h-5" />
-                      </button>
-                    </div>
+      {/* TAB: Variants */}
+      {activeTab === "variants" && (
+        <div className="space-y-6">
+          {/* Add/Edit Variant Form */}
+          {showVariantForm && (
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-medium text-text-primary">
+                  {editingVariant ? "ویرایش واریانت" : "واریانت جدید"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={resetVariantForm}
+                  className="p-2 hover:bg-surface-raised rounded-button cursor-pointer"
+                >
+                  <MdiClose className="w-5 h-5" />
+                </button>
+              </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <Input
-                        label="کد محصول (SKU) *"
-                        value={variantForm.sku}
-                        onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value })}
-                        className="text-sm"
-                      />
-                      <Input
-                        label="بارکد"
-                        value={variantForm.barcode}
-                        onChange={(e) => setVariantForm({ ...variantForm, barcode: e.target.value })}
-                        className="text-sm"
-                      />
-                      <Input
-                        label="قیمت (تومان) *"
-                        type="number"
-                        value={variantForm.price}
-                        onChange={(e) => setVariantForm({ ...variantForm, price: e.target.value === "" ? "" : parseInt(e.target.value) })}
-                        className="text-sm"
-                      />
-                      <Input
-                        label="قیمت مقایسه"
-                        type="number"
-                        value={variantForm.compare_at_price || ""}
-                        onChange={(e) => setVariantForm({ ...variantForm, compare_at_price: e.target.value ? parseInt(e.target.value) : null })}
-                        className="text-sm"
-                      />
-                      <Input
-                        label="موجودی"
-                        type="number"
-                        value={variantForm.stock_quantity}
-                        onChange={(e) => setVariantForm({ ...variantForm, stock_quantity: e.target.value === "" ? "" : parseInt(e.target.value) })}
-                        className="text-sm"
-                      />
-                      <Input
-                        label="هشدار موجودی"
-                        type="number"
-                        value={variantForm.low_stock_threshold || ""}
-                        onChange={(e) => setVariantForm({ ...variantForm, low_stock_threshold: e.target.value ? parseInt(e.target.value) : null })}
-                        className="text-sm"
-                      />
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Input
+                  label="کد محصول (SKU) *"
+                  value={variantForm.sku}
+                  onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value })}
+                  className="text-sm"
+                />
+                <Input
+                  label="بارکد"
+                  value={variantForm.barcode}
+                  onChange={(e) => setVariantForm({ ...variantForm, barcode: e.target.value })}
+                  className="text-sm"
+                />
+                <Input
+                  label="قیمت (تومان) *"
+                  type="number"
+                  value={variantForm.price}
+                  onChange={(e) => setVariantForm({ ...variantForm, price: e.target.value === "" ? "" : parseInt(e.target.value) })}
+                  className="text-sm"
+                />
+                <Input
+                  label="قیمت مقایسه"
+                  type="number"
+                  value={variantForm.compare_at_price || ""}
+                  onChange={(e) => setVariantForm({ ...variantForm, compare_at_price: e.target.value ? parseInt(e.target.value) : null })}
+                  className="text-sm"
+                />
+                <Input
+                  label="موجودی"
+                  type="number"
+                  value={variantForm.stock_quantity}
+                  onChange={(e) => setVariantForm({ ...variantForm, stock_quantity: e.target.value === "" ? "" : parseInt(e.target.value) })}
+                  className="text-sm"
+                />
+                <Input
+                  label="هشدار موجودی"
+                  type="number"
+                  value={variantForm.low_stock_threshold || ""}
+                  onChange={(e) => setVariantForm({ ...variantForm, low_stock_threshold: e.target.value ? parseInt(e.target.value) : null })}
+                  className="text-sm"
+                />
+              </div>
 
-                    {/* Attributes */}
-                    {attributes && attributes.length > 0 && (
-                      <div className="mb-6">
-                        <label className="text-sm font-medium text-text-secondary block mb-3">
-                          ویژگی‌ها
-                        </label>
-                        <div className="space-y-3">
-                          {attributes.map((attr) => (
-                            <div key={attr.id}>
-                              <p className="text-xs text-text-muted mb-2">
-                                {attr.name}
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {attr.values?.map((val) => (
-                                  <button
-                                    key={val.id}
-                                    type="button"
-                                    onClick={() => {
-                                      const current =
-                                        variantForm.attribute_value_ids;
-                                      const updated = current.includes(val.id)
-                                        ? current.filter((id) => id !== val.id)
-                                        : [...current, val.id];
-                                      setVariantForm({
-                                        ...variantForm,
-                                        attribute_value_ids: updated,
-                                      });
-                                    }}
-                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                                      variantForm.attribute_value_ids.includes(
-                                        val.id,
-                                      )
-                                        ? "bg-primary text-white border-primary"
-                                        : "bg-surface text-text-secondary border-border hover:border-primary"
-                                    }`}
-                                  >
-                                    {val.color_code && (
-                                      <span
-                                        className="w-3 h-3 rounded-full"
-                                        style={{
-                                          backgroundColor: val.color_code,
-                                        }}
-                                      />
-                                    )}
-                                    {val.value}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
+              {/* Attributes */}
+              {attributes && attributes.length > 0 && (
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-text-secondary block mb-3">
+                    ویژگی‌ها
+                  </label>
+                  <div className="space-y-3">
+                    {attributes.map((attr) => (
+                      <div key={attr.id}>
+                        <p className="text-xs text-text-muted mb-2">
+                          {attr.name}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {attr.values?.map((val) => (
+                            <button
+                              key={val.id}
+                              type="button"
+                              onClick={() => {
+                                const current =
+                                  variantForm.attribute_value_ids;
+                                const updated = current.includes(val.id)
+                                  ? current.filter((id) => id !== val.id)
+                                  : [...current, val.id];
+                                setVariantForm({
+                                  ...variantForm,
+                                  attribute_value_ids: updated,
+                                });
+                              }}
+                              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs border transition-colors cursor-pointer ${
+                                variantForm.attribute_value_ids.includes(
+                                  val.id,
+                                )
+                                  ? "bg-primary text-white border-primary"
+                                  : "bg-surface text-text-secondary border-border hover:border-primary"
+                              }`}
+                            >
+                              {val.color_code && (
+                                <span
+                                  className="w-3 h-3 rounded-full"
+                                  style={{
+                                    backgroundColor: val.color_code,
+                                  }}
+                                />
+                              )}
+                              {val.value}
+                            </button>
                           ))}
                         </div>
                       </div>
-                    )}
-
-                    <div className="flex gap-3">
-                      <Button type="button" onClick={handleSaveVariant}>
-                        {editingVariant ? "بروزرسانی" : "افزودن واریانت"}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={resetVariantForm}
-                      >
-                        انصراف
-                      </Button>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Variants List */}
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-medium text-text-primary">
-                      واریانت‌ها ({variants?.length || 0})
-                    </h3>
-                    {!showVariantForm && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => setShowVariantForm(true)}
-                        icon={LucidePlus}
-                      >
-                        واریانت جدید
-                      </Button>
-                    )}
+                    ))}
                   </div>
+                </div>
+              )}
 
-                  {variants?.length === 0 ? (
-                    <EmptyState icon={MdiPackageVariantClosed} title="هیچ واریانتی ثبت نشده" />
-                  ) : (
-                    <div className="space-y-3">
-                      {variants?.map((variant) => (
-                        <div
-                          key={variant.id}
-                          className="flex items-center justify-between p-3 bg-surface-raised rounded-card"
+              <div className="flex gap-3">
+                <Button type="button" onClick={handleSaveVariant}>
+                  {editingVariant ? "بروزرسانی" : "افزودن واریانت"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetVariantForm}
+                >
+                  انصراف
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* Variants List */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-medium text-text-primary">
+                واریانت‌ها ({variants?.length || 0})
+              </h3>
+              {!showVariantForm && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setShowVariantForm(true)}
+                  icon={LucidePlus}
+                >
+                  واریانت جدید
+                </Button>
+              )}
+            </div>
+
+            {variants?.length === 0 ? (
+              <EmptyState icon={MdiPackageVariantClosed} title="هیچ واریانتی ثبت نشده" />
+            ) : (
+              <div className="space-y-3">
+                {variants?.map((variant) => (
+                  <div
+                    key={variant.id}
+                    className="flex items-center justify-between p-3 bg-surface-raised rounded-card"
+                  >
+                    <div>
+                      <p className="font-medium text-text-primary text-sm">
+                        {variant.sku}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-sm text-text-secondary">
+                          {formatPrice(variant.price)}
+                        </span>
+                        <span
+                          className={`text-xs ${variant.stock_quantity > 0 ? "text-success" : "text-error"}`}
                         >
-                          <div>
-                            <p className="font-medium text-text-primary text-sm">
-                              {variant.sku}
-                            </p>
-                            <div className="flex items-center gap-3 mt-1">
-                              <span className="text-sm text-text-secondary">
-                                {formatPrice(variant.price)}
-                              </span>
+                          موجودی: {variant.stock_quantity}
+                        </span>
+                        <Badge variant={variant.is_active ? "success" : "error"} size="sm">
+                          {variant.is_active ? "فعال" : "غیرفعال"}
+                        </Badge>
+                      </div>
+                      {variant.attributes?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {variant.attributes.map(
+                            (attr: any, i: number) => (
                               <span
-                                className={`text-xs ${variant.stock_quantity > 0 ? "text-success" : "text-error"}`}
+                                key={i}
+                                className="text-xs text-text-muted bg-surface px-1.5 py-0.5 rounded"
                               >
-                                موجودی: {variant.stock_quantity}
+                                {attr.value}
                               </span>
-                              <Badge variant={variant.is_active ? "success" : "error"} size="sm">
-                                {variant.is_active ? "فعال" : "غیرفعال"}
-                              </Badge>
-                            </div>
-                            {variant.attributes?.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {variant.attributes.map(
-                                  (attr: any, i: number) => (
-                                    <span
-                                      key={i}
-                                      className="text-xs text-text-muted bg-surface px-1.5 py-0.5 rounded"
-                                    >
-                                      {attr.value}
-                                    </span>
-                                  ),
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleEditVariant(variant)}
-                              className="p-2 hover:bg-primary-light rounded-button text-primary"
-                            >
-                              <LucidePencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteVariant(variant)}
-                              className="p-2 hover:bg-error-light rounded-button text-error"
-                            >
-                              <MdiTrashCan className="w-4 h-4" />
-                            </button>
-                          </div>
+                            ),
+                          )}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-                </Card>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleEditVariant(variant)}
+                        className="p-2 hover:bg-primary-light rounded-button text-primary cursor-pointer"
+                      >
+                        <LucidePencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteVariant(variant)}
+                        className="p-2 hover:bg-error-light rounded-button text-error cursor-pointer"
+                      >
+                        <MdiTrashCan className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
-
-            {/* TAB: SEO */}
-            {activeTab === "seo" && (
-              <Card className="p-6 space-y-6">
-                <h3 className="font-medium text-text-primary">تنظیمات سئو</h3>
-                <Input label="عنوان سئو" {...register("seo_title")} />
-                <Textarea label="توضیحات سئو" {...register("seo_description")} rows={3} />
-              </Card>
-            )}
-          </form>
+          </Card>
         </div>
-      </main>
-    </div>
+      )}
+
+      {/* TAB: SEO */}
+      {activeTab === "seo" && (
+        <FormSection title="تنظیمات سئو" description="بهینه‌سازی برای موتورهای جستجو" icon={LucideSearch}>
+          <Input label="عنوان سئو" {...register("seo_title")} />
+          <Textarea label="توضیحات سئو" {...register("seo_description")} rows={3} />
+        </FormSection>
+      )}
+    </AdminFormLayout>
   );
 }

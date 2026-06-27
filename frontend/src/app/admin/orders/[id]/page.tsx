@@ -10,13 +10,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { shipmentService } from "@/modules/shipments/services/shipment.service";
 import { orderService } from "@/modules/orders/services/order.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
-import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminPage from "@/components/layout/AdminPage";
 import {
   Badge,
   Button,
   Card,
+  EmptyState,
   Input,
   Modal,
+  PageHeader,
   Select,
   Table,
   TBody,
@@ -30,7 +32,7 @@ import { formatPrice } from "@/utils/formatPrice";
 import { orderStatusBadge } from "@/utils/statusBadge";
 import { shipmentStatusLabels, type ShipmentStatus } from "@/modules/shipments/types/shipment.types";
 import { paymentService } from "@/modules/payment/services/payment.service";
-import { LucidePencil, LucidePlus, MdiArrowRight, MdiClipboardTextOff, SvgSpinnersRingResize } from "@/components/icons/Icons";
+import { LucidePencil, LucidePlus, MdiClipboardTextOff } from "@/components/icons/Icons";
 
 const statusLabels: Record<string, string> = {
   pending: "در انتظار",
@@ -152,66 +154,43 @@ export default function AdminOrderDetailPage() {
     }
   };
 
-  if (isAuthLoading || isLoading) {
+  // Not found (after loading resolves)
+  if (!isAuthLoading && !isLoading && !order) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <SvgSpinnersRingResize
-          className="animate-spin text-primary"
-          width={48}
-        />
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="flex min-h-screen">
-        <AdminSidebar />
-        <main className="flex-1 lg:mr-64 p-8 text-center">
-          <MdiClipboardTextOff
-            className="text-text-muted mx-auto mb-4"
-            width={64}
-          />
-          <h1 className="text-xl font-bold">سفارش یافت نشد</h1>
-        </main>
-      </div>
+      <AdminPage
+        maxWidth="5xl"
+        header={<PageHeader title="سفارش" onBack={() => router.push("/admin/orders")} />}
+      >
+        <EmptyState icon={MdiClipboardTextOff} title="سفارش یافت نشد" />
+      </AdminPage>
     );
   }
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 lg:mr-64 p-4 lg:p-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.push("/admin/orders")}
-                className="p-2 hover:bg-surface-raised rounded-button"
-              >
-                <MdiArrowRight className="w-5 h-5" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-text-primary">
-                  سفارش {order.order_number}
-                </h1>
-                <p className="text-text-secondary text-sm">
-                  {order.shipping_address_snapshot?.full_name} |{" "}
-                  {order.customer_phone}
-                </p>
-              </div>
-            </div>
-            <Button onClick={() => setShowStatusForm(true)} icon={LucidePencil}>
-              بروزرسانی وضعیت
-            </Button>
-          </div>
-
+    <AdminPage
+      maxWidth="5xl"
+      loading={isAuthLoading || isLoading}
+      header={
+        <PageHeader
+          title={`سفارش ${order?.order_number ?? ""}`}
+          subtitle={`${order?.shipping_address_snapshot?.full_name ?? ""} | ${order?.customer_phone ?? ""}`}
+          onBack={() => router.push("/admin/orders")}
+          action={{ label: "بروزرسانی وضعیت", icon: LucidePencil, onClick: () => setShowStatusForm(true) }}
+        >
+          {order && (
+            <Badge variant={orderStatusBadge(order.order_status).variant}>
+              {orderStatusBadge(order.order_status).label}
+            </Badge>
+          )}
+        </PageHeader>
+      }
+    >
+      {order && (
+        <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Order Info */}
             <Card className="p-6">
-              <h2 className="font-bold text-text-primary mb-4">
-                اطلاعات سفارش
-              </h2>
+              <h2 className="font-bold text-text-primary mb-4">اطلاعات سفارش</h2>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-text-muted">وضعیت:</span>
@@ -222,8 +201,7 @@ export default function AdminOrderDetailPage() {
                 <div className="flex justify-between">
                   <span className="text-text-muted">پرداخت:</span>
                   <span>
-                    {paymentStatusLabels[order.payment_status] ||
-                      order.payment_status}
+                    {paymentStatusLabels[order.payment_status] || order.payment_status}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -255,27 +233,18 @@ export default function AdminOrderDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">مانده:</span>
-                  <span className="text-error font-medium">
-                    {formatPrice(order.due_amount)}
-                  </span>
+                  <span className="text-error font-medium">{formatPrice(order.due_amount)}</span>
                 </div>
               </div>
             </Card>
 
             {/* Customer Info */}
             <Card className="p-6">
-              <h2 className="font-bold text-text-primary mb-4">
-                اطلاعات مشتری
-              </h2>
-              <p className="font-medium">
-                {order.shipping_address_snapshot?.full_name}
-              </p>
-              <p className="text-text-secondary text-sm">
-                {order.shipping_address_snapshot?.phone}
-              </p>
+              <h2 className="font-bold text-text-primary mb-4">اطلاعات مشتری</h2>
+              <p className="font-medium">{order.shipping_address_snapshot?.full_name}</p>
+              <p className="text-text-secondary text-sm">{order.shipping_address_snapshot?.phone}</p>
               <p className="text-text-secondary text-sm mt-2">
-                {order.shipping_address_snapshot?.state}،{" "}
-                {order.shipping_address_snapshot?.city}
+                {order.shipping_address_snapshot?.state}، {order.shipping_address_snapshot?.city}
               </p>
               <p className="text-text-secondary text-sm">
                 {order.shipping_address_snapshot?.address_line_1}
@@ -296,11 +265,7 @@ export default function AdminOrderDetailPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-text-primary">پرداخت‌ها</h2>
-                <Button
-                  size="sm"
-                  onClick={() => setShowPaymentForm(true)}
-                  icon={LucidePlus}
-                >
+                <Button size="sm" onClick={() => setShowPaymentForm(true)} icon={LucidePlus}>
                   افزودن
                 </Button>
               </div>
@@ -309,23 +274,16 @@ export default function AdminOrderDetailPage() {
               ) : (
                 <div className="space-y-2">
                   {payments.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex justify-between bg-surface-raised p-3 rounded text-sm"
-                    >
+                    <div key={p.id} className="flex justify-between bg-surface-raised p-3 rounded text-sm">
                       <div>
                         <span className="font-medium">{p.provider}</span>
                         <span className="text-text-muted mr-2">{p.method}</span>
                         {p.transaction_id && (
-                          <code className="block text-xs mt-1">
-                            {p.transaction_id}
-                          </code>
+                          <code className="block text-xs mt-1">{p.transaction_id}</code>
                         )}
                       </div>
                       <div className="text-left">
-                        <span className="font-bold">
-                          {formatPrice(p.amount)}
-                        </span>
+                        <span className="font-bold">{formatPrice(p.amount)}</span>
                         <div className="mt-1">
                           <Badge
                             variant={
@@ -351,11 +309,7 @@ export default function AdminOrderDetailPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-text-primary">ارسال‌ها</h2>
-                <Button
-                  size="sm"
-                  onClick={() => setShowShipmentForm(true)}
-                  icon={LucidePlus}
-                >
+                <Button size="sm" onClick={() => setShowShipmentForm(true)} icon={LucidePlus}>
                   افزودن
                 </Button>
               </div>
@@ -364,10 +318,7 @@ export default function AdminOrderDetailPage() {
               ) : (
                 <div className="space-y-2">
                   {shipments.map((s) => (
-                    <div
-                      key={s.id}
-                      className="bg-surface-raised p-3 rounded text-sm"
-                    >
+                    <div key={s.id} className="bg-surface-raised p-3 rounded text-sm">
                       <div className="flex justify-between mb-2">
                         <span className="font-medium">{s.courier_name}</span>
                         <select
@@ -375,15 +326,13 @@ export default function AdminOrderDetailPage() {
                           onChange={(e) =>
                             handleUpdateShipment(s.id, e.target.value as ShipmentStatus)
                           }
-                          className="text-xs px-2 py-1 rounded border border-border bg-surface"
+                          className="text-xs px-2 py-1 rounded border border-border bg-surface cursor-pointer"
                         >
-                          {Object.entries(shipmentStatusLabels).map(
-                            ([key, label]) => (
-                              <option key={key} value={key}>
-                                {label}
-                              </option>
-                            ),
-                          )}
+                          {Object.entries(shipmentStatusLabels).map(([key, label]) => (
+                            <option key={key} value={key}>
+                              {label}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <code className="text-xs bg-surface px-2 py-0.5 rounded">
@@ -542,8 +491,8 @@ export default function AdminOrderDetailPage() {
               />
             </div>
           </Modal>
-        </div>
-      </main>
-    </div>
+        </>
+      )}
+    </AdminPage>
   );
 }

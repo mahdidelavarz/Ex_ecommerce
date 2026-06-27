@@ -33,7 +33,7 @@ export default function FormSection({
 
   return (
     <Card className={className}>
-      <div className="flex items-start gap-3 px-5 py-4 border-b border-border">
+      <div className="flex items-start gap-3 px-5 py-4 ">
         {Icon && (
           <span className="shrink-0 grid place-items-center w-9 h-9 rounded-button bg-primary-light text-primary">
             <Icon className="w-5 h-5" />

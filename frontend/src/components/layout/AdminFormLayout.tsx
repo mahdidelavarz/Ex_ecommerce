@@ -32,7 +32,7 @@ import AdminSidebar from "./AdminSidebar";
 import { Button } from "../ui";
 import { MdiArrowRight, SvgSpinnersRingResize } from "../icons/Icons";
 
-type MaxWidth = "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl";
+type MaxWidth = "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl" | "full";
 
 // Static map so Tailwind sees each class literally (interpolated `max-w-${x}`
 // would be purged — same lesson as AdminPage / the table `hideBelow` fix).
@@ -43,6 +43,7 @@ const maxWidthClass: Record<MaxWidth, string> = {
   "5xl": "max-w-5xl",
   "6xl": "max-w-6xl",
   "7xl": "max-w-7xl",
+  "full" : 'w-full'
 };
 
 export interface AdminFormLayoutProps {
@@ -78,7 +79,7 @@ export default function AdminFormLayout({
   cancelLabel = "انصراف",
   aside,
   secondaryActions,
-  maxWidth = "5xl",
+  maxWidth = "full",
   children,
 }: AdminFormLayoutProps) {
   if (loading) {
@@ -99,7 +100,7 @@ export default function AdminFormLayout({
           className={`${maxWidthClass[maxWidth]} mx-auto w-full flex flex-col flex-1 min-h-0`}
         >
           {/* Pinned header */}
-          <div className="shrink-0 flex items-center gap-3 px-4 lg:px-8 py-4 border-b border-border bg-surface/60 backdrop-blur-sm">
+          <div className="shrink-0 flex items-center gap-3 px-4 lg:px-8 py-5  bg-surface/60 backdrop-blur-sm">
             {onBack && (
               <button
                 type="button"
@@ -136,8 +137,8 @@ export default function AdminFormLayout({
 
           {/* Pinned action bar */}
           <div className="shrink-0 z-10 border-t border-border bg-surface shadow-[0_-4px_16px_-8px_rgb(42_23_38_/_0.18)]">
-            <div className="px-4 lg:px-8 py-3 flex items-center gap-3">
-              <Button type="submit" loading={isSubmitting} className="flex-1 sm:flex-initial">
+            <div className="px-4 lg:px-8 py-3.5 flex items-center justify-center gap-3">
+              <Button type="submit" loading={isSubmitting} className="flex-1 sm:flex-initial md:w-60">
                 {submitLabel}
               </Button>
               <Button
@@ -145,7 +146,7 @@ export default function AdminFormLayout({
                 variant="outline"
                 onClick={onBack}
                 disabled={isSubmitting}
-                className="flex-1 sm:flex-initial"
+                className="flex-1 sm:flex-initial md:w-60"
               >
                 {cancelLabel}
               </Button>

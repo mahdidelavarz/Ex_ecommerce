@@ -4,6 +4,7 @@
 // other. Composes the shared Button.
 import { ComponentType, ReactNode, SVGProps } from "react";
 import Button from "./Button";
+import { MdiArrowRight } from "../icons/Icons";
 
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -17,6 +18,8 @@ export interface PageHeaderProps {
   title: string;
   subtitle?: string;
   icon?: IconType;
+  /** When set, renders a leading back-arrow button (for detail pages). */
+  onBack?: () => void;
   /** The primary add/new button. */
   action?: PageHeaderAction;
   /** Extra right-side content (badge, secondary action). */
@@ -27,16 +30,27 @@ export default function PageHeader({
   title,
   subtitle,
   icon: Icon,
+  onBack,
   action,
   children,
 }: PageHeaderProps) {
   return (
     <div className="shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-      <div className="flex items-center gap-3">
-        {Icon && <Icon className="w-7 h-7 text-primary" />}
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">{title}</h1>
-          {subtitle && <p className="text-text-secondary mt-1">{subtitle}</p>}
+      <div className="flex items-center gap-3 min-w-0">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="بازگشت"
+            className="p-2 -mr-2 rounded-button text-text-secondary hover:bg-surface-raised hover:text-text-primary transition-colors cursor-pointer"
+          >
+            <MdiArrowRight className="w-5 h-5" />
+          </button>
+        )}
+        {Icon && <Icon className="w-7 h-7 text-primary shrink-0" />}
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-text-primary truncate">{title}</h1>
+          {subtitle && <p className="text-text-secondary mt-1 truncate">{subtitle}</p>}
         </div>
       </div>
 
