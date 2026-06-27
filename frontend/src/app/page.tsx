@@ -7,10 +7,10 @@ import {
   HugeiconsCustomerSupport,
   MdiShieldCheck,
   MdiTruckFast,
-  SliderFrame,
   SolarArrowLeftLineDuotone,
   SolarFolderWithFilesBold,
 } from "@/components/icons/Icons";
+import { SliderFrame } from "@/components/ui/SliderFrame";
 
 export default function HomePage() {
   const { data: categoriesData } = useCategories({ parent_id: null });
@@ -19,7 +19,7 @@ export default function HomePage() {
     <div className="bg-background">
       {/* Hero Section */}
       {/* <section className="bg-gradient-to-br from-primary to-secondary text-white"> */}
-        {/* <div className="container mx-auto px-4 text-center">
+      {/* <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             به نازی شاپ خوش آمدید
           </h1>
@@ -34,7 +34,12 @@ export default function HomePage() {
             <SolarArrowLeftLineDuotone className="w-6 h-6" />
           </Link>
         </div> */}
-        <SliderFrame className="w-full text-surface "/>
+      <div
+     className="w-full h-[92vh] flex justify-center items-center p-2"
+      >
+        <SliderFrame />
+        {/* slider content goes here, positioned absolutely on top */}
+      </div>
       {/* </section> */}
 
       {/* Categories Section */}

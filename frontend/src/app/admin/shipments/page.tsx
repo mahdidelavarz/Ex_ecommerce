@@ -119,7 +119,7 @@ export default function AdminShipmentsPage() {
               ) : (
                 data?.data?.map((shipment: AdminShipment) => (
                   <TRow key={shipment.id} hover>
-                    <TD align="right" label="سفارش">
+                    <TD align="right" cardSlot="header">
                       <div>
                         <Link
                           href={`/admin/orders/${shipment.order_id}`}

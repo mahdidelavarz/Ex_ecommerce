@@ -115,7 +115,7 @@ export default function AdminCouponsPage() {
               ) : (
                 data?.data?.map((coupon) => (
                   <TRow key={coupon.id} hover>
-                    <TD align="right" label="کد">
+                    <TD align="right" cardSlot="header">
                       <code className="bg-primary-light text-primary px-3 py-1 rounded text-sm font-bold">
                         {coupon.code}
                       </code>
@@ -145,12 +145,12 @@ export default function AdminCouponsPage() {
                         <span className="text-text-muted">تا {new Date(coupon.expires_at).toLocaleDateString("fa-IR")}</span>
                       </span>
                     </TD>
-                    <TD align="center" label="وضعیت">
+                    <TD align="center" cardSlot="badge">
                       <Badge variant={coupon.is_active ? "success" : "neutral"} size="sm">
                         {coupon.is_active ? "فعال" : "غیرفعال"}
                       </Badge>
                     </TD>
-                    <TD align="center" label="عملیات">
+                    <TD align="center" cardSlot="actions">
                       <RowActions
                         actions={[
                           {

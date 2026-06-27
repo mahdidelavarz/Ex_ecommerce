@@ -4,7 +4,7 @@ export function SliderFrame(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 800 550"
+      viewBox="0 30 800 500"
       fill="none"
       {...props}
     >

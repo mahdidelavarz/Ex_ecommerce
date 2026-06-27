@@ -199,13 +199,13 @@ export default function AdminProductsPage() {
               ) : (
                 data?.data?.map((product) => (
                   <TRow key={product.id} hover>
-                    <TD label="">
+                    <TD cardSlot="select">
                       <Checkbox
                         checked={selection.isSelected(product)}
                         onChange={() => selection.toggle(product)}
                       />
                     </TD>
-                    <TD align="right" label="محصول">
+                    <TD align="right" cardSlot="header">
                       <div className="flex items-center gap-3">
                         {product.thumbnail ? (
                           <img
@@ -232,12 +232,12 @@ export default function AdminProductsPage() {
                         {product.total_stock}
                       </span>
                     </TD>
-                    <TD align="center" label="وضعیت">
+                    <TD align="center" cardSlot="badge">
                       <Badge variant={product.is_active ? "success" : "error"} size="sm">
                         {product.is_active ? "فعال" : "غیرفعال"}
                       </Badge>
                     </TD>
-                    <TD align="center" label="عملیات">
+                    <TD align="center" cardSlot="actions">
                       <RowActions
                         actions={[
                           {

@@ -126,7 +126,7 @@ export default function AdminReturnsPage() {
                   const status = returnStatusBadge(ret.status);
                   return (
                     <TRow key={ret.id} hover>
-                      <TD align="right" label="شماره">
+                      <TD align="right" cardSlot="header">
                         <div>
                           <span className="font-medium text-primary">{ret.return_number}</span>
                           <p className="text-xs text-text-muted">
@@ -143,10 +143,10 @@ export default function AdminReturnsPage() {
                       <TD align="center" label="مبلغ" className="font-medium">
                         {ret.refund_amount > 0 ? formatPrice(ret.refund_amount) : '-'}
                       </TD>
-                      <TD align="center" label="وضعیت">
+                      <TD align="center" cardSlot="badge">
                         <Badge variant={status.variant} size="sm">{status.label}</Badge>
                       </TD>
-                      <TD align="center" label="عملیات">
+                      <TD align="center" cardSlot="actions">
                         <div className="flex flex-col justify-center gap-1 items-center">
                           {ret.status === 'pending' && (
                             <div className="flex gap-1">

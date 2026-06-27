@@ -41,6 +41,23 @@ const tdDisplay: Record<"none" | "sm" | "md" | "lg", string> = {
   lg: "hidden lg:table-cell",
 };
 
+// Mobile card slots. The card row is a `flex flex-wrap` container below `md`
+// (see rowCardClass), so each cell can be placed by role; at `md+` the cell is
+// `table-cell` and these flex/order classes are inert. Static literals so
+// Tailwind keeps them. `header` grows and sits on line 1 with `media`/`select`;
+// `badge` is pushed to the line's inline-end; `actions` is a full-width footer.
+export type CardSlot = "select" | "media" | "header" | "badge" | "actions";
+
+const cardSlotClass: Record<CardSlot, string> = {
+  select: "order-1 basis-auto shrink-0 md:table-cell",
+  media: "order-2 basis-auto shrink-0 md:table-cell",
+  header:
+    "order-3 flex-1 min-w-0 font-medium text-text-primary md:table-cell md:font-normal",
+  badge: "order-4 basis-auto shrink-0 ms-auto md:table-cell",
+  actions:
+    "order-6 basis-full flex justify-end items-center gap-1 pt-3 mt-1 border-t border-border md:table-cell md:border-0 md:pt-0 md:mt-0 md:gap-0",
+};
+
 interface TableProps extends HTMLAttributes<HTMLTableElement> {
   /**
    * Tailwind max-height class for the scroll viewport (md+ only). The body
@@ -120,9 +137,10 @@ export function TBody({
   );
 }
 
-/** Mobile = bordered card; md+ = normal table row with zebra striping. */
+/** Mobile = bordered card (flex-wrap so cells can be placed by role);
+ *  md+ = normal table row with zebra striping. */
 const rowCardClass = `
-  block rounded-card border border-border bg-surface p-4 mb-3
+  flex flex-wrap items-center gap-x-3 gap-y-2 rounded-card border border-border bg-surface p-4 mb-3
   md:table-row md:rounded-none md:border-0 md:border-b md:bg-transparent md:p-0 md:mb-0
   md:even:bg-surface-raised/40
 `;
@@ -155,29 +173,41 @@ export function TRow({
 interface TDProps extends TdHTMLAttributes<HTMLTableCellElement> {
   align?: Align;
   hideBelow?: "sm" | "md" | "lg";
-  /** Field label shown beside the value in the mobile card layout. */
+  /** Field label shown beside the value in the mobile card layout (body cells only). */
   label?: ReactNode;
+  /**
+   * Role of this cell in the mobile card layout. Omit for an ordinary
+   * label/value body row. `header` = primary title, `media` = leading
+   * thumbnail/avatar, `badge` = status chip (header inline-end),
+   * `actions` = footer action cluster, `select` = bulk checkbox.
+   * Inert at `md+` (real table).
+   */
+  cardSlot?: CardSlot;
 }
 
 export function TD({
   align = "right",
   hideBelow,
   label,
+  cardSlot,
   className = "",
   children,
   ...props
 }: TDProps) {
-  const display = tdDisplay[hideBelow ?? "none"];
+  // Body cell (default): own line, label↔value. Named slots: placed by role.
+  const slot = cardSlot
+    ? cardSlotClass[cardSlot]
+    : `order-5 basis-full items-center justify-between gap-4 ${tdDisplay[hideBelow ?? "none"]}`;
+  const showLabel = !cardSlot && label != null;
   return (
     <td
       className={`
-        items-center justify-between gap-4 py-1.5
-        ${display} md:px-4 md:py-3 text-sm text-text-primary
+        py-1.5 ${slot} md:px-4 md:py-3 text-sm text-text-primary
         ${alignClass[align]} ${className}
       `}
       {...props}
     >
-      {label != null && (
+      {showLabel && (
         <span className="md:hidden text-text-secondary font-medium shrink-0">
           {label}
         </span>
@@ -199,7 +229,7 @@ export function TableSkeleton({ rows = 5, columns }: TableSkeletonProps) {
       {Array.from({ length: rows }).map((_, r) => (
         <tr key={r} className={rowCardClass}>
           {Array.from({ length: columns }).map((_, c) => (
-            <td key={c} className="block py-1.5 md:table-cell md:px-4 md:py-3">
+            <td key={c} className="basis-full py-1.5 md:table-cell md:px-4 md:py-3">
               <div className="h-4 bg-surface-raised rounded animate-pulse-soft" />
             </td>
           ))}

@@ -127,7 +127,7 @@ export default function AdminUsersPage() {
               ) : (
                 data?.data?.map((user: AdminUser) => (
                   <TRow key={user.id} hover>
-                    <TD align="right" label="کاربر">
+                    <TD align="right" cardSlot="header">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-primary-light rounded-full flex items-center justify-center shrink-0">
                           <MdiAccount className="w-5 h-5 text-primary" />

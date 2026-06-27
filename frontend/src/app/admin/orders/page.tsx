@@ -121,7 +121,7 @@ export default function AdminOrdersPage() {
                   const payment = paymentStatusBadge(order.payment_status);
                   return (
                     <TRow key={order.id} hover onClick={() => router.push(`/admin/orders/${order.id}`)}>
-                      <TD align="right" label="شماره سفارش" className="font-medium text-primary">
+                      <TD align="right" cardSlot="header" className="text-primary">
                         {order.order_number}
                       </TD>
                       <TD align="right" label="مشتری" hideBelow="md" className="text-text-secondary">
@@ -130,7 +130,7 @@ export default function AdminOrdersPage() {
                       <TD align="center" label="مبلغ" className="font-bold">
                         {formatPrice(order.total_amount)}
                       </TD>
-                      <TD align="center" label="وضعیت" hideBelow="sm">
+                      <TD align="center" cardSlot="badge">
                         <Badge variant={status.variant} size="sm">{status.label}</Badge>
                       </TD>
                       <TD align="center" label="پرداخت" hideBelow="sm">

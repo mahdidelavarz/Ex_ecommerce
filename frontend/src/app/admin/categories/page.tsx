@@ -148,7 +148,7 @@ export default function AdminCategoriesPage() {
               ) : (
                 data?.data?.map((category) => (
                   <TRow key={category.id} hover>
-                    <TD align="right" label="نام">
+                    <TD align="right" cardSlot="header">
                       <div className="flex items-center gap-3">
                         {category.image ? (
                           <img
@@ -184,7 +184,7 @@ export default function AdminCategoriesPage() {
                     <TD align="center" label="محصولات" hideBelow="sm" className="text-text-secondary">
                       {category.products_count}
                     </TD>
-                    <TD align="center" label="وضعیت">
+                    <TD align="center" cardSlot="badge">
                       <Badge
                         variant={category.is_active ? "success" : "error"}
                         size="sm"
@@ -193,7 +193,7 @@ export default function AdminCategoriesPage() {
                         {category.is_active ? "فعال" : "غیرفعال"}
                       </Badge>
                     </TD>
-                    <TD align="center" label="عملیات">
+                    <TD align="center" cardSlot="actions">
                       <RowActions
                         actions={[
                           {

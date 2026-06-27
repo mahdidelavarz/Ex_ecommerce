@@ -118,14 +118,14 @@ export default function AdminDashboardPage() {
                     const status = orderStatusBadge(order.order_status);
                     return (
                       <TRow key={order.id} hover>
-                        <TD align="right" label="شماره">
+                        <TD align="right" cardSlot="header">
                           <Link href={`/admin/orders/${order.id}`} className="text-primary hover:underline font-medium">
                             {order.order_number}
                           </Link>
                         </TD>
                         <TD align="right" label="مشتری" className="text-text-secondary">{order.customer_name}</TD>
                         <TD align="right" label="مبلغ">{formatPrice(order.total_amount)}</TD>
-                        <TD align="right" label="وضعیت">
+                        <TD align="right" cardSlot="badge">
                           <Badge variant={status.variant} size="sm">{status.label}</Badge>
                         </TD>
                       </TRow>
