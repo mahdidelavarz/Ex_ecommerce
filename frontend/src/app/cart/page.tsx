@@ -2,13 +2,28 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { formatPrice } from '@/utils/formatPrice';
 import { Button, Card, EmptyState } from '@/components/ui';
+import { useBottomBar } from '@/components/layout/bottom-nav/useBottomBar';
 import { MdiCartOff, MdiStore, SvgSpinnersRingResize, MdiTrashCan, MdiImageOff, MdiMinus, LucidePlus, LucideTrash2 } from '../../components/icons/Icons';
 
 export default function CartPage() {
+  const router = useRouter();
   const { cart, isLoading, updateItem, removeItem, clearCart } = useCart();
+
+  // Mobile bottom action bar: subtotal + continue to checkout.
+  useBottomBar(
+    cart && cart.items.length > 0
+      ? {
+          mode: 'action',
+          label: 'ادامه ثبت سفارش',
+          total: cart.subtotal,
+          onAction: () => router.push('/checkout'),
+        }
+      : { mode: 'nav' },
+  );
 
   if (isLoading) {
     return (
@@ -133,7 +148,8 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Link href="/checkout" className="block mt-6">
+              {/* On mobile the checkout action lives in the bottom bar */}
+              <Link href="/checkout" className="mt-6 hidden md:block">
                 <Button className="w-full">ادامه فرایند خرید</Button>
               </Link>
             </Card>

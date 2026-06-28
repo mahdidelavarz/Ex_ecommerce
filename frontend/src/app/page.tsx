@@ -34,7 +34,7 @@ export default function HomePage() {
             <SolarArrowLeftLineDuotone className="w-6 h-6" />
           </Link>
         </div> */}
-      <div className="w-full h-[94vh] flex justify-center items-center ">
+      <div className="w-full h-[80vh] flex justify-center items-center ">
         <HeroSlider />
       </div>
       {/* </section> */}

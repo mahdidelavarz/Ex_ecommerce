@@ -185,6 +185,25 @@ body {
   50% { opacity: 0.7; }
 }
 
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Active bottom-nav item: icon springs up briefly */
+@keyframes navPop {
+  0% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-3px) scale(1.18); }
+  100% { transform: translateY(-2px) scale(1.08); }
+}
+
+/* Badge attention bounce when its count changes */
+@keyframes badgeBounce {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
@@ -199,4 +218,16 @@ body {
 
 .animate-pulse-soft {
   animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-nav-pop {
+  animation: navPop 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-badge-bounce {
+  animation: badgeBounce 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }

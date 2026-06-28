@@ -61,7 +61,7 @@ const DEFAULT_SLIDES: HeroSlide[] = [
   {
     id: "fragrance",
     image:
-      "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=1920&q=80",
+      "https://unsplash.com/photos/pink-and-black-makeup-brush-set-dMjkQJs58uo?auto=format&fit=crop&w=1920&q=80",
     title: "عطرهای اصیل",
     subtitle: "رایحه‌ای که شخصیت شما را روایت می‌کند",
     ctaLabel: "کشف عطرها",
@@ -73,7 +73,7 @@ const DEFAULT_SLIDES: HeroSlide[] = [
 /** Responsive frame geometry — smaller notch on phones (mirrors SliderFrame usage notes). */
 function frameOptsFor(phone: boolean): PathOpts {
   return {
-    radius: phone ? 28 : 40,
+    radius: 0,
     notchWidth: phone ? 150 : 260,
     notchDepth: phone ? 60 : 76,
     notchFlat: phone ? 64 : 110,
@@ -198,7 +198,9 @@ export function HeroSlider({
                   {/* Caption */}
                   <div
                     className={`absolute inset-0 flex flex-col justify-center gap-4 p-8 md:p-16 ${
-                      alignCenter ? "items-center text-center" : "items-start text-right"
+                      alignCenter
+                        ? "items-center text-center"
+                        : "items-start text-right"
                     }`}
                   >
                     {isActive && (
@@ -237,17 +239,17 @@ export function HeroSlider({
             <>
               <button
                 type="button"
-                onClick={prev}
-                aria-label="اسلاید قبلی"
-                className="absolute top-1/2 end-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface"
+                onClick={next}
+                aria-label="اسلاید بعدی"
+                className="absolute top-1/2 start-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface"
               >
                 <MdiChevronRight className="h-6 w-6" />
               </button>
               <button
                 type="button"
-                onClick={next}
-                aria-label="اسلاید بعدی"
-                className="absolute top-1/2 start-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface"
+                onClick={prev}
+                aria-label="اسلاید قبلی"
+                className="absolute top-1/2 end-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface"
               >
                 <MdiChevronLeft className="h-6 w-6" />
               </button>

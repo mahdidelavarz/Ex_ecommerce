@@ -14,6 +14,7 @@ import { Button, EmptyState, Input, Skeleton, Textarea } from '@/components/ui';
 import { formatPrice } from '@/utils/formatPrice';
 import { MdiCartOff, MdiStore, MdiImageOff } from '@/components/icons/Icons';
 import { useSetting } from '@/modules/settings/hooks/useSettings';
+import { useBottomBar } from '@/components/layout/bottom-nav/useBottomBar';
 import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
@@ -97,27 +98,6 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!isAuthenticated) {
-    router.push('/login');
-    return null;
-  }
-
-  if (!cart || cart.items.length === 0) {
-    return (
-      <main className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16">
-          <EmptyState
-            icon={MdiCartOff}
-            title="سبد خرید خالی است"
-            message="برای ثبت سفارش، ابتدا محصولی به سبد خرید اضافه کنید."
-          >
-            <Button onClick={() => router.push('/products')} icon={MdiStore}>مشاهده محصولات</Button>
-          </EmptyState>
-        </div>
-      </main>
-    );
-  }
-
   const handlePlaceOrder = async () => {
     if (!selectedAddressId) {
       toast.error('لطفاً یک آدرس ارسال انتخاب کنید');
@@ -146,6 +126,43 @@ export default function CheckoutPage() {
   const taxableBase = Math.max(0, (cart?.subtotal ?? 0) - discountAmount);
   const taxAmount = Math.round((taxableBase * taxRate) / 100);
   const totalAmount = taxableBase + effectiveShipping + taxAmount;
+
+  const canCheckout = !!cart && cart.items.length > 0;
+
+  // Mobile bottom action bar: total + pay button.
+  useBottomBar(
+    canCheckout
+      ? {
+          mode: 'action',
+          label: 'پرداخت',
+          total: totalAmount,
+          onAction: handlePlaceOrder,
+          loading: isCheckingOut,
+          disabled: !selectedAddressId,
+        }
+      : { mode: 'nav' },
+  );
+
+  if (!isAuthenticated) {
+    router.push('/login');
+    return null;
+  }
+
+  if (!cart || cart.items.length === 0) {
+    return (
+      <main className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-16">
+          <EmptyState
+            icon={MdiCartOff}
+            title="سبد خرید خالی است"
+            message="برای ثبت سفارش، ابتدا محصولی به سبد خرید اضافه کنید."
+          >
+            <Button onClick={() => router.push('/products')} icon={MdiStore}>مشاهده محصولات</Button>
+          </EmptyState>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background">
@@ -339,11 +356,12 @@ export default function CheckoutPage() {
                 )}
               </div>
 
+              {/* On mobile the pay action lives in the bottom bar */}
               <Button
                 onClick={handlePlaceOrder}
                 loading={isCheckingOut}
                 disabled={!selectedAddressId}
-                className="w-full"
+                className="w-full hidden md:flex"
                 size="lg"
               >
                 ثبت و پرداخت سفارش

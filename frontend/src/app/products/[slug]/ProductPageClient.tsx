@@ -13,6 +13,9 @@ import type { ProductVariant } from '@/modules/variants/types/variant.types';
 import { MdiCheckCircle, MdiCloseCircle, MdiChevronLeft, MdiImageOff, MdiPackageVariantClosed, SvgSpinnersRingResize } from '@/components/icons/Icons';
 import ReviewsSection from '@/modules/reviews/components/ReviewsSection';
 import WishlistButton from '@/modules/wishlist/components/WishlistButton';
+import MobilePageHeader from '@/components/layout/MobilePageHeader';
+import { useBottomBar } from '@/components/layout/bottom-nav/useBottomBar';
+import type { CartVariant } from '@/modules/cart/types/cart.types';
 
 export default function ProductPageClient() {
   const params = useParams();
@@ -23,6 +26,29 @@ export default function ProductPageClient() {
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
+
+  // Compute the active variant before any early return so the bottom-bar hook
+  // is called unconditionally (rules of hooks). `product` may be undefined
+  // while loading — guarded with optional chaining.
+  const activeVariants = product?.variants?.filter((v) => v.is_active) ?? [];
+  const currentVariant = selectedVariant ?? activeVariants[0] ?? null;
+  const hasDiscount = currentVariant != null &&
+    currentVariant.compare_at_price != null &&
+    currentVariant.compare_at_price > currentVariant.price;
+
+  // Register the mobile purchase bar (or fall back to the default nav).
+  useBottomBar(
+    currentVariant && product
+      ? {
+          mode: 'product',
+          variantId: currentVariant.id,
+          price: currentVariant.price,
+          comparePrice: currentVariant.compare_at_price,
+          stock: currentVariant.stock_quantity,
+          snapshot: buildVariantSnapshot(currentVariant, product),
+        }
+      : { mode: 'nav' },
+  );
 
   if (isLoading) {
     return (
@@ -44,17 +70,22 @@ export default function ProductPageClient() {
     );
   }
 
-  const activeVariants = product.variants?.filter((v) => v.is_active) ?? [];
-  const currentVariant = selectedVariant ?? activeVariants[0] ?? null;
-  const hasDiscount = currentVariant != null &&
-    currentVariant.compare_at_price != null &&
-    currentVariant.compare_at_price > currentVariant.price;
-
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-text-muted mb-8">
+        {/* Mobile sticky sub-header: back + breadcrumb */}
+        <MobilePageHeader
+          items={[
+            { label: 'خانه', href: '/' },
+            ...(product.category
+              ? [{ label: product.category.name, href: `/categories/${product.category.slug}` }]
+              : []),
+            { label: product.title },
+          ]}
+        />
+
+        {/* Breadcrumb (desktop) */}
+        <nav className="hidden md:flex items-center gap-2 text-sm text-text-muted mb-8">
           <a href="/" className="hover:text-primary">خانه</a>
           <MdiChevronLeft className="w-4 h-4" />
           {product.category && (
@@ -163,37 +194,16 @@ export default function ProductPageClient() {
                     )}
                   </div>
 
-                  {/* Add to Cart */}
+                  {/* Add to Cart — hidden on mobile (replaced by the bottom bar) */}
                   <div className="flex items-center gap-3">
-                    <AddToCartButton
-                      variantId={currentVariant.id}
-                      stockQuantity={currentVariant.stock_quantity}
-                      variantSnapshot={{
-                        id: currentVariant.id,
-                        sku: currentVariant.sku,
-                        price: currentVariant.price,
-                        compare_at_price: currentVariant.compare_at_price,
-                        stock_quantity: currentVariant.stock_quantity,
-                        is_active: currentVariant.is_active,
-                        attributes: currentVariant.attributes.map((a) => ({
-                          name: a.name,
-                          value: a.value,
-                          color_code: a.color_code,
-                        })),
-                        image:
-                          currentVariant.images?.find((img) => img.sort_order === 0)?.image_url ??
-                          currentVariant.images?.[0]?.image_url ??
-                          product.images?.[0]?.image_url ??
-                          null,
-                        product: {
-                          id: product.id,
-                          title: product.title,
-                          slug: product.slug,
-                          is_active: true,
-                        },
-                      }}
-                      className="flex-1"
-                    />
+                    <div className="hidden md:flex flex-1">
+                      <AddToCartButton
+                        variantId={currentVariant.id}
+                        stockQuantity={currentVariant.stock_quantity}
+                        variantSnapshot={buildVariantSnapshot(currentVariant, product)}
+                        className="flex-1"
+                      />
+                    </div>
                     <WishlistButton variantId={currentVariant.id} />
                   </div>
                 </>
@@ -320,6 +330,38 @@ export default function ProductPageClient() {
       {product && <ReviewsSection productId={product.id} />}
     </main>
   );
+}
+
+/** Builds the optimistic cart-variant snapshot shared by the in-page button
+ *  and the mobile bottom purchase bar. */
+function buildVariantSnapshot(
+  variant: ProductVariant,
+  product: { id: string; title: string; slug: string; images?: { image_url: string }[] },
+): CartVariant {
+  return {
+    id: variant.id,
+    sku: variant.sku,
+    price: variant.price,
+    compare_at_price: variant.compare_at_price,
+    stock_quantity: variant.stock_quantity,
+    is_active: variant.is_active,
+    attributes: variant.attributes.map((a) => ({
+      name: a.name,
+      value: a.value,
+      color_code: a.color_code,
+    })),
+    image:
+      variant.images?.find((img) => img.sort_order === 0)?.image_url ??
+      variant.images?.[0]?.image_url ??
+      product.images?.[0]?.image_url ??
+      null,
+    product: {
+      id: product.id,
+      title: product.title,
+      slug: product.slug,
+      is_active: true,
+    },
+  };
 }
 
 function groupVariantsByAttribute(variants: ProductVariant[]) {

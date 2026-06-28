@@ -1,140 +1,114 @@
 // src/components/layout/Header.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/modules/auth/hooks/useAuth";
-import MegaMenu from "./MegaMenu";
+import TopBar from "./TopBar";
+import HeaderSearch from "./HeaderSearch";
+import HeaderActions from "./HeaderActions";
+import CategoryBar from "./CategoryBar";
 import MobileCategoryMenu from "./MobileCategoryMenu";
-import ThemeToggle from "./ThemeToggle";
-import {
-  LucideLogIn,
-  LucideSearch,
-  MdiAccountCircle,
-  MdiCart,
-  MdiCartOutline,
-  MdiHeartOutline,
-  MdiMenu,
-  MdiViewDashboard,
-} from "../icons/Icons";
-import { useCartStore } from "@/modules/cart/store/cart.store";
-import { useCart } from "@/modules/cart/hooks/useCart";
-import { useWishlist } from "@/modules/wishlist/hooks/useWishlist";
+import { useMobileMenuStore } from "./mobileMenu.store";
+import { MdiMenu, MdiClose, MdiStore } from "../icons/Icons";
 
 export default function Header() {
-  const { user, isAuthenticated, isAdmin } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { openCart } = useCartStore();
-  const { cart } = useCart();
-  const { data: wishlist } = useWishlist();
-  const wishlistCount = wishlist?.length ?? 0;
+  const { isOpen: isMobileMenuOpen, open: openMobileMenu, close: closeMobileMenu } = useMobileMenuStore();
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Scroll-aware: condense + raise shadow once the page scrolls.
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 8);
+        ticking = false;
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-30 bg-surface border-b border-border shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-[var(--header-h)]">
-          {/* Logo & Mobile Menu Toggle */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 hover:bg-surface-raised rounded-button transition-colors"
-              aria-label="منو"
-            >
-              <MdiMenu className="w-6 h-6 text-text-primary" />
-            </button>
-            <Link href="/" className="text-xl font-bold text-primary">
-              نازی شاپ
-            </Link>
-          </div>
+    <>
+      {/* Tier 1 — utility bar (scrolls away) */}
+      <TopBar />
 
-          {/* Desktop Navigation */}
-          <MegaMenu />
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            {/* Theme toggle */}
-            <ThemeToggle />
-
-            {/* Search */}
-            <Link
-              href="/search"
-              className="p-2 hover:bg-surface-raised rounded-button transition-colors"
-              aria-label="جستجو"
-            >
-              <LucideSearch className="w-5 h-5 text-text-secondary" />
-            </Link>
-
-            {/* Wishlist */}
-            <Link
-              href="/wishlist"
-              className="p-2 hover:bg-surface-raised rounded-button transition-colors relative"
-              aria-label="علاقه‌مندی‌ها"
-            >
-              <MdiHeartOutline className="w-5 h-5 text-text-secondary" />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-error text-white text-xs rounded-full flex items-center justify-center font-medium">
-                  {wishlistCount > 99 ? '99+' : wishlistCount}
-                </span>
-              )}
-            </Link>
-
-            {/* Admin panel — only for admins */}
-            {isAdmin && (
-              <Link
-                href="/admin/categories"
-                className="p-2 hover:bg-surface-raised rounded-button transition-colors"
-                aria-label="پنل مدیریت"
-                title="پنل مدیریت"
+      {/* Tiers 2 & 3 — sticky. Sibling of TopBar (not nested) so its sticky
+          containing block is <body>, keeping it pinned for the whole page. */}
+      <header
+        className={`sticky top-0 z-30 bg-surface transition-shadow duration-200 ${
+          scrolled ? "shadow-card" : ""
+        }`}
+      >
+        {/* Main bar */}
+        <div className="container mx-auto px-4">
+          <div className="flex items-center gap-3 sm:gap-4 h-16">
+            {/* Start: mobile menu + logo */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={openMobileMenu}
+                className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-button hover:bg-surface-raised transition-colors cursor-pointer"
+                aria-label="منو"
               >
-                <MdiViewDashboard className="w-5 h-5 text-text-secondary" />
-              </Link>
-            )}
+                <MdiMenu className="w-6 h-6 text-text-primary" />
+              </button>
 
-            {/* Cart */}
-            <button
-              onClick={openCart}
-              className="p-2 hover:bg-surface-raised rounded-button transition-colors relative"
-              aria-label="سبد خرید"
-            >
-              <MdiCart
-                className="w-5 h-5 text-text-secondary"
+              <Link href="/" className="flex items-center gap-2" aria-label="نازی‌شاپ">
+                <span className="inline-flex items-center justify-center w-9 h-9 rounded-button bg-primary-light text-primary">
+                  <MdiStore className="w-5 h-5" />
+                </span>
+                <span className="text-lg font-bold text-primary hidden sm:inline">
+                  نازی‌شاپ
+                </span>
+              </Link>
+            </div>
+
+            {/* Center: inline search (md+) */}
+            <div className="hidden md:flex flex-1 justify-center">
+              <HeaderSearch className="max-w-xl" />
+            </div>
+
+            {/* End: actions */}
+            <div className="ms-auto md:ms-0 shrink-0">
+              <HeaderActions
+                onToggleMobileSearch={() => setIsMobileSearchOpen((v) => !v)}
               />
-              {cart && cart.total_items > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-error text-white text-xs rounded-full flex items-center justify-center font-medium">
-                  {cart.total_items}
-                </span>
-              )}
-            </button>
-
-            {/* User */}
-            {isAuthenticated ? (
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 px-3 py-2 hover:bg-surface-raised rounded-button transition-colors"
-              >
-                <MdiAccountCircle className="w-5 h-5 text-text-secondary" />
-                <span className="text-sm text-text-secondary hidden md:inline">
-                  {user?.full_name?.split(" ")[0]}
-                </span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-button hover:bg-primary-hover transition-colors text-sm font-medium"
-              >
-                <LucideLogIn className="w-5 h-5" />
-                <span className="hidden md:inline">ورود</span>
-              </Link>
-            )}
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Mobile Menu */}
+          {/* Mobile expandable search row */}
+          {isMobileSearchOpen && (
+            <div className="md:hidden pb-3 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <HeaderSearch
+                  autoFocus
+                  onSubmitted={() => setIsMobileSearchOpen(false)}
+                />
+                <button
+                  onClick={() => setIsMobileSearchOpen(false)}
+                  className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-button text-text-secondary hover:bg-surface-raised transition-colors cursor-pointer"
+                  aria-label="بستن جستجو"
+                >
+                  <MdiClose className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tier 3 — category nav bar (hidden once scrolled, desktop only) */}
+        {!scrolled && <CategoryBar />}
+      </header>
+
+      {/* Mobile category drawer */}
       <MobileCategoryMenu
         isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
+        onClose={closeMobileMenu}
       />
-    </header>
+    </>
   );
 }
