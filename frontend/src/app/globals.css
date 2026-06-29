@@ -228,6 +228,68 @@ body {
   animation: navPop 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* Blog post rich-text content (TipTap HTML output) */
+.blog-content {
+  color: var(--color-text-secondary);
+  line-height: 2;
+  font-size: 1rem;
+}
+.blog-content > * + * {
+  margin-top: 1.15em;
+}
+.blog-content h2 {
+  color: var(--color-text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-top: 1.8em;
+}
+.blog-content h3 {
+  color: var(--color-text-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-top: 1.6em;
+}
+.blog-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.blog-content ul,
+.blog-content ol {
+  padding-inline-start: 1.5rem;
+}
+.blog-content ul {
+  list-style: disc;
+}
+.blog-content ol {
+  list-style: decimal;
+}
+.blog-content li + li {
+  margin-top: 0.4em;
+}
+.blog-content blockquote {
+  border-inline-start: 3px solid var(--color-primary);
+  padding-inline-start: 1rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.blog-content img {
+  border-radius: var(--radius-card);
+  margin-inline: auto;
+}
+.blog-content strong {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+.blog-content code {
+  background: var(--color-surface-raised);
+  padding: 0.15em 0.4em;
+  border-radius: 0.4rem;
+  font-size: 0.9em;
+}
+
 .animate-badge-bounce {
   animation: badgeBounce 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }

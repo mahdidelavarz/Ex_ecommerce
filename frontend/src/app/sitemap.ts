@@ -16,7 +16,7 @@ async function fetchJson<T>(url: string): Promise<T | null> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [productsRes, categoriesRes, brandsRes] = await Promise.all([
+  const [productsRes, categoriesRes, brandsRes, blogRes] = await Promise.all([
     fetchJson<{ data: Array<{ slug: string; created_at: string }> }>(
       `${API_BASE}/products?limit=5000&is_active=true&is_public=true`
     ),
@@ -26,11 +26,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     fetchJson<{ data: Array<{ slug: string; updated_at: string }> }>(
       `${API_BASE}/brands?limit=1000&is_active=true`
     ),
+    fetchJson<{ data: Array<{ slug: string; updated_at: string }> }>(
+      `${API_BASE}/blog-posts?limit=5000&is_published=true`
+    ),
   ]);
 
   const products = productsRes?.data ?? [];
   const categories = categoriesRes?.data ?? [];
   const brands = brandsRes?.data ?? [];
+  const blogPosts = blogRes?.data ?? [];
 
   const staticPages = [
     '/about',
@@ -44,10 +48,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: BASE, changeFrequency: 'daily', priority: 1.0 },
+    { url: `${BASE}/blog`, changeFrequency: 'daily' as const, priority: 0.8 },
     ...staticPages.map((path) => ({
       url: `${BASE}${path}`,
       changeFrequency: 'monthly' as const,
       priority: 0.5,
+    })),
+    ...blogPosts.map((p) => ({
+      url: `${BASE}/blog/${p.slug}`,
+      lastModified: p.updated_at,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
     })),
     ...products.map((p) => ({
       url: `${BASE}/products/${p.slug}`,

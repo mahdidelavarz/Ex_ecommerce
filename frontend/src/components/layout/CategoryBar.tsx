@@ -7,7 +7,7 @@ import { Icon } from "@iconify/react";
 import { useCategoryTree } from "@/modules/categories/hooks/useCategories";
 import type { CategoryTreeNode } from "@/modules/categories/types/category.types";
 import { Skeleton } from "@/components/ui";
-import { MdiMenu, MdiChevronDown } from "../icons/Icons";
+import { MdiMenu, MdiChevronDown, MdiNewspaperVariantOutline } from "../icons/Icons";
 
 export default function CategoryBar() {
   const { data: categories, isLoading } = useCategoryTree();
@@ -51,6 +51,17 @@ export default function CategoryBar() {
               </div>
             )}
           </div>
+
+          <div className="w-px h-6 bg-border" />
+
+          {/* Blog link */}
+          <Link
+            href="/blog"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-button text-sm font-medium text-text-secondary transition-colors hover:text-primary"
+          >
+            <MdiNewspaperVariantOutline className="w-4 h-4" />
+            وبلاگ
+          </Link>
 
           <div className="w-px h-6 bg-border" />
 

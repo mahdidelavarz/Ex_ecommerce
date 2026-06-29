@@ -8,7 +8,8 @@ import {
   SolarFolderWithFilesBold,
 } from "@/components/icons/Icons";
 import { HeroSlider } from "@/components/ui/HeroSlider";
-import { fetchCategories } from "@/lib/server-fetch";
+import BlogSlider from "@/modules/blog/components/BlogSlider";
+import { fetchCategories, fetchBlogPosts } from "@/lib/server-fetch";
 
 export const metadata: Metadata = {
   title: {
@@ -38,10 +39,10 @@ const features = [
 ];
 
 export default async function HomePage() {
-  const { data: categories } = await fetchCategories({
-    is_active: true,
-    limit: 12,
-  });
+  const [{ data: categories }, { data: blogPosts }] = await Promise.all([
+    fetchCategories({ is_active: true, limit: 12 }),
+    fetchBlogPosts({ is_published: true, limit: 8, sort_by: "published_at", sort_order: "DESC" }),
+  ]);
 
   return (
     <div className="bg-background">
@@ -84,6 +85,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Blog Slider */}
+      <BlogSlider posts={blogPosts} />
 
       {/* Features */}
       <section className="py-16 bg-surface-raised">

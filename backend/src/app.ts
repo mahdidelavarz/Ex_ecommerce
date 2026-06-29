@@ -31,6 +31,7 @@ import settingRoutes from './modules/settings/setting.routes';
 import uploadRoutes from './modules/uploads/upload.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import userRoutes from './modules/users/user.routes';
+import blogRoutes from './modules/blog/blog.routes';
 
 
 
@@ -109,6 +110,7 @@ app.use(`${apiPrefix}/settings`, settingRoutes);
 app.use(`${apiPrefix}/uploads`, uploadRoutes);
 app.use(`${apiPrefix}/dashboard`, dashboardRoutes);
 app.use(`${apiPrefix}/users`, userRoutes);
+app.use(`${apiPrefix}/blog-posts`, blogRoutes);
 
 
 

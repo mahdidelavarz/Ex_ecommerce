@@ -14,6 +14,7 @@ import {
 const QUICK_LINKS = [
   { href: "/", label: "صفحه اصلی" },
   { href: "/products", label: "محصولات" },
+  { href: "/blog", label: "وبلاگ" },
   { href: "/about", label: "درباره ما" },
   { href: "/contact", label: "تماس با ما" },
 ];

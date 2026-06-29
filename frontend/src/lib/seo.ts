@@ -77,6 +77,59 @@ export function itemListJsonLd(
   };
 }
 
+/** ItemList of blog posts for the blog listing page. */
+export function blogItemListJsonLd(
+  posts: Array<{ slug: string; title: string }>,
+  basePath = "/blog",
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: posts.map((post, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: absoluteUrl(`/blog/${post.slug}`),
+      name: post.title,
+    })),
+    ...(basePath ? { url: absoluteUrl(basePath) } : {}),
+  };
+}
+
+export interface BlogPostingJsonLdInput {
+  slug: string;
+  title: string;
+  excerpt?: string | null;
+  cover_image?: string | null;
+  published_at?: string | null;
+  updated_at?: string | null;
+  author?: { full_name: string | null } | null;
+  seo?: { description?: string | null } | null;
+}
+
+/** BlogPosting (Article) structured data for a blog detail page. */
+export function blogPostingJsonLd(post: BlogPostingJsonLdInput) {
+  const url = absoluteUrl(`/blog/${post.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.seo?.description ?? post.excerpt ?? undefined,
+    image: post.cover_image ? [post.cover_image] : undefined,
+    datePublished: post.published_at ?? undefined,
+    dateModified: post.updated_at ?? post.published_at ?? undefined,
+    author: post.author?.full_name
+      ? { "@type": "Person", name: post.author.full_name }
+      : { "@type": "Organization", name: SITE_NAME },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      logo: { "@type": "ImageObject", url: absoluteUrl("/logo.png") },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    url,
+  };
+}
+
 /** Renders one or more JSON-LD objects as a string for a <script> tag. */
 export function jsonLdScript(data: unknown): string {
   return JSON.stringify(data);

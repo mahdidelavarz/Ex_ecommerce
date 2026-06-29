@@ -6,6 +6,10 @@
 import type { ProductListResponse } from "@/modules/products/types/product.types";
 import type { Category } from "@/modules/categories/types/category.types";
 import type { Brand } from "@/modules/brands/types/brand.types";
+import type {
+  BlogPostListItem,
+  BlogPostDetail,
+} from "@/modules/blog/types/blog.types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
@@ -77,6 +81,14 @@ export function fetchCategories(params?: Record<string, QueryValue>) {
 
 export function fetchBrands(params?: Record<string, QueryValue>) {
   return fetchList<Brand>("/brands", params);
+}
+
+export function fetchBlogPosts(params?: Record<string, QueryValue>) {
+  return fetchList<BlogPostListItem>("/blog-posts", params);
+}
+
+export function fetchBlogPost(slug: string) {
+  return fetchOne<BlogPostDetail>(`/blog-posts/${slug}`);
 }
 
 export { fetchList, fetchOne };
