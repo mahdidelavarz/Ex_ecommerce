@@ -5,6 +5,7 @@ import AdminGuard from "./AdminGuard";
 export const metadata: Metadata = {
   title: "پنل مدیریت | نازی شاپ",
   description: "پنل مدیریت فروشگاه نازی شاپ",
+  robots: { index: false, follow: false },
 };
 
 export default function AdminLayout({

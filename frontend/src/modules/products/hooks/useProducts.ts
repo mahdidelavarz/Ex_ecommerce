@@ -3,12 +3,19 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { productService } from '../services/product.service';
+import type { ProductListResponse } from '../types/product.types';
 
-export function useProducts(params?: Record<string, any>) {
+type ProductListResult = { data: ProductListResponse[]; meta: any };
+
+export function useProducts(
+  params?: Record<string, any>,
+  options?: { initialData?: ProductListResult },
+) {
   return useQuery({
     queryKey: ['products', params],
     queryFn: () => productService.list(params),
     staleTime: 2 * 60 * 1000,
+    initialData: options?.initialData,
   });
 }
 

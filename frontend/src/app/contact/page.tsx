@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: "تماس با ما",
   description:
     "راه‌های ارتباط با فروشگاه نازی شاپ: تلفن، ایمیل، آدرس و پشتیبانی از طریق تلگرام، اینستاگرام و روبیکا.",
+  alternates: { canonical: "/contact" },
 };
 
 export default async function ContactPage() {

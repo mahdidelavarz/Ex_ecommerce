@@ -1,25 +1,56 @@
 // src/app/brands/page.tsx
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { useBrands } from '@/modules/brands/hooks/useBrands';
-import { MdiChevronLeft, MdiChevronRight, SvgSpinnersRingResize } from '@/components/icons/Icons';
-import { useState } from 'react';
+import Image from 'next/image';
+import { fetchBrands } from '@/lib/server-fetch';
+import { absoluteUrl, breadcrumbJsonLd } from '@/lib/seo';
+import { MdiChevronLeft } from '@/components/icons/Icons';
+import BrandsPagination from './BrandsPagination';
 
-export default function BrandsPage() {
-  const [page, setPage] = useState(1);
-  const { data, isLoading } = useBrands({ page, limit: 24, is_active: true });
+type SearchParams = Record<string, string | string[] | undefined>;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <SvgSpinnersRingResize className="text-primary" width={48} />
-      </div>
-    );
-  }
+export const metadata: Metadata = {
+  title: 'همه برندها',
+  description: 'فهرست برندهای آرایشی و بهداشتی موجود در نازی شاپ.',
+  alternates: { canonical: '/brands' },
+};
+
+export default async function BrandsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const sp = await searchParams;
+  const page = Number(Array.isArray(sp.page) ? sp.page[0] : sp.page) || 1;
+
+  const { data: brands, meta } = await fetchBrands({
+    page,
+    limit: 24,
+    is_active: true,
+  });
+
+  const breadcrumb = breadcrumbJsonLd([
+    { name: 'خانه', path: '/' },
+    { name: 'برندها', path: '/brands' },
+  ]);
+  const itemList = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    url: absoluteUrl('/brands'),
+    itemListElement: brands.map((brand, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: absoluteUrl(`/brands/${brand.slug}`),
+      name: brand.name,
+    })),
+  };
 
   return (
     <main className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([breadcrumb, itemList]) }}
+      />
       <div className="container mx-auto px-4 py-8" dir="rtl">
         <nav className="flex items-center gap-2 text-sm text-text-muted mb-6">
           <Link href="/" className="hover:text-primary">خانه</Link>
@@ -30,16 +61,18 @@ export default function BrandsPage() {
         <h1 className="text-2xl font-bold text-text-primary mb-8">همه برندها</h1>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {data?.data?.map((brand) => (
+          {brands.map((brand) => (
             <Link
               key={brand.id}
               href={`/brands/${brand.slug}`}
               className="bg-surface border border-border rounded-card p-4 flex flex-col items-center gap-3 hover:border-primary hover:shadow-card transition-all"
             >
               {brand.logo ? (
-                <img
+                <Image
                   src={brand.logo}
                   alt={brand.name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 object-contain"
                 />
               ) : (
@@ -57,35 +90,7 @@ export default function BrandsPage() {
           ))}
         </div>
 
-        {data?.meta && data.meta.totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-            >
-              <MdiChevronRight className="w-5 h-5" />
-            </button>
-            {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`w-10 h-10 rounded-button text-sm font-medium ${
-                  p === page ? 'bg-primary text-white' : 'hover:bg-surface text-text-secondary'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-            <button
-              onClick={() => setPage((p) => Math.min(data.meta.totalPages, p + 1))}
-              disabled={page === data.meta.totalPages}
-              className="p-2 hover:bg-surface rounded-button disabled:opacity-50"
-            >
-              <MdiChevronLeft className="w-5 h-5" />
-            </button>
-          </div>
-        )}
+        <BrandsPagination currentPage={page} totalPages={meta?.totalPages ?? 1} />
       </div>
     </main>
   );

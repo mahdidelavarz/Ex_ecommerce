@@ -11,6 +11,7 @@ import { Pagination, Select } from '@/components/ui';
 import { SvgSpinnersRingResize, MdiChevronLeft, MdiFolderOpenOutline } from '@/components/icons/Icons';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function CategoryPageClient() {
   const params = useParams();
@@ -86,9 +87,11 @@ export default function CategoryPageClient() {
         <div className="bg-surface rounded-card shadow-card p-6 mb-8">
           <div className="flex items-center gap-4">
             {category.image ? (
-              <img
+              <Image
                 src={category.image}
                 alt={category.name}
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-lg object-cover shrink-0"
               />
             ) : category.icon ? (

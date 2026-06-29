@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "روش‌های ارسال",
   description:
     "اطلاعات ارسال نازی شاپ: شرکت‌های حمل، زمان آماده‌سازی، هزینه ارسال، شهرهای تحت پوشش و شرایط ارسال رایگان.",
+  alternates: { canonical: "/shipping" },
 };
 
 export default function ShippingPage() {

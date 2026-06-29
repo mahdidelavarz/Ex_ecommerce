@@ -1,9 +1,9 @@
 import type { MetadataRoute } from 'next';
+import { SITE_URL as BASE } from '@/lib/seo';
 
 export const revalidate = 3600;
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://yoursite.com';
 
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {

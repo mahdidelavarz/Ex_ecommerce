@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "سوالات متداول",
   description:
     "پاسخ پرتکرارترین پرسش‌های شما درباره ثبت سفارش، پرداخت، ارسال و مرجوعی در نازی شاپ.",
+  alternates: { canonical: "/faq" },
 };
 
 const FAQ_ITEMS: AccordionItem[] = [
@@ -41,12 +42,29 @@ const FAQ_ITEMS: AccordionItem[] = [
   },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
 export default function FaqPage() {
   return (
     <ContentPage
       title="سوالات متداول"
       subtitle="پاسخ پرسش‌های پرتکرار شما را اینجا گردآوری کرده‌ایم."
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <Accordion items={FAQ_ITEMS} />
     </ContentPage>
   );

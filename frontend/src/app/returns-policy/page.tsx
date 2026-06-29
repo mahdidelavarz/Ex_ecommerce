@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "رویه بازگشت کالا",
   description:
     "شرایط و رویه مرجوع کردن کالا در نازی شاپ: بازه زمانی، شرایط پذیرش، کالاهای غیرقابل مرجوع و زمان بازگشت وجه.",
+  alternates: { canonical: "/returns-policy" },
 };
 
 export default function ReturnsPolicyPage() {

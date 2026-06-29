@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "درباره ما",
   description:
     "درباره فروشگاه اینترنتی نازی شاپ، زمینه فعالیت، اهداف و راه‌های ارتباطی.",
+  alternates: { canonical: "/about" },
 };
 
 export default async function AboutPage() {

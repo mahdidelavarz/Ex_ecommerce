@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "حریم خصوصی",
   description:
     "سیاست حفظ حریم خصوصی نازی شاپ: چه اطلاعاتی جمع‌آوری می‌شود، چرا، و چگونه از آن محافظت می‌کنیم.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

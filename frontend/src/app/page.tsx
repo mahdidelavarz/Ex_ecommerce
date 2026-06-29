@@ -1,43 +1,54 @@
 // src/app/page.tsx
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useCategories } from "@/modules/categories/hooks/useCategories";
 import {
   HugeiconsCustomerSupport,
   MdiShieldCheck,
   MdiTruckFast,
-  SolarArrowLeftLineDuotone,
   SolarFolderWithFilesBold,
 } from "@/components/icons/Icons";
 import { HeroSlider } from "@/components/ui/HeroSlider";
+import { fetchCategories } from "@/lib/server-fetch";
 
-export default function HomePage() {
-  const { data: categoriesData } = useCategories({ parent_id: null });
+export const metadata: Metadata = {
+  title: {
+    absolute: "نازی شاپ | فروشگاه اینترنتی لوازم آرایشی و بهداشتی",
+  },
+  description:
+    "نازی شاپ، فروشگاه اینترنتی محصولات آرایشی و بهداشتی اصل با بهترین قیمت و ارسال سریع به سراسر کشور.",
+  alternates: { canonical: "/" },
+};
+
+const features = [
+  {
+    icon: MdiTruckFast,
+    title: "ارسال سریع",
+    description: "تحویل در کمترین زمان ممکن به سراسر کشور",
+  },
+  {
+    icon: MdiShieldCheck,
+    title: "تضمین کیفیت",
+    description: "ضمانت اصالت و کیفیت تمامی محصولات",
+  },
+  {
+    icon: HugeiconsCustomerSupport,
+    title: "پشتیبانی ۲۴/۷",
+    description: "پاسخگویی در تمام ساعات شبانه‌روز",
+  },
+];
+
+export default async function HomePage() {
+  const { data: categories } = await fetchCategories({
+    is_active: true,
+    limit: 12,
+  });
 
   return (
     <div className="bg-background">
-      {/* Hero Section */}
-      {/* <section className="bg-gradient-to-br from-primary to-secondary text-white"> */}
-      {/* <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            به نازی شاپ خوش آمدید
-          </h1>
-          <p className="text-lg md:text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            بهترین مقصد برای خرید آنلاین با قیمت‌های رقابتی و ارسال سریع
-          </p>
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-2 bg-white text-primary px-8 py-4 rounded-button text-lg font-bold hover:bg-primary-light transition-colors"
-          >
-            مشاهده محصولات
-            <SolarArrowLeftLineDuotone className="w-6 h-6" />
-          </Link>
-        </div> */}
-      <div className="w-full h-[80vh] flex justify-center items-center ">
+      {/* Hero (client island) */}
+      <div className="w-full h-[80vh] flex justify-center items-center">
         <HeroSlider />
       </div>
-      {/* </section> */}
 
       {/* Categories Section */}
       <section className="py-16">
@@ -47,7 +58,7 @@ export default function HomePage() {
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categoriesData?.data?.slice(0, 6).map((category) => (
+            {categories.slice(0, 6).map((category) => (
               <Link
                 key={category.id}
                 href={`/categories/${category.slug}`}
@@ -61,7 +72,6 @@ export default function HomePage() {
                   }}
                 >
                   <SolarFolderWithFilesBold className="w-8 h-8 text-white" />
-                  {/* dynamic icon must add */}
                 </div>
                 <h3 className="font-medium text-text-primary">
                   {category.name}
@@ -98,21 +108,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-const features = [
-  {
-    icon: MdiTruckFast,
-    title: "ارسال سریع",
-    description: "تحویل در کمترین زمان ممکن به سراسر کشور",
-  },
-  {
-    icon: MdiShieldCheck,
-    title: "تضمین کیفیت",
-    description: "ضمانت اصالت و کیفیت تمامی محصولات",
-  },
-  {
-    icon: HugeiconsCustomerSupport,
-    title: "پشتیبانی ۲۴/۷",
-    description: "پاسخگویی در تمام ساعات شبانه‌روز",
-  },
-];

@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "قوانین و مقررات",
   description:
     "قوانین و مقررات استفاده از فروشگاه اینترنتی نازی شاپ، شرایط ثبت سفارش، پرداخت، ارسال و مرجوعی کالا.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

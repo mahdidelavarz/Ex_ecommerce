@@ -4,6 +4,7 @@
 import { useCallback } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { useBrand } from '@/modules/brands/hooks/useBrands';
 import { productService } from '@/modules/products/services/product.service';
@@ -84,9 +85,11 @@ export default function BrandPageClient() {
         <div className="bg-surface rounded-card shadow-card p-6 mb-8">
           <div className="flex items-center gap-6">
             {brand.logo ? (
-              <img
+              <Image
                 src={brand.logo}
                 alt={`لوگوی ${brand.name}`}
+                width={80}
+                height={80}
                 className="w-20 h-20 object-contain border border-border rounded-lg p-2 bg-white shrink-0"
               />
             ) : (

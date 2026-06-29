@@ -11,6 +11,13 @@ import Footer from "@/components/layout/Footer";
 import QueryProvider from "@/lib/query-provider";
 import CartDrawer from "@/modules/cart/components/CartDrawer";
 import BottomNav from "@/components/layout/bottom-nav/BottomNav";
+import {
+  SITE_URL,
+  SITE_NAME,
+  DEFAULT_OG_IMAGE,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 const vazirmatn = localFont({
   src: [
@@ -36,6 +43,7 @@ const vazirmatn = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "نازی شاپ | فروشگاه اینترنتی",
     template: "%s | نازی شاپ",
@@ -44,16 +52,27 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
-};
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://yoursite.com';
-
-const orgJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'نازی شاپ',
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
+  // NOTE: do not set `alternates.canonical` here — it would cascade to every
+  // page and canonicalize them all to "/". Canonicals are set per-page.
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    type: "website",
+    locale: "fa_IR",
+    siteName: SITE_NAME,
+    url: SITE_URL,
+    title: "نازی شاپ | فروشگاه اینترنتی",
+    description: "فروشگاه اینترنتی نازی شاپ - خرید آنلاین با بهترین قیمت",
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "نازی شاپ | فروشگاه اینترنتی",
+    description: "فروشگاه اینترنتی نازی شاپ - خرید آنلاین با بهترین قیمت",
+    images: [DEFAULT_OG_IMAGE],
+  },
 };
 
 export default function RootLayout({
@@ -71,7 +90,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-background text-text-primary antialiased flex flex-col">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([organizationJsonLd(), websiteJsonLd()]),
+          }}
         />
         <ThemeProvider
           attribute="data-theme"
