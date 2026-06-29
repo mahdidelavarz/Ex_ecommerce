@@ -2,9 +2,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Footer from "./Footer";
 
-export default function ConditionalFooter() {
+export default function ConditionalFooter({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
 
   // Hide the footer on admin pages
@@ -12,5 +15,5 @@ export default function ConditionalFooter() {
     return null;
   }
 
-  return <Footer />;
+  return <>{children}</>;
 }

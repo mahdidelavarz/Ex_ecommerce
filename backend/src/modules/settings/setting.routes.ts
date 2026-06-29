@@ -9,6 +9,10 @@ import { upsertSettingSchema } from './setting.validator';
 const router = Router();
 const controller = new SettingController();
 
+// Public — storefront footer / contact / about read whitelisted public settings.
+// Must be registered before '/:key' so it isn't captured as a key param.
+router.get('/public', controller.publicMap);
+
 // Public — checkout needs shipping_cost without authentication
 router.get('/:key', controller.getByKey);
 

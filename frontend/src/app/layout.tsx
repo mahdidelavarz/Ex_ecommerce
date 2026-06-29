@@ -7,6 +7,7 @@ import "./globals.css";
 import AuthInitProvider from "@/modules/auth/components/AuthInitProvider";
 import Header from "@/components/layout/Header";
 import ConditionalFooter from "@/components/layout/ConditionalFooter";
+import Footer from "@/components/layout/Footer";
 import QueryProvider from "@/lib/query-provider";
 import CartDrawer from "@/modules/cart/components/CartDrawer";
 import BottomNav from "@/components/layout/bottom-nav/BottomNav";
@@ -86,7 +87,9 @@ export default function RootLayout({
               </main>
               <CartDrawer />
               <BottomNav />
-              <ConditionalFooter />
+              <ConditionalFooter>
+                <Footer />
+              </ConditionalFooter>
             </AuthInitProvider>
           </QueryProvider>
           <Toaster

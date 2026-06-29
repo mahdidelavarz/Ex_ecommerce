@@ -12,6 +12,11 @@ export class SettingController {
     ApiResponseHelper.success(res, settings);
   });
 
+  publicMap = asyncHandler(async (_req: Request, res: Response) => {
+    const settings = await this.service.publicMap();
+    ApiResponseHelper.success(res, settings);
+  });
+
   getByKey = asyncHandler(async (req: Request, res: Response) => {
     const setting = await this.service.getByKey(req.params.key);
     ApiResponseHelper.success(res, setting);

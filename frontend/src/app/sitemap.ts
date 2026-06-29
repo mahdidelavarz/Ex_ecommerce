@@ -32,8 +32,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const categories = categoriesRes?.data ?? [];
   const brands = brandsRes?.data ?? [];
 
+  const staticPages = [
+    '/about',
+    '/contact',
+    '/faq',
+    '/shipping',
+    '/returns-policy',
+    '/terms',
+    '/privacy',
+  ];
+
   return [
     { url: BASE, changeFrequency: 'daily', priority: 1.0 },
+    ...staticPages.map((path) => ({
+      url: `${BASE}${path}`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    })),
     ...products.map((p) => ({
       url: `${BASE}/products/${p.slug}`,
       lastModified: p.created_at,
