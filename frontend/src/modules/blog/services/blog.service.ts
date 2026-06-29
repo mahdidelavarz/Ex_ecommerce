@@ -5,6 +5,25 @@ import type { BlogPostListItem, BlogPostDetail } from '../types/blog.types';
 
 type ListResult = { data: BlogPostListItem[]; meta: any };
 
+/**
+ * Ask Next to drop the cached blog pages so a freshly created/updated/deleted
+ * post shows on the public `/blog` pages immediately. Fire-and-forget: a failed
+ * revalidation should never block the admin action.
+ */
+async function revalidateBlog(): Promise<void> {
+  try {
+    await fetch("/api/revalidate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        paths: ["/blog", { path: "/blog/[slug]", type: "page" }],
+      }),
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
 export const blogService = {
   /** Upload a cover image (admin). Returns the absolute URL to store. */
   uploadImage: async (file: File): Promise<string> => {
@@ -51,17 +70,20 @@ export const blogService = {
   /** Create (admin). */
   create: async (data: any): Promise<BlogPostDetail> => {
     const response = await apiClient.post<ApiResponse<BlogPostDetail>>('/blog-posts', data);
+    await revalidateBlog();
     return response.data.data;
   },
 
   /** Update (admin). */
   update: async (id: string, data: any): Promise<BlogPostDetail> => {
     const response = await apiClient.patch<ApiResponse<BlogPostDetail>>(`/blog-posts/${id}`, data);
+    await revalidateBlog();
     return response.data.data;
   },
 
   /** Soft delete (admin). */
   remove: async (id: string): Promise<void> => {
     await apiClient.delete(`/blog-posts/${id}`);
+    await revalidateBlog();
   },
 };

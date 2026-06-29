@@ -41,8 +41,14 @@ export default function CategoryBar() {
               />
             </button>
 
-            {allOpen && (categories?.length ?? 0) > 0 && (
-              <div className="absolute right-0 top-full w-[56rem] max-w-[calc(100vw-2rem)] bg-surface rounded-card shadow-modal border border-border p-6 z-50 animate-fade-in">
+            {(categories?.length ?? 0) > 0 && (
+              <div
+                className={`absolute right-0 top-full w-[56rem] max-w-[calc(100vw-2rem)] bg-surface rounded-card shadow-modal border border-border p-6 z-50 origin-top transition-all duration-200 ease-out ${
+                  allOpen
+                    ? "opacity-100 translate-y-0 visible"
+                    : "opacity-0 -translate-y-1 invisible pointer-events-none"
+                }`}
+              >
                 <div className="grid grid-cols-3 gap-x-8 gap-y-6">
                   {categories?.map((category) => (
                     <CategoryColumn key={category.id} category={category} />
@@ -52,18 +58,18 @@ export default function CategoryBar() {
             )}
           </div>
 
-          <div className="w-px h-6 bg-border" />
+          {/* <div className="w-px h-6 bg-border" /> */}
 
           {/* Blog link */}
-          <Link
+          {/* <Link
             href="/blog"
             className="flex items-center gap-1.5 px-3 py-2 rounded-button text-sm font-medium text-text-secondary transition-colors hover:text-primary"
           >
             <MdiNewspaperVariantOutline className="w-4 h-4" />
             وبلاگ
-          </Link>
+          </Link> */}
 
-          <div className="w-px h-6 bg-border" />
+          <div className="w-px h-6 bg-border mr-2" />
 
           {/* Inline top-level category links */}
           {isLoading ? (
@@ -102,8 +108,14 @@ export default function CategoryBar() {
                     )}
                   </Link>
 
-                  {category.children.length > 0 && activeId === category.id && (
-                    <div className="absolute right-0 top-full min-w-[14rem] bg-surface rounded-card shadow-modal border border-border p-4 z-50 animate-fade-in">
+                  {category.children.length > 0 && (
+                    <div
+                      className={`absolute right-0 top-full min-w-[14rem] bg-surface rounded-card shadow-modal border border-border p-4 z-50 origin-top transition-all duration-200 ease-out ${
+                        activeId === category.id
+                          ? "opacity-100 translate-y-0 visible"
+                          : "opacity-0 -translate-y-1 invisible pointer-events-none"
+                      }`}
+                    >
                       <CategoryColumn category={category} hideHeadingLink />
                     </div>
                   )}

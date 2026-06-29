@@ -60,6 +60,9 @@ services:
     environment:
       - WATCHPACK_POLLING=true
       - NEXT_TELEMETRY_DISABLED=1
+      # Server-side (SSR) fetches run inside the container and can't use the
+      # browser's localhost:5000 — reach the backend via its compose service name.
+      - INTERNAL_API_URL=http://backend:5000/api/v1
 
 volumes:
   postgres_data_dev:

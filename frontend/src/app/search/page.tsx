@@ -96,7 +96,7 @@ export default function SearchPage() {
                 onChange={(e) => setTerm(e.target.value)}
                 placeholder="جستجوی محصول، برند یا دسته‌بندی…"
                 className="flex-1 min-w-0 bg-transparent px-3 text-sm text-text-primary
-                  placeholder:text-text-muted outline-none"
+                  placeholder:text-text-muted outline-none focus-visible:outline-none!"
                 autoComplete="off"
               />
               {term && (

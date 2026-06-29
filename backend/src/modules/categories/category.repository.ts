@@ -1,4 +1,5 @@
 // src/modules/categories/category.repository.ts
+import { IsNull, Not } from "typeorm";
 import { AppDataSource } from "../../config/database";
 import { Category } from "../../database/entities/category.entity";
 import { Product } from "../../database/entities/product.entity";
@@ -25,7 +26,7 @@ export class CategoryRepository {
     const qb = this.repo
       .createQueryBuilder("category")
       .leftJoin("category.children", "children")
-      .leftJoin("category.products", "products")
+      .leftJoin("category.products", "products", "products.deleted_at IS NULL")
       .select([
         "category",
         "COUNT(DISTINCT children.id) as children_count",
@@ -56,11 +57,22 @@ export class CategoryRepository {
       );
     }
 
-    qb.orderBy(`category.${options.sort_by}`, options.sort_order);
-    qb.skip((options.page - 1) * options.limit);
-    qb.take(options.limit);
+    // Count distinct categories matching the filters before paginating.
+    const total = await qb.getCount();
 
-    const [data, total] = await qb.getManyAndCount();
+    qb.orderBy(`category.${options.sort_by}`, options.sort_order);
+    qb.offset((options.page - 1) * options.limit);
+    qb.limit(options.limit);
+
+    const { entities, raw } = await qb.getRawAndEntities();
+
+    // getRawAndEntities keeps raw rows aligned with entities by index; the
+    // aggregate aliases are only present on the raw rows, so merge them back.
+    const data = entities.map((cat, i) => {
+      (cat as any).children_count = parseInt(raw[i]?.children_count) || 0;
+      (cat as any).products_count = parseInt(raw[i]?.products_count) || 0;
+      return cat;
+    });
 
     return { data, total };
   }
@@ -139,7 +151,7 @@ export class CategoryRepository {
   async delete(id: string, force: boolean = false) {
     const category = await this.repo.findOne({
       where: { id },
-      relations: ["children", "products"],
+      relations: ["children"],
     });
 
     if (!category) {
@@ -153,8 +165,11 @@ export class CategoryRepository {
       );
     }
 
-    // Check if has products
-    if (category.products && category.products.length > 0) {
+    // Check if has products (excluding soft-deleted ones)
+    const productCount = await this.productRepo.count({
+      where: { category_id: id, deleted_at: IsNull() },
+    });
+    if (productCount > 0) {
       throw new ConflictError(
         "این دسته‌بندی دارای محصول است و نمی‌توان آن را حذف کرد",
       );
@@ -166,6 +181,13 @@ export class CategoryRepository {
         await this.delete(child.id, true);
       }
     }
+
+    // Purge any soft-deleted products still referencing this category. Their
+    // rows physically remain (deleted_at is a plain column, not a real soft
+    // delete) and category_id has onDelete: RESTRICT, so they would otherwise
+    // block the category removal with an FK violation. Related rows cascade,
+    // and order_items.variant_id is SET NULL, so order history is preserved.
+    await this.productRepo.delete({ category_id: id, deleted_at: Not(IsNull()) });
 
     await this.repo.remove(category);
   }

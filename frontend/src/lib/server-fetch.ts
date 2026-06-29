@@ -11,8 +11,14 @@ import type {
   BlogPostDetail,
 } from "@/modules/blog/types/blog.types";
 
+// Server Components run inside the container, where the browser-facing
+// `localhost:5000` does NOT reach the backend. Prefer a server-only internal URL
+// (the Docker service name, e.g. http://backend:5000/api/v1) and fall back to the
+// public URL for local/non-docker runs.
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+  process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000/api/v1";
 
 export interface PageMeta {
   page: number;

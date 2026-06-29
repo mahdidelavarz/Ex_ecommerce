@@ -100,13 +100,13 @@ export default function AdminFormLayout({
           className={`${maxWidthClass[maxWidth]} mx-auto w-full flex flex-col flex-1 min-h-0`}
         >
           {/* Pinned header */}
-          <div className="shrink-0 flex items-center gap-3 px-4 lg:px-8 py-5  bg-surface/60 backdrop-blur-sm">
+          <div className="shrink-0 flex items-center gap-6 px-4 lg:px-16 pt-8 pb-4">
             {onBack && (
               <button
                 type="button"
                 onClick={onBack}
                 aria-label="بازگشت"
-                className="p-2 -mr-2 rounded-button text-text-secondary hover:bg-surface-raised hover:text-text-primary transition-colors cursor-pointer"
+                className="p-2 -mr-2 rounded-button text-text-secondary bg-surface-raised hover:text-text-primary transition-colors cursor-pointer"
               >
                 <MdiArrowRight className="w-5 h-5" />
               </button>

@@ -57,7 +57,7 @@ export default function AdminPage({
     <div className="flex h-[calc(100dvh-var(--header-h)-1px)] overflow-hidden">
       <AdminSidebar />
 
-      <main className="flex-1 lg:mr-64 flex flex-col min-h-0">
+      <main className="flex-1 lg:mr-70 flex flex-col min-h-0">
         <div
           className={`${maxWidthClass[maxWidth]} mx-auto w-full flex flex-col flex-1 min-h-0 p-3 sm:p-4 lg:p-8`}
         >
