@@ -3,7 +3,7 @@
 
 import { type ComponentType, type SVGProps } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { useWishlist } from '@/modules/wishlist/hooks/useWishlist';
 import { useMobileMenuStore } from '../mobileMenu.store';
@@ -90,7 +90,6 @@ function NavItem({ label, icon: Icon, activeIcon: ActiveIcon, active, badge, hre
 
 export default function DefaultNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const { cart } = useCart();
   const { data: wishlist } = useWishlist();
   const openMenu = useMobileMenuStore((s) => s.open);
@@ -99,7 +98,7 @@ export default function DefaultNav() {
   const wishlistCount = wishlist?.length ?? 0;
 
   const isHome = pathname === '/';
-  const isSearch = pathname === '/products';
+  const isSearch = pathname === '/search';
   const isCart = pathname?.startsWith('/cart') ?? false;
   const isWishlist = pathname?.startsWith('/wishlist') ?? false;
 
@@ -118,7 +117,7 @@ export default function DefaultNav() {
         icon={LucideSearch}
         activeIcon={LucideSearch}
         active={isSearch}
-        onClick={() => router.push('/products')}
+        href="/search"
       />
       <NavItem
         label="سبد"

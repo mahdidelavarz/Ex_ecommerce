@@ -9,11 +9,10 @@ import HeaderActions from "./HeaderActions";
 import CategoryBar from "./CategoryBar";
 import MobileCategoryMenu from "./MobileCategoryMenu";
 import { useMobileMenuStore } from "./mobileMenu.store";
-import { MdiMenu, MdiClose, MdiStore } from "../icons/Icons";
+import { MdiMenu, MdiStore } from "../icons/Icons";
 
 export default function Header() {
   const { isOpen: isMobileMenuOpen, open: openMobileMenu, close: closeMobileMenu } = useMobileMenuStore();
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   // Scroll-aware: condense + raise shadow once the page scrolls.
@@ -74,30 +73,9 @@ export default function Header() {
 
             {/* End: actions */}
             <div className="ms-auto md:ms-0 shrink-0">
-              <HeaderActions
-                onToggleMobileSearch={() => setIsMobileSearchOpen((v) => !v)}
-              />
+              <HeaderActions />
             </div>
           </div>
-
-          {/* Mobile expandable search row */}
-          {isMobileSearchOpen && (
-            <div className="md:hidden pb-3 animate-fade-in">
-              <div className="flex items-center gap-2">
-                <HeaderSearch
-                  autoFocus
-                  onSubmitted={() => setIsMobileSearchOpen(false)}
-                />
-                <button
-                  onClick={() => setIsMobileSearchOpen(false)}
-                  className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-button text-text-secondary hover:bg-surface-raised transition-colors cursor-pointer"
-                  aria-label="بستن جستجو"
-                >
-                  <MdiClose className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Tier 3 — category nav bar (hidden once scrolled, desktop only) */}

@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useCartStore } from '../store/cart.store';
 import { formatPrice } from '@/utils/formatPrice';
@@ -12,9 +13,21 @@ export default function CartDrawer() {
   const { cart, isLoading, updateItem, removeItem } = useCart();
   const { isOpen, closeCart } = useCartStore();
 
+  // The drawer is a desktop quick-peek; on mobile the cart lives on /cart
+  // (reached from the bottom nav). Defensively keep it closed below `md` so a
+  // stray openCart() can never surface it on small screens.
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
   return (
     <Drawer
-      open={isOpen}
+      open={isOpen && isDesktop}
       onClose={closeCart}
       side="left"
       title={

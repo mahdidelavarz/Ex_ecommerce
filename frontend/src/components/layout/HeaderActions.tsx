@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useCartStore } from "@/modules/cart/store/cart.store";
 import { useCart } from "@/modules/cart/hooks/useCart";
@@ -10,15 +11,9 @@ import ThemeToggle from "./ThemeToggle";
 import AccountMenu from "./AccountMenu";
 import {
   LucideLogIn,
-  LucideSearch,
   MdiCart,
   MdiHeartOutline,
 } from "../icons/Icons";
-
-interface HeaderActionsProps {
-  /** Toggles the mobile expandable search row (rendered by Header). */
-  onToggleMobileSearch: () => void;
-}
 
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -32,7 +27,8 @@ function Badge({ count }: { count: number }) {
   );
 }
 
-export default function HeaderActions({ onToggleMobileSearch }: HeaderActionsProps) {
+export default function HeaderActions() {
+  const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   const { openCart } = useCartStore();
   const { cart } = useCart();
@@ -40,29 +36,28 @@ export default function HeaderActions({ onToggleMobileSearch }: HeaderActionsPro
   const wishlistCount = wishlist?.length ?? 0;
   const cartCount = cart?.total_items ?? 0;
 
+  // The full cart already lives on /cart — don't open the drawer on top of it.
+  const onCartClick = () => {
+    if (pathname?.startsWith("/cart")) return;
+    openCart();
+  };
+
+  // Wishlist + cart are duplicated by the mobile bottom nav, so they're
+  // desktop-only here; the cart drawer is a desktop quick-peek.
   const iconBtn =
-    "relative inline-flex items-center justify-center w-10 h-10 rounded-button " +
+    "relative hidden md:inline-flex items-center justify-center w-10 h-10 rounded-button " +
     "text-text-secondary hover:bg-surface-raised hover:text-text-primary transition-colors cursor-pointer";
 
   return (
     <div className="flex items-center gap-1 sm:gap-2">
-      {/* Mobile search toggle */}
-      <button
-        onClick={onToggleMobileSearch}
-        className={`${iconBtn} md:hidden`}
-        aria-label="جستجو"
-      >
-        <LucideSearch className="w-5 h-5" />
-      </button>
-
-      {/* Wishlist */}
+      {/* Wishlist (desktop only — mobile uses the bottom nav) */}
       <Link href="/wishlist" className={iconBtn} aria-label="علاقه‌مندی‌ها">
         <MdiHeartOutline className="w-6 h-6" />
         <Badge count={wishlistCount} />
       </Link>
 
-      {/* Cart */}
-      <button onClick={openCart} className={iconBtn} aria-label="سبد خرید">
+      {/* Cart (desktop only — mobile uses the bottom nav) */}
+      <button onClick={onCartClick} className={iconBtn} aria-label="سبد خرید">
         <MdiCart className="w-6 h-6" />
         <Badge count={cartCount} />
       </button>
