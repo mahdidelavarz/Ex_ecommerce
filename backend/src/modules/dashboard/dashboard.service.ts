@@ -5,15 +5,47 @@ import { Product } from '../../database/entities/product.entity';
 import { User, UserRole } from '../../database/entities/user.entity';
 import { ProductVariant } from '../../database/entities/product-variant.entity';
 
+export type DashboardPeriod = '7d' | '30d' | 'month' | 'all';
+
 export class DashboardService {
   private orderRepo = AppDataSource.getRepository(Order);
   private productRepo = AppDataSource.getRepository(Product);
   private userRepo = AppDataSource.getRepository(User);
   private variantRepo = AppDataSource.getRepository(ProductVariant);
 
-  async getStats() {
+  /**
+   * Resolve a period token to the earliest `created_at` that should be counted.
+   * `all` returns null (no lower bound).
+   */
+  private resolveSince(period: DashboardPeriod): Date | null {
+    const now = new Date();
+    switch (period) {
+      case '7d': {
+        const d = new Date(now);
+        d.setDate(d.getDate() - 7);
+        return d;
+      }
+      case '30d': {
+        const d = new Date(now);
+        d.setDate(d.getDate() - 30);
+        return d;
+      }
+      case 'month':
+        return new Date(now.getFullYear(), now.getMonth(), 1);
+      case 'all':
+      default:
+        return null;
+    }
+  }
+
+  async getStats(period: DashboardPeriod = '30d') {
+    const since = this.resolveSince(period);
+
     const [
       revenueRow,
+      financialRow,
+      discountRow,
+      paidOrdersCount,
       totalOrders,
       pendingOrders,
       totalProducts,
@@ -22,12 +54,46 @@ export class DashboardService {
       ordersByStatus,
       recentOrders,
     ] = await Promise.all([
-      // Revenue from paid orders only
+      // All-time revenue from paid orders (period-independent headline KPI)
       this.orderRepo
         .createQueryBuilder('o')
         .select('COALESCE(SUM(o.total_amount), 0)', 'sum')
         .where('o.payment_status = :paid', { paid: PaymentStatus.PAID })
         .getRawOne<{ sum: string }>(),
+
+      // Sell (GMV), COGS and items sold over paid orders in the selected period.
+      // LEFT JOIN variant: deleted variants (SET NULL) contribute 0 cost.
+      (() => {
+        const qb = this.orderRepo
+          .createQueryBuilder('o')
+          .innerJoin('o.items', 'oi')
+          .leftJoin('oi.variant', 'v')
+          .select('COALESCE(SUM(oi.total_amount), 0)', 'sell')
+          .addSelect('COALESCE(SUM(oi.quantity * COALESCE(v.cost, 0)), 0)', 'cogs')
+          .addSelect('COALESCE(SUM(oi.quantity), 0)', 'items')
+          .where('o.payment_status = :paid', { paid: PaymentStatus.PAID });
+        if (since) qb.andWhere('o.created_at >= :since', { since });
+        return qb.getRawOne<{ sell: string; cogs: string; items: string }>();
+      })(),
+
+      // Coupon-level discount over paid orders in period
+      (() => {
+        const qb = this.orderRepo
+          .createQueryBuilder('o')
+          .select('COALESCE(SUM(o.discount_amount), 0)', 'sum')
+          .where('o.payment_status = :paid', { paid: PaymentStatus.PAID });
+        if (since) qb.andWhere('o.created_at >= :since', { since });
+        return qb.getRawOne<{ sum: string }>();
+      })(),
+
+      // Paid order count in period (for average order value)
+      (() => {
+        const qb = this.orderRepo
+          .createQueryBuilder('o')
+          .where('o.payment_status = :paid', { paid: PaymentStatus.PAID });
+        if (since) qb.andWhere('o.created_at >= :since', { since });
+        return qb.getCount();
+      })(),
 
       this.orderRepo.count(),
       this.orderRepo.count({ where: { order_status: OrderStatus.PENDING } }),
@@ -60,8 +126,22 @@ export class DashboardService {
       statusCounts[r.status] = parseInt(r.count, 10);
     });
 
+    const totalSell = parseFloat(financialRow?.sell ?? '0');
+    const totalCogs = parseFloat(financialRow?.cogs ?? '0');
+    const totalItemsSold = parseInt(financialRow?.items ?? '0', 10);
+    const totalDiscount = parseFloat(discountRow?.sum ?? '0');
+    const totalProfit = totalSell - totalCogs - totalDiscount;
+    const avgOrderValue = paidOrdersCount > 0 ? totalSell / paidOrdersCount : 0;
+
     return {
       total_revenue: parseFloat(revenueRow?.sum ?? '0'),
+      total_sell: totalSell,
+      total_cogs: totalCogs,
+      total_discount: totalDiscount,
+      total_items_sold: totalItemsSold,
+      total_profit: totalProfit,
+      avg_order_value: avgOrderValue,
+      paid_orders_count: paidOrdersCount,
       total_orders: totalOrders,
       pending_orders: pendingOrders,
       total_products: totalProducts,
@@ -78,6 +158,85 @@ export class DashboardService {
         created_at: o.created_at,
       })),
     };
+  }
+
+  /**
+   * Daily sell / cost / profit / item / order series over paid orders in the
+   * selected period — drives the sales-over-time chart.
+   */
+  async getSalesSeries(period: DashboardPeriod = '30d') {
+    const since = this.resolveSince(period);
+
+    const qb = this.orderRepo
+      .createQueryBuilder('o')
+      .innerJoin('o.items', 'oi')
+      .leftJoin('oi.variant', 'v')
+      .select("date_trunc('day', o.created_at)", 'day')
+      .addSelect('COALESCE(SUM(oi.total_amount), 0)', 'sell')
+      .addSelect('COALESCE(SUM(oi.quantity * COALESCE(v.cost, 0)), 0)', 'cogs')
+      .addSelect('COALESCE(SUM(oi.quantity), 0)', 'items')
+      .addSelect('COUNT(DISTINCT o.id)', 'orders')
+      .where('o.payment_status = :paid', { paid: PaymentStatus.PAID });
+    if (since) qb.andWhere('o.created_at >= :since', { since });
+    qb.groupBy('day').orderBy('day', 'ASC');
+
+    const rows = await qb.getRawMany<{
+      day: string;
+      sell: string;
+      cogs: string;
+      items: string;
+      orders: string;
+    }>();
+
+    return rows.map((r) => {
+      const sell = parseFloat(r.sell);
+      const cogs = parseFloat(r.cogs);
+      return {
+        date: r.day,
+        sell,
+        cogs,
+        profit: sell - cogs,
+        items: parseInt(r.items, 10),
+        orders: parseInt(r.orders, 10),
+      };
+    });
+  }
+
+  /**
+   * Best-selling products (by quantity) over paid orders in the period.
+   * Grouped on the order-item title + snapshot product_id so it survives
+   * variant deletion.
+   */
+  async getTopProducts(period: DashboardPeriod = '30d', limit = 8) {
+    const since = this.resolveSince(period);
+
+    const qb = this.orderRepo
+      .createQueryBuilder('o')
+      .innerJoin('o.items', 'oi')
+      .select("oi.product_snapshot ->> 'product_id'", 'product_id')
+      .addSelect('oi.product_title', 'product_title')
+      .addSelect('COALESCE(SUM(oi.quantity), 0)', 'quantity_sold')
+      .addSelect('COALESCE(SUM(oi.total_amount), 0)', 'revenue')
+      .where('o.payment_status = :paid', { paid: PaymentStatus.PAID });
+    if (since) qb.andWhere('o.created_at >= :since', { since });
+    qb.groupBy('product_id')
+      .addGroupBy('oi.product_title')
+      .orderBy('quantity_sold', 'DESC')
+      .limit(limit);
+
+    const rows = await qb.getRawMany<{
+      product_id: string | null;
+      product_title: string;
+      quantity_sold: string;
+      revenue: string;
+    }>();
+
+    return rows.map((r) => ({
+      product_id: r.product_id,
+      product_title: r.product_title,
+      quantity_sold: parseInt(r.quantity_sold, 10),
+      revenue: parseFloat(r.revenue),
+    }));
   }
 
   /**

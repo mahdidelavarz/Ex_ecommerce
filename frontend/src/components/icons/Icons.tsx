@@ -1275,3 +1275,81 @@ export function MdiNewspaperVariantOutline(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+export function MdiCashMultiple(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="currentColor" d="M5 6H23V18H5V6M14 9A3 3 0 0 1 17 12A3 3 0 0 1 14 15A3 3 0 0 1 11 12A3 3 0 0 1 14 9M9 8A2 2 0 0 1 7 10V14A2 2 0 0 1 9 16H19A2 2 0 0 1 21 14V10A2 2 0 0 1 19 8H9M1 10H3V20H19V22H1V10Z"/>
+    </svg>
+  );
+}
+export function MdiTrendingUp(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="currentColor" d="M16 6l2.29 2.29l-4.88 4.88l-4-4L2 16.59L3.41 18l6-6l4 4l6.3-6.29L22 12V6z"/>
+    </svg>
+  );
+}
+export function MdiChartLine(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="currentColor" d="M3.5 18.49l6-6.01l4 4L22 6.92l-1.41-1.41l-7.09 7.97l-4-4L2 16.99z"/>
+    </svg>
+  );
+}
+export function MdiSaleOutline(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="currentColor" d="M18.65 2.85l-3.96 1.66L9.85 2.5l-1.66 3.96l-3.99 1.81l1.65 3.97l-1.62 4.18l3.95 1.66l1.84 3.99l3.97-1.65l4.18 1.62l1.66-3.96l3.99-1.84l-1.65-3.96l1.62-4.19l-3.95-1.65zm-9.2 5.49a1.6 1.6 0 0 1 1.6 1.6a1.6 1.6 0 0 1-1.6 1.6a1.6 1.6 0 0 1-1.6-1.6a1.6 1.6 0 0 1 1.6-1.6m5.1 7.32a1.6 1.6 0 0 1-1.6-1.6a1.6 1.6 0 0 1 1.6-1.6a1.6 1.6 0 0 1 1.6 1.6a1.6 1.6 0 0 1-1.6 1.6m-5.91.66l8.5-8.5l1.06 1.06l-8.5 8.5z"/>
+    </svg>
+  );
+}
+export function MdiCubeOutline(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="currentColor" d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15L6.04 7.5L12 10.85L17.96 7.5zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/>
+    </svg>
+  );
+}
+export function MdiWallet(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="currentColor" d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3.5h-9a2.5 2.5 0 0 1-2.5-2.5A2.5 2.5 0 0 1 12 10.5h9V7a2 2 0 0 0-2-2zm7 9a1.5 1.5 0 0 0-1.5 1.5A1.5 1.5 0 0 0 12 15h10v-3z"/>
+    </svg>
+  );
+}
