@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatPrice } from '@/utils/formatPrice';
+import { toPersianDigits } from '@/utils/toPersianDigits';
 import { useCart } from '@/modules/cart/hooks/useCart';
 import WishlistButton from '@/modules/wishlist/components/WishlistButton';
 import type { ProductListResponse } from '../types/product.types';
@@ -21,7 +22,6 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { addItem, isAdding } = useCart();
 
-  const hasDiscount = product.has_discount ?? false;
   const minPrice = product.price_range.min;
   const isRange = product.price_range.max > product.price_range.min;
   const outOfStock = product.total_stock === 0;
@@ -54,9 +54,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             ناموجود
           </span>
         )}
-        {hasDiscount && !outOfStock && (
-          <span className="bg-secondary text-text-primary text-[11px] px-2.5 py-1 rounded-full font-semibold tracking-wide shadow-card">
-            تخفیف ویژه
+        {product.discount_percent > 0 && !outOfStock && (
+          <span className="bg-error text-white text-[11px] px-2 py-1 rounded-full font-bold tracking-wide shadow-card">
+            {toPersianDigits(product.discount_percent)}٪
           </span>
         )}
       </div>
@@ -100,41 +100,35 @@ export default function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
 
-        {/* Rating */}
-        {product.avg_rating > 0 && (
+        {/* Rating — only when actually rated */}
+        {product.reviews_count > 0 && (
           <div className="mb-2 flex items-center gap-1 text-xs text-text-muted">
             <LucideStar className="h-3.5 w-3.5 text-secondary" />
-            <span className="font-medium text-text-secondary">{product.avg_rating.toFixed(1)}</span>
-            <span>({product.reviews_count})</span>
+            <span className="font-medium text-text-secondary">
+              {toPersianDigits(product.avg_rating.toFixed(1))}
+            </span>
+            <span>({toPersianDigits(product.reviews_count)})</span>
           </div>
         )}
 
-        {/* Price */}
-        <div className="mt-auto pt-1">
-          {minPrice > 0 ? (
-            <div className="flex items-baseline gap-1.5">
-              {isRange && <span className="text-xs text-text-muted">از</span>}
-              <span className="text-base font-bold text-primary">{formatPrice(minPrice)}</span>
-            </div>
-          ) : (
-            <span className="text-sm font-medium text-text-muted">ناموجود</span>
-          )}
-        </div>
-
-        {/* Quick add-to-cart */}
+        {/* Quick add-to-cart — price lives inside the button */}
         <button
           type="button"
           onClick={handleAddToCart}
           disabled={!canQuickAdd || isAdding}
           aria-label="افزودن به سبد خرید"
-          className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-button bg-primary text-sm font-medium text-white transition-colors duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-raised disabled:text-text-muted cursor-pointer"
+          className="mt-auto flex h-11 w-full items-center justify-center gap-2 rounded-button bg-primary px-3 text-sm font-bold text-white transition-colors duration-200 hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-raised disabled:text-text-muted cursor-pointer"
         >
           {isAdding ? (
-            <SvgSpinnersRingResize className="h-5 w-5" />
+            <SvgSpinnersRingResize className="h-5 w-5 shrink-0" />
           ) : (
-            <MdiCartPlus className="h-5 w-5" />
+            <MdiCartPlus className="h-5 w-5 shrink-0" />
           )}
-          {outOfStock || !product.default_variant_id ? 'ناموجود' : 'افزودن به سبد'}
+          <span className="truncate">
+            {outOfStock || !product.default_variant_id || minPrice <= 0
+              ? 'ناموجود'
+              : `${isRange ? 'از ' : ''}${formatPrice(minPrice)}`}
+          </span>
         </button>
       </div>
     </article>

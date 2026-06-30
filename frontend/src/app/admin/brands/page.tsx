@@ -3,9 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { useBrands } from "@/modules/brands/hooks/useBrands";
-import { brandService } from "@/modules/brands/services/brand.service";
+import { useBrands, useDeleteBrand } from "@/modules/brands/hooks/useBrands";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminPage from "@/components/layout/AdminPage";
 import {
@@ -35,23 +33,19 @@ export default function AdminBrandsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
-  const { data, isLoading, refetch } = useBrands({
+  const { data, isLoading } = useBrands({
     page,
     limit: 20,
     search: search || undefined,
   });
+  const deleteBrand = useDeleteBrand();
 
   const handleDelete = async (brand: Brand) => {
     if (!window.confirm(`آیا از حذف برند "${brand.name}" اطمینان دارید؟`))
       return;
 
-    try {
-      await brandService.delete(brand.id);
-      toast.success("برند با موفقیت حذف شد");
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا در حذف برند");
-    }
+    // success/error toasts are handled by the useDeleteBrand hook
+    deleteBrand.mutate(brand.id);
   };
 
   return (

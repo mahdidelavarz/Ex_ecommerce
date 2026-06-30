@@ -19,3 +19,19 @@ export interface DashboardStats {
   orders_by_status: Record<string, number>;
   recent_orders: DashboardRecentOrder[];
 }
+
+export interface LowStockVariantAttribute {
+  name: string;
+  value: string;
+  color_code: string | null;
+}
+
+export interface LowStockVariant {
+  variant_id: string;
+  sku: string;
+  stock_quantity: number;
+  low_stock_threshold: number | null;
+  product_id: string;
+  product_title: string;
+  attributes: LowStockVariantAttribute[];
+}

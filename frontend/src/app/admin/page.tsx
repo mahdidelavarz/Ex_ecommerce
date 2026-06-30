@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
-import { useDashboardStats } from '@/modules/dashboard/hooks/useDashboard';
+import { useDashboardStats, useLowStockVariants } from '@/modules/dashboard/hooks/useDashboard';
 import AdminPage from '@/components/layout/AdminPage';
 import { Badge, PageHeader, Skeleton, Table, TBody, TD, TableEmpty, TH, THead, TRow } from '@/components/ui';
 import { formatPrice } from '@/utils/formatPrice';
@@ -29,6 +29,7 @@ const quickLinks = [
 export default function AdminDashboardPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
   const { data: stats, isLoading } = useDashboardStats();
+  const { data: lowStock, isLoading: isLowStockLoading } = useLowStockVariants();
 
   const kpis = [
     { label: 'درآمد کل (پرداخت‌شده)', value: stats ? `${formatPrice(stats.total_revenue)} تومان` : '—', icon: MdiStore, color: 'text-success bg-success-light' },
@@ -131,6 +132,86 @@ export default function AdminDashboardPage() {
                       </TRow>
                     );
                   })
+                )}
+              </TBody>
+            </Table>
+          )}
+        </div>
+
+        {/* Low stock */}
+        <div className="bg-surface rounded-card shadow-card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-text-primary flex items-center gap-2">
+              <MdiAlertCircle className="w-5 h-5 text-error" />
+              موجودی کم
+            </h2>
+            <Link href="/admin/products" className="text-sm text-primary hover:underline flex items-center gap-1">
+              همه محصولات
+              <MdiChevronLeft className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {isLowStockLoading ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : (
+            <Table className="text-sm">
+              <THead>
+                <TH align="right">محصول</TH>
+                <TH align="right">ویژگی</TH>
+                <TH align="center">موجودی</TH>
+                <TH align="center">حد مجاز</TH>
+                <TH align="center">عملیات</TH>
+              </THead>
+              <TBody>
+                {!lowStock || lowStock.length === 0 ? (
+                  <TableEmpty colSpan={5} message="موجودی همه واریانت‌ها در حد مطلوب است" icon={MdiPackageVariant} />
+                ) : (
+                  lowStock.map((v) => (
+                    <TRow key={v.variant_id} hover>
+                      <TD align="right" cardSlot="header">
+                        <span className="font-medium text-text-primary">{v.product_title}</span>
+                      </TD>
+                      <TD align="right" label="ویژگی">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {v.attributes.length > 0 ? (
+                            v.attributes.map((attr, i) => (
+                              <span key={i} className="inline-flex items-center gap-1 text-xs text-text-secondary">
+                                {attr.color_code && (
+                                  <span
+                                    className="inline-block w-3 h-3 rounded-full border border-border"
+                                    style={{ backgroundColor: attr.color_code }}
+                                  />
+                                )}
+                                {attr.value}
+                              </span>
+                            ))
+                          ) : (
+                            <code className="text-xs text-text-muted">{v.sku}</code>
+                          )}
+                        </div>
+                      </TD>
+                      <TD align="center" label="موجودی">
+                        <span className={v.stock_quantity === 0 ? "text-error font-medium" : "text-warning font-medium"}>
+                          {v.stock_quantity}
+                        </span>
+                      </TD>
+                      <TD align="center" label="حد مجاز" className="text-text-secondary">
+                        {v.low_stock_threshold}
+                      </TD>
+                      <TD align="center" cardSlot="actions">
+                        <Link
+                          href={`/admin/products/${v.product_id}?tab=variants`}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          تأمین موجودی
+                        </Link>
+                      </TD>
+                    </TRow>
+                  ))
                 )}
               </TBody>
             </Table>

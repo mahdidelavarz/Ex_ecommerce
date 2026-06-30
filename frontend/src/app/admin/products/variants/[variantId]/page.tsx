@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
@@ -12,7 +12,7 @@ import { variantService } from '@/modules/variants/services/variant.service';
 import { productService } from '@/modules/products/services/product.service';
 import { useAllAttributes } from '@/modules/attributes/hooks/useAttributes';
 import AdminFormLayout from '@/components/layout/AdminFormLayout';
-import { Checkbox, FormSection, Input, Toggle } from '@/components/ui';
+import { Checkbox, FormSection, Input, PriceInput, Toggle } from '@/components/ui';
 import type { VariantImage } from '@/modules/variants/types/variant.types';
 import { numberField, nullableNumberField } from '@/lib/forms';
 import {
@@ -69,7 +69,7 @@ export default function AdminVariantFormPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const { data: attributes } = useAllAttributes();
 
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<VariantFormData>({
+  const { register, handleSubmit, reset, setValue, watch, control, formState: { errors } } = useForm<VariantFormData>({
     resolver: zodResolver(variantFormSchema),
     defaultValues: {
       sku: '',
@@ -200,9 +200,44 @@ export default function AdminVariantFormPage() {
       <FormSection title="اطلاعات پایه" icon={MdiInformation} columns={2}>
         <Input label="کد محصول (SKU) *" {...register('sku')} error={errors.sku?.message} />
         <Input label="بارکد" {...register('barcode')} />
-        <Input label="قیمت (تومان) *" type="number" {...register('price', numberField)} error={errors.price?.message} />
-        <Input label="قیمت مقایسه (تومان)" type="number" {...register('compare_at_price', nullableNumberField)} error={errors.compare_at_price?.message} />
-        <Input label="قیمت تمام شده (تومان)" type="number" {...register('cost', numberField)} error={errors.cost?.message} />
+        <Controller
+          control={control}
+          name="price"
+          render={({ field }) => (
+            <PriceInput
+              label="قیمت فروش (تومان) *"
+              value={field.value ?? null}
+              onValueChange={(v) => field.onChange(v ?? undefined)}
+              error={errors.price?.message}
+            />
+          )}
+        />
+        <Controller
+          control={control}
+          name="cost"
+          render={({ field }) => (
+            <PriceInput
+              label="قیمت خرید (تومان)"
+              hint="قیمت تمام‌شده برای فروشگاه"
+              value={field.value ?? null}
+              onValueChange={(v) => field.onChange(v ?? undefined)}
+              error={errors.cost?.message}
+            />
+          )}
+        />
+        <Controller
+          control={control}
+          name="compare_at_price"
+          render={({ field }) => (
+            <PriceInput
+              label="قیمت قبل از تخفیف (تومان)"
+              hint="اختیاری؛ برای نمایش تخفیف باید از قیمت فروش بیشتر باشد"
+              value={field.value ?? null}
+              onValueChange={(v) => field.onChange(v)}
+              error={errors.compare_at_price?.message}
+            />
+          )}
+        />
         <Input label="وزن (گرم)" type="number" {...register('weight', nullableNumberField)} error={errors.weight?.message} />
       </FormSection>
 

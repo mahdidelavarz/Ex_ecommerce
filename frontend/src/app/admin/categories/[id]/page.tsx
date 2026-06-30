@@ -9,7 +9,11 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { categoryService } from '@/modules/categories/services/category.service';
-import { useCategoryTree } from '@/modules/categories/hooks/useCategories';
+import {
+  useCategoryTree,
+  useCreateCategory,
+  useUpdateCategory,
+} from '@/modules/categories/hooks/useCategories';
 import { numberField } from '@/lib/forms';
 import type { CategoryTreeNode } from '@/modules/categories/types/category.types';
 import AdminFormLayout from '@/components/layout/AdminFormLayout';
@@ -97,6 +101,8 @@ export default function AdminCategoryFormPage() {
   const [mediaType, setMediaType] = useState<'icon' | 'image'>('icon');
 
   const { data: categoryTree } = useCategoryTree();
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
 
   const validParents = useMemo(() => {
     const flat = flattenTree(categoryTree ?? []);
@@ -189,15 +195,13 @@ export default function AdminCategoryFormPage() {
       };
 
       if (isEdit) {
-        await categoryService.update(params.id as string, payload);
-        toast.success('دسته‌بندی با موفقیت بروزرسانی شد');
+        await updateCategory.mutateAsync({ id: params.id as string, data: payload });
       } else {
-        await categoryService.create(payload);
-        toast.success('دسته‌بندی با موفقیت ایجاد شد');
+        await createCategory.mutateAsync(payload);
       }
       router.push('/admin/categories');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'خطا در ذخیره دسته‌بندی');
+    } catch {
+      // error toast handled by the mutation hook's onError
     } finally {
       setIsSubmitting(false);
     }

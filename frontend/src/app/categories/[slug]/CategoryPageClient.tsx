@@ -83,69 +83,44 @@ export default function CategoryPageClient() {
           <span className="text-text-primary">{category.name}</span>
         </nav>
 
-        {/* Category Header */}
-        <div className="bg-surface rounded-card shadow-card p-6 mb-8">
-          <div className="flex items-center gap-4">
+        {/* Compact header: name + count on one side, sort on the other */}
+        <div className="flex items-center justify-between gap-3 mb-6 bg-surface rounded-card shadow-card px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
             {category.image ? (
               <Image
                 src={category.image}
                 alt={category.name}
-                width={64}
-                height={64}
-                className="w-16 h-16 rounded-lg object-cover shrink-0"
+                width={36}
+                height={36}
+                className="w-9 h-9 rounded-lg object-cover shrink-0"
               />
             ) : category.icon ? (
               <div
-                className="w-16 h-16 rounded-lg flex items-center justify-center shrink-0"
+                className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
                 style={{ backgroundColor: category.color || 'var(--color-primary-light)' }}
               >
-                <Icon icon={category.icon} className="w-8 h-8 text-white" />
+                <Icon icon={category.icon} className="w-5 h-5 text-white" />
               </div>
             ) : (
-              <div className="w-16 h-16 rounded-lg bg-surface-raised flex items-center justify-center shrink-0">
-                <MdiFolderOpenOutline className="text-text-muted" width={32} />
+              <div className="w-9 h-9 rounded-lg bg-surface-raised flex items-center justify-center shrink-0">
+                <MdiFolderOpenOutline className="text-text-muted" width={20} />
               </div>
             )}
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">{category.name}</h1>
-              {category.description && (
-                <p className="text-text-secondary mt-1 text-sm">{category.description}</p>
-              )}
-              <p className="text-text-muted text-xs mt-1">{category.products_count} محصول</p>
-            </div>
+            <h1 className="truncate text-base sm:text-lg font-bold text-text-primary">
+              {category.name}
+            </h1>
+            <span className="shrink-0 text-xs text-text-muted">
+              {category.products_count} محصول
+            </span>
           </div>
 
-          {/* Sub-categories */}
-          {category.children.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border">
-              {category.children.map((child) => (
-                <Link
-                  key={child.id}
-                  href={`/categories/${child.slug}`}
-                  className="flex items-center gap-2 border border-border rounded-button px-3 py-1 text-sm text-text-secondary hover:border-primary hover:text-primary transition-colors"
-                >
-                  {child.image && (
-                    <img src={child.image} alt={child.name} className="w-4 h-4 rounded object-cover" />
-                  )}
-                  {child.name}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Sort Bar */}
-        <div className="flex items-center justify-between mb-6 bg-surface rounded-card shadow-card px-4 py-3">
-          <p className="text-sm text-text-secondary">
-            {productsData?.meta?.total ?? 0} محصول
-          </p>
           <Select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [by, order] = e.target.value.split('-');
               updateParams({ sort_by: by, sort_order: order }, false);
             }}
-            wrapperClassName="w-44"
+            wrapperClassName="w-36 sm:w-44 shrink-0"
             options={[
               { value: 'created_at-DESC', label: 'جدیدترین' },
               { value: 'created_at-ASC', label: 'قدیمی‌ترین' },
@@ -155,6 +130,24 @@ export default function CategoryPageClient() {
             ]}
           />
         </div>
+
+        {/* Sub-categories */}
+        {category.children.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {category.children.map((child) => (
+              <Link
+                key={child.id}
+                href={`/categories/${child.slug}`}
+                className="flex items-center gap-2 border border-border rounded-button px-3 py-1.5 text-sm text-text-secondary hover:border-primary hover:text-primary transition-colors"
+              >
+                {child.image && (
+                  <img src={child.image} alt={child.name} className="w-4 h-4 rounded object-cover" />
+                )}
+                {child.name}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Product Grid */}
         <ProductGrid

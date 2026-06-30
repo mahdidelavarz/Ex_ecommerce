@@ -48,6 +48,28 @@ export class ProductRepository {
             ORDER BY v.price ASC LIMIT 1)`,
         "default_variant_stock",
       )
+      // Discount % of the cheapest active variant (the one whose price equals min_price).
+      .addSelect(
+        `(SELECT CASE
+              WHEN v.compare_at_price IS NOT NULL AND v.compare_at_price > v.price AND v.compare_at_price > 0
+              THEN ROUND((v.compare_at_price - v.price)::numeric / v.compare_at_price * 100)
+              ELSE 0 END
+            FROM product_variants v
+            WHERE v.product_id = product.id AND v.is_active = true AND v.deleted_at IS NULL
+            ORDER BY v.price ASC LIMIT 1)`,
+        "discount_percent",
+      )
+      // Rating aggregates (approved reviews only).
+      .addSelect(
+        `(SELECT COALESCE(AVG(r.rating), 0) FROM reviews r
+            WHERE r.product_id = product.id AND r.is_approved = true)`,
+        "avg_rating",
+      )
+      .addSelect(
+        `(SELECT COUNT(*) FROM reviews r
+            WHERE r.product_id = product.id AND r.is_approved = true)`,
+        "reviews_count",
+      )
       .leftJoin("product.variants", "variants", "variants.is_active = true")
       .addSelect("MIN(variants.price)", "min_price")
       .addSelect("MAX(variants.price)", "max_price")
@@ -163,8 +185,9 @@ export class ProductRepository {
           total_stock: parseInt(r.total_stock) || 0,
           variants_count: parseInt(r.variants_count) || 0,
           has_discount: r.has_discount === true || r.has_discount === "t",
-          avg_rating: 0,
-          reviews_count: 0,
+          discount_percent: parseInt(r.discount_percent) || 0,
+          avg_rating: parseFloat(r.avg_rating) || 0,
+          reviews_count: parseInt(r.reviews_count) || 0,
           is_active: p.is_active,
           is_public: p.is_public,
           created_at: p.created_at,

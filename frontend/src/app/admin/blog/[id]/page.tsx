@@ -9,6 +9,7 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import { blogService } from "@/modules/blog/services/blog.service";
+import { useCreateBlogPost, useUpdateBlogPost } from "@/modules/blog/hooks/useBlog";
 import AdminFormLayout from "@/components/layout/AdminFormLayout";
 import { FormSection, Input, Textarea, Toggle } from "@/components/ui";
 import RichTextEditor from "@/components/ui/RichTextEditor";
@@ -56,6 +57,8 @@ export default function AdminBlogFormPage() {
   const [isLoadingPost, setIsLoadingPost] = useState(isEdit);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [tagInput, setTagInput] = useState("");
+  const createBlogPost = useCreateBlogPost();
+  const updateBlogPost = useUpdateBlogPost();
 
   const {
     register,
@@ -156,15 +159,13 @@ export default function AdminBlogFormPage() {
         seo_keywords: data.seo_keywords || null,
       };
       if (isEdit) {
-        await blogService.update(params.id as string, payload);
-        toast.success("مطلب با موفقیت بروزرسانی شد");
+        await updateBlogPost.mutateAsync({ id: params.id as string, data: payload });
       } else {
-        await blogService.create(payload);
-        toast.success("مطلب با موفقیت ایجاد شد");
+        await createBlogPost.mutateAsync(payload);
       }
       router.push("/admin/blog");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا در ذخیره مطلب");
+    } catch {
+      // error toast handled by the mutation hook's onError
     } finally {
       setIsSubmitting(false);
     }

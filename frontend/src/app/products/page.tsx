@@ -1,6 +1,7 @@
 // src/app/products/page.tsx
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import Link from 'next/link';
 import ProductsClient from './ProductsClient';
 import { fetchProducts } from '@/lib/server-fetch';
 import { breadcrumbJsonLd, itemListJsonLd } from '@/lib/seo';
@@ -74,7 +75,7 @@ export default async function ProductsPage({
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-text-muted mb-4">
-          <a href="/" className="hover:text-primary transition-colors">خانه</a>
+          <Link href="/" className="hover:text-primary transition-colors">خانه</Link>
           <MdiChevronLeft className="w-4 h-4" />
           <span className="text-text-primary">محصولات</span>
         </nav>

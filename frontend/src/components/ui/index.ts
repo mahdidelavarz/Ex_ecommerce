@@ -5,6 +5,8 @@
 // Form fields
 export { default as Input } from "./Input";
 export type { InputProps } from "./Input";
+export { default as PriceInput } from "./PriceInput";
+export type { PriceInputProps } from "./PriceInput";
 export { default as Textarea } from "./Textarea";
 export type { TextareaProps } from "./Textarea";
 export { default as Select } from "./Select";

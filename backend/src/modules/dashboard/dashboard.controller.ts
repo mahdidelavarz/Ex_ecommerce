@@ -11,4 +11,9 @@ export class DashboardController {
     const stats = await this.service.getStats();
     ApiResponseHelper.success(res, stats);
   });
+
+  lowStock = asyncHandler(async (_req: Request, res: Response) => {
+    const variants = await this.service.getLowStockVariants();
+    ApiResponseHelper.success(res, variants);
+  });
 }

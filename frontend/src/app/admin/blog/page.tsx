@@ -3,9 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { useAdminBlogPosts } from "@/modules/blog/hooks/useBlog";
-import { blogService } from "@/modules/blog/services/blog.service";
+import { useAdminBlogPosts, useDeleteBlogPost } from "@/modules/blog/hooks/useBlog";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import { formatDate } from "@/utils/formatDate";
 import AdminPage from "@/components/layout/AdminPage";
@@ -45,7 +43,7 @@ export default function AdminBlogPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
 
-  const { data, isLoading, refetch } = useAdminBlogPosts({
+  const { data, isLoading } = useAdminBlogPosts({
     page,
     limit: 20,
     search: search || undefined,
@@ -54,16 +52,12 @@ export default function AdminBlogPage() {
     sort_by: "created_at",
     sort_order: "DESC",
   });
+  const deleteBlogPost = useDeleteBlogPost();
 
-  const handleDelete = async (post: BlogPostListItem) => {
+  const handleDelete = (post: BlogPostListItem) => {
     if (!window.confirm("آیا از حذف این مطلب اطمینان دارید؟")) return;
-    try {
-      await blogService.remove(post.id);
-      toast.success("مطلب با موفقیت حذف شد");
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا در حذف مطلب");
-    }
+    // success/error toasts are handled by the useDeleteBlogPost hook
+    deleteBlogPost.mutate(post.id);
   };
 
   return (

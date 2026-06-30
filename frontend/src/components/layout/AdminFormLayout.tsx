@@ -136,8 +136,8 @@ export default function AdminFormLayout({
           </div>
 
           {/* Pinned action bar */}
-          <div className="shrink-0 z-10 border-t border-border bg-surface shadow-[0_-4px_16px_-8px_rgb(42_23_38_/_0.18)]">
-            <div className="px-4 lg:px-8 py-3.5 flex items-center justify-center gap-3">
+          <div className="shrink-0 z-10 border-t border-border  ">
+            <div className="px-4 lg:px-8 py-5 flex items-center justify-center gap-3">
               <Button type="submit" loading={isSubmitting} className="flex-1 sm:flex-initial md:w-60">
                 {submitLabel}
               </Button>

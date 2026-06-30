@@ -11,3 +11,11 @@ export function useDashboardStats() {
     staleTime: 60 * 1000,
   });
 }
+
+export function useLowStockVariants() {
+  return useQuery({
+    queryKey: ['dashboard', 'low-stock'],
+    queryFn: dashboardService.getLowStock,
+    staleTime: 60 * 1000,
+  });
+}

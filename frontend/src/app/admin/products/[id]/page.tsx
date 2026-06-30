@@ -2,13 +2,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import { productService } from "@/modules/products/services/product.service";
+import {
+  useCreateProduct,
+  useUpdateProduct,
+} from "@/modules/products/hooks/useProducts";
 import { variantService } from "@/modules/variants/services/variant.service";
 import { useCategories } from "@/modules/categories/hooks/useCategories";
 import { useAllBrands } from "@/modules/brands/hooks/useBrands";
@@ -16,7 +20,7 @@ import { useAllAttributes } from "@/modules/attributes/hooks/useAttributes";
 import { useAllTags } from "@/modules/tags/hooks/useTags";
 import { useVariants } from "@/modules/variants/hooks/useVariants";
 import AdminFormLayout from "@/components/layout/AdminFormLayout";
-import { Badge, Button, Card, Checkbox, EmptyState, FormSection, Input, Select, Textarea, Toggle } from "@/components/ui";
+import { Badge, Button, Card, Checkbox, EmptyState, FormSection, Input, PriceInput, Select, Textarea, Toggle } from "@/components/ui";
 import { formatPrice } from "@/utils/formatPrice";
 import type { ProductVariant } from "@/modules/variants/types/variant.types";
 import { LucidePencil, LucidePlus, LucideSearch, MdiCheckCircle, MdiClose, MdiImageMultiple, MdiInformation, MdiPackageVariant, MdiPackageVariantClosed, MdiTagMultiple, MdiTrashCan, SvgSpinnersRingResize } from "@/components/icons/Icons";
@@ -38,7 +42,9 @@ const productFormSchema = z.object({
   images: z
     .array(
       z.object({
-        image_url: z.string().min(1, "آدرس تصویر الزامی است"),
+        // Empty rows are allowed here and filtered out before submit; making this
+        // required would silently block submission from a hidden tab.
+        image_url: z.string().optional(),
         alt_text: z.string().optional(),
         is_thumbnail: z.boolean().optional(),
       }),
@@ -54,11 +60,16 @@ type Tab = "basic" | "images" | "variants" | "seo";
 export default function AdminProductFormPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const productId = params.id as string;
   const isEdit = productId !== "new";
   const { isLoading: isAuthLoading } = useAdminRoute();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>("basic");
+  const [activeTab, setActiveTab] = useState<Tab>(
+    (searchParams.get("tab") as Tab) || "basic",
+  );
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
 
   // Data
   const { data: categoriesData } = useCategories({ limit: 100 });
@@ -209,28 +220,47 @@ export default function AdminProductFormPage() {
         seo_title: data.seo_title || null,
         seo_description: data.seo_description || null,
         specification: specEntries.length ? Object.fromEntries(specEntries) : null,
-        images: data.images?.filter((img) => img.image_url.trim()),
+        images: data.images?.filter((img) => img.image_url?.trim()),
       };
 
       if (isEdit) {
-        await productService.update(productId, payload);
+        await updateProduct.mutateAsync({ id: productId, data: payload });
         await productService.syncTags(productId, data.tag_ids || []);
-        toast.success("محصول بروزرسانی شد");
+        // After update → back to the products list
+        router.push("/admin/products");
       } else {
-        const newProduct = await productService.create(payload);
+        const newProduct = await createProduct.mutateAsync(payload);
         if (data.tag_ids?.length) {
           await productService.syncTags(newProduct.id, data.tag_ids);
         }
-        toast.success("محصول ایجاد شد");
-        // Redirect to edit page with real ID
-        router.push(`/admin/products/${newProduct.id}`);
-        return; // ← مهم: return کن تا ادامه نده
+        // After create → edit page on the variants tab
+        router.push(`/admin/products/${newProduct.id}?tab=variants`);
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا در ذخیره");
+    } catch {
+      // error toast handled by the mutation hook's onError
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Validation failed: show feedback and jump to the tab holding the first error
+  // (otherwise an error on a hidden tab makes the submit button appear to do nothing).
+  const onInvalid = (formErrors: typeof errors) => {
+    const tabByField: Partial<Record<keyof ProductFormData, Tab>> = {
+      title: "basic",
+      category_id: "basic",
+      brand_id: "basic",
+      short_description: "basic",
+      full_description: "basic",
+      specifications: "basic",
+      images: "images",
+      seo_title: "seo",
+      seo_description: "seo",
+    };
+    const firstErrorField = Object.keys(formErrors)[0] as keyof ProductFormData;
+    const targetTab = tabByField[firstErrorField];
+    if (targetTab) setActiveTab(targetTab);
+    toast.error("لطفاً خطاهای فرم را برطرف کنید");
   };
 
   // Variant handlers
@@ -240,10 +270,22 @@ export default function AdminProductFormPage() {
       return;
     }
 
+    const price = Number(variantForm.price);
+    const cost = variantForm.cost === "" ? 0 : Number(variantForm.cost);
+
+    if (variantForm.compare_at_price != null && variantForm.compare_at_price <= price) {
+      toast.error("قیمت قبل از تخفیف باید بزرگ‌تر از قیمت فروش باشد");
+      return;
+    }
+    if (cost > price) {
+      toast.error("قیمت خرید نباید از قیمت فروش بیشتر باشد");
+      return;
+    }
+
     const variantPayload = {
       ...variantForm,
-      price: Number(variantForm.price),
-      cost: variantForm.cost === "" ? 0 : Number(variantForm.cost),
+      price,
+      cost,
       stock_quantity: variantForm.stock_quantity === "" ? 0 : Number(variantForm.stock_quantity),
     };
 
@@ -383,7 +425,7 @@ export default function AdminProductFormPage() {
       subtitle={isEdit ? watchedTitle || undefined : "افزودن محصول جدید به فروشگاه"}
       loading={isAuthLoading}
       onBack={() => router.back()}
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
       isSubmitting={isSubmitting}
       submitLabel="ذخیره محصول"
       aside={aside}
@@ -638,18 +680,24 @@ export default function AdminProductFormPage() {
                   onChange={(e) => setVariantForm({ ...variantForm, barcode: e.target.value })}
                   className="text-sm"
                 />
-                <Input
-                  label="قیمت (تومان) *"
-                  type="number"
-                  value={variantForm.price}
-                  onChange={(e) => setVariantForm({ ...variantForm, price: e.target.value === "" ? "" : parseInt(e.target.value) })}
+                <PriceInput
+                  label="قیمت فروش (تومان) *"
+                  value={variantForm.price === "" ? null : variantForm.price}
+                  onValueChange={(v) => setVariantForm({ ...variantForm, price: v ?? "" })}
                   className="text-sm"
                 />
-                <Input
-                  label="قیمت مقایسه"
-                  type="number"
-                  value={variantForm.compare_at_price || ""}
-                  onChange={(e) => setVariantForm({ ...variantForm, compare_at_price: e.target.value ? parseInt(e.target.value) : null })}
+                <PriceInput
+                  label="قیمت خرید (تومان)"
+                  hint="قیمت تمام‌شده برای فروشگاه"
+                  value={variantForm.cost === "" ? null : variantForm.cost}
+                  onValueChange={(v) => setVariantForm({ ...variantForm, cost: v ?? "" })}
+                  className="text-sm"
+                />
+                <PriceInput
+                  label="قیمت قبل از تخفیف (تومان)"
+                  hint="اختیاری؛ برای نمایش تخفیف باید از قیمت فروش بیشتر باشد"
+                  value={variantForm.compare_at_price}
+                  onValueChange={(v) => setVariantForm({ ...variantForm, compare_at_price: v })}
                   className="text-sm"
                 />
                 <Input

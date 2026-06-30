@@ -20,8 +20,8 @@ export default function ProductGrid({ products, isLoading, emptyMessage }: Produ
             <div className="p-4 space-y-2.5">
               <Skeleton className="h-3 w-1/3" />
               <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-11 rounded-button mt-3" />
+              <Skeleton className="h-3 w-1/4" />
+              <Skeleton className="h-11 rounded-button mt-2" />
             </div>
           </Card>
         ))}

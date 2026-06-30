@@ -9,6 +9,7 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import { brandService } from "@/modules/brands/services/brand.service";
+import { useCreateBrand, useUpdateBrand } from "@/modules/brands/hooks/useBrands";
 import AdminFormLayout from "@/components/layout/AdminFormLayout";
 import { FormSection, Input, Textarea, Toggle } from "@/components/ui";
 import { MdiInformation, MdiCheckCircle, MdiImageMultiple } from "@/components/icons/Icons";
@@ -33,6 +34,8 @@ export default function AdminBrandFormPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
   const isEdit = params.id !== "new";
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const createBrand = useCreateBrand();
+  const updateBrand = useUpdateBrand();
 
   const {
     register,
@@ -87,15 +90,13 @@ export default function AdminBrandFormPage() {
       };
 
       if (isEdit) {
-        await brandService.update(params.id as string, payload);
-        toast.success("برند با موفقیت بروزرسانی شد");
+        await updateBrand.mutateAsync({ id: params.id as string, data: payload });
       } else {
-        await brandService.create(payload);
-        toast.success("برند با موفقیت ایجاد شد");
+        await createBrand.mutateAsync(payload);
       }
       router.push("/admin/brands");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا در ذخیره برند");
+    } catch {
+      // error toast handled by the mutation hook's onError
     } finally {
       setIsSubmitting(false);
     }

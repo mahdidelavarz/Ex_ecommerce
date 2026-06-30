@@ -8,5 +8,6 @@ const router = Router();
 const controller = new DashboardController();
 
 router.get('/stats', authenticate, authorize(UserRole.ADMIN), controller.stats);
+router.get('/low-stock', authenticate, authorize(UserRole.ADMIN), controller.lowStock);
 
 export default router;

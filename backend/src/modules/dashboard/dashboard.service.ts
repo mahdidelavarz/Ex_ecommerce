@@ -79,4 +79,39 @@ export class DashboardService {
       })),
     };
   }
+
+  /**
+   * Active variants at or below their low-stock threshold, with product +
+   * attribute context so the admin can act (restock the right color/size).
+   * Same predicate as the `low_stock_count` KPI above.
+   */
+  async getLowStockVariants() {
+    const variants = await this.variantRepo
+      .createQueryBuilder('v')
+      .leftJoinAndSelect('v.product', 'product')
+      .leftJoinAndSelect('v.variant_attribute_values', 'vav')
+      .leftJoinAndSelect('vav.attribute_value', 'av')
+      .leftJoinAndSelect('av.attribute', 'attr')
+      .where('v.is_active = true')
+      .andWhere('v.low_stock_threshold IS NOT NULL')
+      .andWhere('v.stock_quantity <= v.low_stock_threshold')
+      // Product.deleted_at is a plain column (not a soft-delete column), so filter it manually
+      .andWhere('product.deleted_at IS NULL')
+      .orderBy('v.stock_quantity', 'ASC')
+      .getMany();
+
+    return variants.map((v) => ({
+      variant_id: v.id,
+      sku: v.sku,
+      stock_quantity: v.stock_quantity,
+      low_stock_threshold: v.low_stock_threshold,
+      product_id: v.product_id,
+      product_title: v.product?.title ?? '',
+      attributes: (v.variant_attribute_values ?? []).map((vav) => ({
+        name: vav.attribute_value?.attribute?.name ?? '',
+        value: vav.attribute_value?.value ?? '',
+        color_code: vav.attribute_value?.color_code ?? null,
+      })),
+    }));
+  }
 }

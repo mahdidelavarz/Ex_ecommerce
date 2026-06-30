@@ -4,8 +4,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { useCategories } from "@/modules/categories/hooks/useCategories";
-import { categoryService } from "@/modules/categories/services/category.service";
+import {
+  useCategories,
+  useDeleteCategory,
+} from "@/modules/categories/hooks/useCategories";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminPage from "@/components/layout/AdminPage";
 import {
@@ -44,12 +46,13 @@ export default function AdminCategoriesPage() {
   const [search, setSearch] = useState("");
   const [parentFilter, setParentFilter] = useState<string | null>(null);
 
-  const { data, isLoading, refetch } = useCategories({
+  const { data, isLoading } = useCategories({
     page,
     limit: 20,
     search: search || undefined,
     parent_id: parentFilter,
   });
+  const deleteCategory = useDeleteCategory();
 
   const handleDelete = async (category: Category) => {
     if (category.products_count > 0) {
@@ -64,13 +67,8 @@ export default function AdminCategoriesPage() {
 
     if (!window.confirm(confirmMessage)) return;
 
-    try {
-      await categoryService.delete(category.id, category.children_count > 0);
-      toast.success("دسته‌بندی با موفقیت حذف شد");
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا در حذف دسته‌بندی");
-    }
+    // success/error toasts are handled by the useDeleteCategory hook
+    deleteCategory.mutate({ id: category.id, force: category.children_count > 0 });
   };
 
   return (

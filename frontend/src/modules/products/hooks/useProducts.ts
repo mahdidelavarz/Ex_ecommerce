@@ -1,7 +1,8 @@
 // src/modules/products/hooks/useProducts.ts
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { productService } from '../services/product.service';
 import type { ProductListResponse } from '../types/product.types';
 
@@ -43,5 +44,55 @@ export function useProductFilters(categoryId: string) {
     queryFn: () => productService.getFilters(categoryId),
     enabled: !!categoryId,
     staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => productService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('محصول ایجاد شد');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در ایجاد محصول'),
+  });
+}
+
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      productService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('محصول بروزرسانی شد');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در بروزرسانی محصول'),
+  });
+}
+
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => productService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('محصول حذف شد');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در حذف محصول'),
+  });
+}
+
+export function useBulkProductStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, is_active }: { ids: string[]; is_active: boolean }) =>
+      productService.bulkStatus(ids, is_active),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('وضعیت محصولات بروزرسانی شد');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در بروزرسانی'),
   });
 }

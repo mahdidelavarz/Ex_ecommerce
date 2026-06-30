@@ -1,13 +1,15 @@
 // src/app/(admin)/admin/products/page.tsx
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { useProducts } from "@/modules/products/hooks/useProducts";
+import {
+  useProducts,
+  useDeleteProduct,
+  useBulkProductStatus,
+} from "@/modules/products/hooks/useProducts";
 import { useCategories } from "@/modules/categories/hooks/useCategories";
 import { useAllBrands } from "@/modules/brands/hooks/useBrands";
-import { productService } from "@/modules/products/services/product.service";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
 import AdminPage from "@/components/layout/AdminPage";
 import {
@@ -31,11 +33,14 @@ import {
   useTableSelection,
 } from "@/components/ui";
 import { formatPrice } from "@/utils/formatPrice";
+import ProductVariantBreakdown from "@/modules/products/components/ProductVariantBreakdown";
 import type { ProductListResponse } from "@/modules/products/types/product.types";
 import {
   LucidePencil,
   LucidePlus,
   LucideSearch,
+  MdiChevronDown,
+  MdiChevronUp,
   MdiImageOff,
   MdiPackageVariantClosed,
   MdiTrashCan,
@@ -52,7 +57,7 @@ export default function AdminProductsPage() {
   const { data: categoriesData } = useCategories({ limit: 100 });
   const { data: brandsData } = useAllBrands();
 
-  const { data, isLoading, refetch } = useProducts({
+  const { data, isLoading } = useProducts({
     page,
     limit: 8,
     search: search || undefined,
@@ -60,30 +65,33 @@ export default function AdminProductsPage() {
     brand_id: brandFilter || undefined,
     is_public: undefined, // Show all in admin
   });
+  const deleteProduct = useDeleteProduct();
+  const bulkProductStatus = useBulkProductStatus();
 
   const selection = useTableSelection(data?.data, (p) => p.id);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const handleDelete = async (product: ProductListResponse) => {
-    if (!window.confirm(`آیا از حذف "${product.title}" اطمینان دارید؟`)) return;
-    try {
-      await productService.delete(product.id);
-      toast.success("محصول با موفقیت حذف شد");
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا در حذف محصول");
-    }
+  const toggleExpanded = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const handleBulkStatus = async (is_active: boolean) => {
+  const handleDelete = (product: ProductListResponse) => {
+    if (!window.confirm(`آیا از حذف "${product.title}" اطمینان دارید؟`)) return;
+    // success/error toasts are handled by the useDeleteProduct hook
+    deleteProduct.mutate(product.id);
+  };
+
+  const handleBulkStatus = (is_active: boolean) => {
     if (selection.count === 0) return;
-    try {
-      await productService.bulkStatus(Array.from(selection.selectedIds), is_active);
-      toast.success("وضعیت محصولات بروزرسانی شد");
-      selection.clear();
-      refetch();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "خطا در بروزرسانی");
-    }
+    bulkProductStatus.mutate(
+      { ids: Array.from(selection.selectedIds), is_active },
+      { onSuccess: () => selection.clear() },
+    );
   };
 
   return (
@@ -198,7 +206,8 @@ export default function AdminProductsPage() {
                 <TableEmpty colSpan={6} message="محصولی یافت نشد" icon={MdiPackageVariantClosed} />
               ) : (
                 data?.data?.map((product) => (
-                  <TRow key={product.id} hover>
+                  <Fragment key={product.id}>
+                  <TRow hover>
                     <TD cardSlot="select">
                       <Checkbox
                         checked={selection.isSelected(product)}
@@ -207,6 +216,19 @@ export default function AdminProductsPage() {
                     </TD>
                     <TD align="right" cardSlot="header">
                       <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleExpanded(product.id)}
+                          title={expanded.has(product.id) ? "بستن واریانت‌ها" : "نمایش واریانت‌ها"}
+                          aria-label="نمایش واریانت‌ها"
+                          className="p-1 rounded-button hover:bg-surface-raised text-text-muted cursor-pointer shrink-0"
+                        >
+                          {expanded.has(product.id) ? (
+                            <MdiChevronUp className="w-5 h-5" />
+                          ) : (
+                            <MdiChevronDown className="w-5 h-5" />
+                          )}
+                        </button>
                         {product.thumbnail ? (
                           <img
                             src={product.thumbnail}
@@ -256,6 +278,14 @@ export default function AdminProductsPage() {
                       />
                     </TD>
                   </TRow>
+                  {expanded.has(product.id) && (
+                    <TRow>
+                      <TD colSpan={6} className="bg-surface-raised/40">
+                        <ProductVariantBreakdown productId={product.id} />
+                      </TD>
+                    </TRow>
+                  )}
+                  </Fragment>
                 ))
               )}
             </TBody>
