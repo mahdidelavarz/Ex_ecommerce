@@ -17,6 +17,16 @@ import {
   MdiCartOutline,
   MdiHeart,
   MdiHeartOutline,
+  SolarHome2BoldDuotone,
+  SolarWidgetBoldDuotone,
+  SolarMinimalisticMagniferBoldDuotone,
+  SolarCartLargeBoldDuotone,
+  SolarHeartAngleBoldDuotone,
+  SolarHomeAngle2Bold,
+  SolarWidgetBold,
+  SolarMagniferBold,
+  SolarCartLargeBold,
+  SolarHeartAngleBold,
 } from '@/components/icons/Icons';
 
 type IconCmp = ComponentType<SVGProps<SVGSVGElement>>;
@@ -104,33 +114,33 @@ export default function DefaultNav() {
 
   return (
     <nav className="flex items-stretch h-16 px-1">
-      <NavItem label="خانه" icon={MdiHomeOutline} activeIcon={MdiHome} active={isHome} href="/" />
+      <NavItem label="خانه" icon={SolarHome2BoldDuotone} activeIcon={SolarHomeAngle2Bold}  active={isHome} href="/" />
       <NavItem
         label="دسته‌ها"
-        icon={MdiViewGridOutline}
-        activeIcon={MdiViewGrid}
+        icon={SolarWidgetBoldDuotone}
+        activeIcon={SolarWidgetBold}
         active={false}
         onClick={openMenu}
       />
       <NavItem
         label="جستجو"
-        icon={LucideSearch}
-        activeIcon={LucideSearch}
+        icon={SolarMinimalisticMagniferBoldDuotone}
+        activeIcon={SolarMagniferBold}
         active={isSearch}
         href="/search"
       />
       <NavItem
         label="سبد"
-        icon={MdiCartOutline}
-        activeIcon={MdiCart}
+        icon={SolarCartLargeBoldDuotone}
+        activeIcon={SolarCartLargeBold}
         active={isCart}
         badge={cartCount}
         href="/cart"
       />
       <NavItem
         label="علاقه‌ها"
-        icon={MdiHeartOutline}
-        activeIcon={MdiHeart}
+        icon={SolarHeartAngleBoldDuotone}
+        activeIcon={SolarHeartAngleBold}
         active={isWishlist}
         badge={wishlistCount}
         href="/wishlist"

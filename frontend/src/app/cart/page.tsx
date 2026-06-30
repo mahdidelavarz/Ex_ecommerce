@@ -7,6 +7,7 @@ import { useCart } from '@/modules/cart/hooks/useCart';
 import { formatPrice } from '@/utils/formatPrice';
 import { Button, Card, EmptyState } from '@/components/ui';
 import { useBottomBar } from '@/components/layout/bottom-nav/useBottomBar';
+import MobilePageHeader from '@/components/layout/MobilePageHeader';
 import { MdiCartOff, MdiStore, SvgSpinnersRingResize, MdiTrashCan, MdiImageOff, MdiMinus, LucidePlus, LucideTrash2 } from '../../components/icons/Icons';
 
 export default function CartPage() {
@@ -54,6 +55,8 @@ export default function CartPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+        <MobilePageHeader items={[{ label: 'خانه', href: '/' }, { label: 'سبد خرید' }]} />
+
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-text-primary">سبد خرید</h1>
           <Button variant="ghost" size="sm" icon={MdiTrashCan} onClick={() => clearCart()} className="text-error">

@@ -7,6 +7,7 @@ import { useWishlist, useRemoveFromWishlist } from '@/modules/wishlist/hooks/use
 import { useCart } from '@/modules/cart/hooks/useCart';
 import { formatPrice } from '@/utils/formatPrice';
 import { Button, Card, EmptyState } from '@/components/ui';
+import MobilePageHeader from '@/components/layout/MobilePageHeader';
 import { MdiClose, MdiHeartOff, MdiHeartOutline, MdiImageOff, SvgSpinnersRingResize } from '@/components/icons/Icons';
 
 
@@ -26,6 +27,8 @@ export default function WishlistPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <MobilePageHeader items={[{ label: 'خانه', href: '/' }, { label: 'علاقه‌مندی‌ها' }]} />
+
         <div className="flex items-center gap-3 mb-8">
           <MdiHeartOutline className="w-8 h-8 text-error" />
           <h1 className="text-2xl font-bold text-text-primary">علاقه‌مندی‌ها</h1>
