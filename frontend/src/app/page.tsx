@@ -1,15 +1,22 @@
 // src/app/page.tsx
 import type { Metadata } from "next";
-import Link from "next/link";
-import {
-  HugeiconsCustomerSupport,
-  MdiShieldCheck,
-  MdiTruckFast,
-  SolarFolderWithFilesBold,
-} from "@/components/icons/Icons";
 import { HeroSlider } from "@/components/ui/HeroSlider";
 import BlogSlider from "@/modules/blog/components/BlogSlider";
-import { fetchCategories, fetchBlogPosts } from "@/lib/server-fetch";
+import ProductCarousel from "@/modules/products/components/ProductCarousel";
+import Reveal from "@/components/home/Reveal";
+import DealsSection from "@/components/home/DealsSection";
+import CategoryShowcase from "@/components/home/CategoryShowcase";
+import BrandStrip from "@/components/home/BrandStrip";
+import PromoBanners from "@/components/home/PromoBanners";
+import Testimonials from "@/components/home/Testimonials";
+import NewsletterSignup from "@/components/home/NewsletterSignup";
+import TrustStrip from "@/components/home/TrustStrip";
+import {
+  fetchBlogPosts,
+  fetchBrands,
+  fetchCategories,
+  fetchProducts,
+} from "@/lib/server-fetch";
 
 export const metadata: Metadata = {
   title: {
@@ -20,95 +27,103 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const features = [
-  {
-    icon: MdiTruckFast,
-    title: "ارسال سریع",
-    description: "تحویل در کمترین زمان ممکن به سراسر کشور",
-  },
-  {
-    icon: MdiShieldCheck,
-    title: "تضمین کیفیت",
-    description: "ضمانت اصالت و کیفیت تمامی محصولات",
-  },
-  {
-    icon: HugeiconsCustomerSupport,
-    title: "پشتیبانی ۲۴/۷",
-    description: "پاسخگویی در تمام ساعات شبانه‌روز",
-  },
-];
+const PUBLIC = { is_active: true, is_public: true } as const;
 
 export default async function HomePage() {
-  const [{ data: categories }, { data: blogPosts }] = await Promise.all([
+  const [
+    { data: deals },
+    { data: bestSellers },
+    { data: newArrivals },
+    { data: categories },
+    { data: brands },
+    { data: blogPosts },
+  ] = await Promise.all([
+    fetchProducts({ ...PUBLIC, has_discount: true, has_stock: true, limit: 10 }, 600),
+    fetchProducts({ ...PUBLIC, sort_by: "sales", sort_order: "DESC", has_stock: true, limit: 10 }),
+    fetchProducts({ ...PUBLIC, sort_by: "created_at", sort_order: "DESC", limit: 10 }),
     fetchCategories({ is_active: true, limit: 12 }),
+    fetchBrands({ is_active: true, limit: 20 }),
     fetchBlogPosts({ is_published: true, limit: 8, sort_by: "published_at", sort_order: "DESC" }),
   ]);
 
   return (
     <div className="bg-background">
       {/* Hero (client island) */}
-      <div className="w-full h-[80vh] flex justify-center items-center">
+      <div className="flex h-[70vh] w-full items-center justify-center md:h-[85vh]">
         <HeroSlider />
       </div>
 
-      {/* Categories Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-text-primary mb-8 text-center">
-            دسته‌بندی‌های محبوب
-          </h2>
+      {/* Rich category tiles */}
+      <Reveal>
+        <CategoryShowcase categories={categories} />
+      </Reveal>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.slice(0, 6).map((category) => (
-              <Link
-                key={category.id}
-                href={`/categories/${category.slug}`}
-                className="bg-surface rounded-card shadow-card hover:shadow-card-hover transition-all duration-200 p-6 text-center group"
-              >
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform"
-                  style={{
-                    backgroundColor:
-                      category.color || "var(--color-primary-light)",
-                  }}
-                >
-                  <SolarFolderWithFilesBold className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="font-medium text-text-primary">
-                  {category.name}
-                </h3>
-                <p className="text-sm text-text-muted mt-1">
-                  {category.products_count} محصول
-                </p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Flash sale — discounted products carousel + countdown */}
+      <Reveal>
+        <DealsSection products={deals} />
+      </Reveal>
 
-      {/* Blog Slider */}
-      <BlogSlider posts={blogPosts} />
+      {/* Curated promo banners */}
+      <Reveal>
+        <PromoBanners />
+      </Reveal>
 
-      {/* Features */}
-      <section className="py-16 bg-surface-raised">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature) => (
-              <div key={feature.title} className="text-center p-6">
-                <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
-                  <feature.icon className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="font-bold text-text-primary mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-text-secondary text-sm">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Best sellers */}
+      {bestSellers.length > 0 && (
+        <Reveal>
+          <section className="py-14 md:py-16">
+            <div className="container mx-auto px-4">
+              <ProductCarousel
+                products={bestSellers}
+                eyebrow="محبوب‌ترین‌ها"
+                title="پرفروش‌ترین محصولات"
+                href="/products?sort_by=sales&sort_order=DESC"
+              />
+            </div>
+          </section>
+        </Reveal>
+      )}
+
+      {/* Brand marquee */}
+      <Reveal>
+        <BrandStrip brands={brands} />
+      </Reveal>
+
+      {/* New arrivals */}
+      {newArrivals.length > 0 && (
+        <Reveal>
+          <section className="py-14 md:py-16">
+            <div className="container mx-auto px-4">
+              <ProductCarousel
+                products={newArrivals}
+                eyebrow="تازه‌ها"
+                title="جدیدترین محصولات"
+                href="/products"
+              />
+            </div>
+          </section>
+        </Reveal>
+      )}
+
+      {/* Testimonials */}
+      <Reveal>
+        <Testimonials />
+      </Reveal>
+
+      {/* Blog */}
+      <Reveal>
+        <BlogSlider posts={blogPosts} />
+      </Reveal>
+
+      {/* Newsletter */}
+      <Reveal>
+        <NewsletterSignup />
+      </Reveal>
+
+      {/* Trust strip */}
+      <Reveal>
+        <TrustStrip />
+      </Reveal>
     </div>
   );
 }

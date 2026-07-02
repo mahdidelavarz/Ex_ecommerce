@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import Link from "next/link";
 import BlogCard from "./BlogCard";
-import { MdiChevronLeft, MdiChevronRight, MdiArrowRight } from "@/components/icons/Icons";
+import { SectionHeading } from "@/components/ui";
+import { MdiChevronLeft, MdiChevronRight } from "@/components/icons/Icons";
 import type { BlogPostListItem } from "../types/blog.types";
 
 interface BlogSliderProps {
@@ -29,19 +29,11 @@ export default function BlogSlider({ posts, title = "از وبلاگ ما" }: Bl
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-text-primary">{title}</h2>
-            <div className="mt-2 h-1 w-16 rounded-full bg-gradient-to-l from-secondary to-primary" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/blog"
-              className="flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary-hover"
-            >
-              مشاهده همه
-              <MdiArrowRight className="h-4 w-4" />
-            </Link>
+        <SectionHeading
+          title={title}
+          eyebrow="مجله زیبایی"
+          href="/blog"
+          actions={
             <div className="hidden items-center gap-2 sm:flex">
               <button
                 type="button"
@@ -60,8 +52,8 @@ export default function BlogSlider({ posts, title = "از وبلاگ ما" }: Bl
                 <MdiChevronLeft className="h-5 w-5" />
               </button>
             </div>
-          </div>
-        </div>
+          }
+        />
 
         <div
           ref={trackRef}

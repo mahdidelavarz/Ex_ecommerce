@@ -22,8 +22,12 @@ export type HeroSlide = {
   image: string;
   title: string;
   subtitle?: string;
+  /** Small champagne kicker above the title, e.g. «کالکشن جدید». */
+  eyebrow?: string;
   ctaLabel?: string;
   ctaHref?: string;
+  /** Optional ghost-outline secondary CTA next to the primary one. */
+  ctaSecondary?: { label: string; href: string };
   /** Horizontal alignment of the caption block. Defaults to "start". */
   align?: "start" | "center";
 };
@@ -42,16 +46,19 @@ const DEFAULT_SLIDES: HeroSlide[] = [
     id: "lux",
     image:
       "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1920&q=80",
+    eyebrow: "کالکشن جدید",
     title: "مجموعه‌ی لوکس آرایشی",
     subtitle: "زیبایی ماندگار با بهترین برندهای جهان",
     ctaLabel: "مشاهده محصولات",
     ctaHref: "/products",
+    ctaSecondary: { label: "مشاهده تخفیف‌ها", href: "/products?has_discount=true" },
     align: "start",
   },
   {
     id: "skincare",
     image:
       "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1920&q=80",
+    eyebrow: "مراقبت پوست",
     title: "مراقبت از پوست",
     subtitle: "درخششی طبیعی برای هر روز شما",
     ctaLabel: "خرید مراقبت پوست",
@@ -61,7 +68,8 @@ const DEFAULT_SLIDES: HeroSlide[] = [
   {
     id: "fragrance",
     image:
-      "https://unsplash.com/photos/pink-and-black-makeup-brush-set-dMjkQJs58uo?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=1920&q=80",
+    eyebrow: "عطر و ادکلن",
     title: "عطرهای اصیل",
     subtitle: "رایحه‌ای که شخصیت شما را روایت می‌کند",
     ctaLabel: "کشف عطرها",
@@ -145,7 +153,7 @@ export function HeroSlider({
   return (
     <div
       ref={ref}
-      className={`relative h-full w-full select-none ${className ?? ""}`}
+      className={`group relative h-full w-full select-none ${className ?? ""}`}
       style={{ width: "100%", height: "100%", ...style }}
       role="region"
       aria-roledescription="carousel"
@@ -184,16 +192,18 @@ export function HeroSlider({
                     fill
                     priority={i === 0}
                     sizes="100vw"
-                    className="object-cover"
+                    className={`object-cover ${isActive ? "animate-kenburns" : ""}`}
                   />
-                  {/* RTL-aware legibility gradient: darker on the right (caption side). */}
+                  {/* RTL-aware legibility gradient — brand-tinted deep plum, darker on the caption side. */}
                   <div
                     className={`absolute inset-0 ${
                       alignCenter
-                        ? "bg-gradient-to-t from-black/60 via-black/20 to-black/10"
-                        : "bg-gradient-to-l from-black/70 via-black/35 to-transparent"
+                        ? "bg-gradient-to-t from-[#2A1726]/70 via-[#2A1726]/25 to-[#2A1726]/10"
+                        : "bg-gradient-to-l from-[#2A1726]/85 via-[#2A1726]/45 to-transparent"
                     }`}
                   />
+                  {/* Bottom vignette for depth */}
+                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#2A1726]/45 to-transparent" />
 
                   {/* Caption */}
                   <div
@@ -205,26 +215,54 @@ export function HeroSlider({
                   >
                     {isActive && (
                       <div
-                        className={`animate-fade-in flex flex-col gap-4 ${
+                        className={`flex flex-col gap-4 ${
                           alignCenter ? "items-center" : "items-start"
                         } max-w-xl`}
                       >
-                        <h2 className="text-3xl font-bold leading-tight text-white drop-shadow-md md:text-5xl">
+                        {slide.eyebrow && (
+                          <p
+                            className="animate-fade-in flex items-center gap-3 text-xs font-bold tracking-[0.35em] text-secondary md:text-sm"
+                            style={{ animationFillMode: "both" }}
+                          >
+                            <span className="h-px w-10 bg-secondary" aria-hidden />
+                            {slide.eyebrow}
+                          </p>
+                        )}
+                        <h2
+                          className="animate-fade-in text-4xl font-black leading-[1.2] text-white drop-shadow-md md:text-6xl"
+                          style={{ animationDelay: "120ms", animationFillMode: "both" }}
+                        >
                           {slide.title}
                         </h2>
                         {slide.subtitle && (
-                          <p className="text-base text-white/90 drop-shadow md:text-xl">
+                          <p
+                            className="animate-fade-in max-w-md text-base font-light leading-8 text-white/85 drop-shadow md:text-xl"
+                            style={{ animationDelay: "240ms", animationFillMode: "both" }}
+                          >
                             {slide.subtitle}
                           </p>
                         )}
                         {slide.ctaLabel && slide.ctaHref && (
-                          <Link
-                            href={slide.ctaHref}
-                            className="mt-2 inline-flex items-center gap-2 rounded-button bg-primary px-7 py-3 text-base font-bold text-white shadow-card transition-all duration-200 hover:bg-primary-hover hover:gap-3"
+                          <div
+                            className="animate-fade-in mt-2 flex flex-wrap items-center gap-3"
+                            style={{ animationDelay: "360ms", animationFillMode: "both" }}
                           >
-                            {slide.ctaLabel}
-                            <MdiChevronLeft className="h-5 w-5" />
-                          </Link>
+                            <Link
+                              href={slide.ctaHref}
+                              className="inline-flex items-center gap-2 rounded-full bg-secondary px-8 py-3.5 text-base font-bold text-[#2A1726] shadow-card transition-all duration-200 hover:gap-3 hover:bg-secondary-hover"
+                            >
+                              {slide.ctaLabel}
+                              <MdiChevronLeft className="h-5 w-5" />
+                            </Link>
+                            {slide.ctaSecondary && (
+                              <Link
+                                href={slide.ctaSecondary.href}
+                                className="inline-flex items-center rounded-full border border-white/50 px-8 py-3.5 text-base font-medium text-white backdrop-blur-sm transition-colors duration-200 hover:bg-white/10"
+                              >
+                                {slide.ctaSecondary.label}
+                              </Link>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
@@ -241,7 +279,7 @@ export function HeroSlider({
                 type="button"
                 onClick={next}
                 aria-label="اسلاید بعدی"
-                className="absolute top-1/2 start-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface"
+                className="absolute top-1/2 start-4 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-surface/70 text-text-primary shadow-card backdrop-blur-md transition-all duration-200 hover:scale-110 hover:bg-surface md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
               >
                 <MdiChevronRight className="h-6 w-6" />
               </button>
@@ -249,7 +287,7 @@ export function HeroSlider({
                 type="button"
                 onClick={prev}
                 aria-label="اسلاید قبلی"
-                className="absolute top-1/2 end-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface"
+                className="absolute top-1/2 end-4 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-surface/70 text-text-primary shadow-card backdrop-blur-md transition-all duration-200 hover:scale-110 hover:bg-surface md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
               >
                 <MdiChevronLeft className="h-6 w-6" />
               </button>
@@ -280,7 +318,7 @@ export function HeroSlider({
                     onClick={() => goTo(i)}
                     className={`h-2 rounded-full transition-all duration-300 ${
                       isActive
-                        ? "w-6 bg-primary"
+                        ? "w-7 bg-primary"
                         : "w-2 bg-text-muted/40 hover:bg-text-muted/70"
                     }`}
                   />

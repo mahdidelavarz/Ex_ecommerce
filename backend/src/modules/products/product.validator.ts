@@ -56,8 +56,9 @@ export const productQuerySchema = z.object({
   is_active: z.string().transform((v) => v === 'true' ? true : v === 'false' ? false : undefined).optional(),
   is_public: z.string().transform((v) => v === 'true' ? true : v === 'false' ? false : undefined).optional(),
   has_stock: z.string().transform((v) => v === 'true').optional(),
+  has_discount: z.string().transform((v) => v === 'true').optional(),
   page: z.string().transform(Number).optional(),
   limit: z.string().transform(Number).optional(),
-  sort_by: z.enum(['title', 'price', 'created_at', 'stock']).optional(),
+  sort_by: z.enum(['title', 'price', 'created_at', 'stock', 'sales', 'rating']).optional(),
   sort_order: z.enum(['ASC', 'DESC']).optional(),
 });

@@ -1,4 +1,5 @@
 // src/components/ui/StarRating.tsx
+"use client";
 
 import { MdiStar, MdiStarOutline } from "../icons/Icons";
 

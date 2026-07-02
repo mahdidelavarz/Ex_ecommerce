@@ -22,6 +22,8 @@ export type { BadgeProps } from "./Badge";
 export { default as Card } from "./Card";
 export { default as FormSection } from "./FormSection";
 export type { FormSectionProps } from "./FormSection";
+export { default as SectionHeading } from "./SectionHeading";
+export type { SectionHeadingProps } from "./SectionHeading";
 export { default as PageHeader } from "./PageHeader";
 export type { PageHeaderProps, PageHeaderAction } from "./PageHeader";
 export { default as PageFilters } from "./PageFilters";

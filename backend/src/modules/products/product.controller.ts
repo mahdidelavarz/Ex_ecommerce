@@ -21,7 +21,10 @@ export class ProductController {
         : undefined,
       is_active: req.query.is_active as any,
       is_public: req.query.is_public as any,
-      has_stock: req.query.has_stock === "true",
+      // Query values were already parsed by productQuerySchema (Zod), so
+      // boolean params arrive as booleans here, not strings.
+      has_stock: req.query.has_stock as unknown as boolean,
+      has_discount: req.query.has_discount as unknown as boolean,
       page: req.query.page ? parseInt(req.query.page as string) : undefined,
       limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
       sort_by: req.query.sort_by as string,

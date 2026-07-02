@@ -30,6 +30,7 @@ export interface ProductListResponse {
   discount_percent: number;
   avg_rating: number;
   reviews_count: number;
+  sales_count?: number;
   is_active: boolean;
   is_public: boolean;
   created_at: string;

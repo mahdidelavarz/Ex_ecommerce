@@ -25,6 +25,7 @@ export interface ProductListResponse {
   discount_percent: number;
   avg_rating: number;
   reviews_count: number;
+  sales_count: number;
   is_active: boolean;
   is_public: boolean;
   created_at: Date;
@@ -112,6 +113,7 @@ export interface ProductQueryParams {
   is_active?: boolean;
   is_public?: boolean;
   has_stock?: boolean;
+  has_discount?: boolean;
   page?: number;
   limit?: number;
   sort_by?: string;

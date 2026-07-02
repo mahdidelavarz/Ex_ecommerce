@@ -70,6 +70,14 @@ export class ProductRepository {
             WHERE r.product_id = product.id AND r.is_approved = true)`,
         "reviews_count",
       )
+      // Units sold across paid orders (for the "best sellers" sort).
+      .addSelect(
+        `(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi
+            INNER JOIN product_variants pv ON pv.id = oi.variant_id
+            INNER JOIN orders o ON o.id = oi.order_id
+            WHERE pv.product_id = product.id AND o.payment_status = 'paid')`,
+        "sales_count",
+      )
       .leftJoin("product.variants", "variants", "variants.is_active = true")
       .addSelect("MIN(variants.price)", "min_price")
       .addSelect("MAX(variants.price)", "max_price")
@@ -138,11 +146,28 @@ export class ProductRepository {
       qb.andHaving("SUM(variants.stock_quantity) > 0");
     }
 
+    if (options.has_discount) {
+      // WHERE EXISTS (not HAVING on the BOOL_OR aggregate) so getCount()
+      // stays consistent with the paginated rows.
+      qb.andWhere(
+        `EXISTS (SELECT 1 FROM product_variants dv
+            WHERE dv.product_id = product.id AND dv.is_active = true
+              AND dv.deleted_at IS NULL
+              AND dv.compare_at_price IS NOT NULL AND dv.compare_at_price > dv.price)`,
+      );
+    }
+
     // Sort
     if (sort_by === "price") {
       qb.orderBy("min_price", sort_order);
     } else if (sort_by === "stock") {
       qb.orderBy("total_stock", sort_order);
+    } else if (sort_by === "sales") {
+      qb.orderBy("sales_count", sort_order)
+        .addOrderBy("reviews_count", "DESC")
+        .addOrderBy("avg_rating", "DESC");
+    } else if (sort_by === "rating") {
+      qb.orderBy("avg_rating", sort_order).addOrderBy("reviews_count", sort_order);
     } else {
       qb.orderBy(`product.${sort_by}`, sort_order);
     }
@@ -188,6 +213,7 @@ export class ProductRepository {
           discount_percent: parseInt(r.discount_percent) || 0,
           avg_rating: parseFloat(r.avg_rating) || 0,
           reviews_count: parseInt(r.reviews_count) || 0,
+          sales_count: parseInt(r.sales_count) || 0,
           is_active: p.is_active,
           is_public: p.is_public,
           created_at: p.created_at,

@@ -27,6 +27,7 @@ function toApiParams(sp: SearchParams) {
     max_price: str(sp.max_price) || undefined,
     tag: str(sp.tag) || undefined,
     has_stock: str(sp.has_stock) === 'true' ? true : undefined,
+    has_discount: str(sp.has_discount) === 'true' ? true : undefined,
     sort_by: sortBy,
     sort_order: sortOrder,
   };

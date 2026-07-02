@@ -29,6 +29,7 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
   const minPrice = searchParams.get('min_price') || '';
   const maxPrice = searchParams.get('max_price') || '';
   const hasStock = searchParams.get('has_stock') === 'true';
+  const hasDiscount = searchParams.get('has_discount') === 'true';
   const tagSlug = searchParams.get('tag') || '';
   const sortBy = searchParams.get('sort_by') || 'created_at';
   const sortOrder = (searchParams.get('sort_order') as 'ASC' | 'DESC') || 'DESC';
@@ -51,6 +52,7 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
       max_price: maxPrice || undefined,
       tag: tagSlug || undefined,
       has_stock: hasStock || undefined,
+      has_discount: hasDiscount || undefined,
       sort_by: sortBy,
       sort_order: sortOrder,
     },
@@ -99,8 +101,9 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
       chips.push({ key: 'tag', label: `#${name}`, onRemove: () => updateParams({ tag: null }) });
     }
     if (hasStock) chips.push({ key: 'stock', label: 'فقط موجود', onRemove: () => updateParams({ has_stock: null }) });
+    if (hasDiscount) chips.push({ key: 'discount', label: 'فقط تخفیف‌دار', onRemove: () => updateParams({ has_discount: null }) });
     return chips;
-  }, [search, categoryId, brandId, minPrice, maxPrice, tagSlug, hasStock, categoriesData, brandsData, tagsData, updateParams]);
+  }, [search, categoryId, brandId, minPrice, maxPrice, tagSlug, hasStock, hasDiscount, categoriesData, brandsData, tagsData, updateParams]);
 
   const filterPanel = (
     <div className="bg-surface rounded-card shadow-card p-6">
@@ -190,6 +193,15 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
         />
       </div>
 
+      {/* Has Discount — toggle */}
+      <div className="mb-6">
+        <Toggle
+          label="فقط کالاهای تخفیف‌دار"
+          checked={hasDiscount}
+          onChange={(e) => updateParams({ has_discount: e.target.checked ? 'true' : null })}
+        />
+      </div>
+
       {/* Tag Filter */}
       {tagsData && tagsData.length > 0 && (
         <>
@@ -252,6 +264,8 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
               options={[
                 { value: 'created_at-DESC', label: 'جدیدترین' },
                 { value: 'created_at-ASC', label: 'قدیمی‌ترین' },
+                { value: 'sales-DESC', label: 'پرفروش‌ترین' },
+                { value: 'rating-DESC', label: 'محبوب‌ترین' },
                 { value: 'price-ASC', label: 'ارزان‌ترین' },
                 { value: 'price-DESC', label: 'گران‌ترین' },
                 { value: 'title-ASC', label: 'الفبا (الف-ی)' },

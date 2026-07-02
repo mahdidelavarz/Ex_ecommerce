@@ -77,8 +77,11 @@ async function fetchOne<T>(
   }
 }
 
-export function fetchProducts(params?: Record<string, QueryValue>) {
-  return fetchList<ProductListResponse>("/products", params);
+export function fetchProducts(
+  params?: Record<string, QueryValue>,
+  revalidate?: number,
+) {
+  return fetchList<ProductListResponse>("/products", params, revalidate);
 }
 
 export function fetchCategories(params?: Record<string, QueryValue>) {

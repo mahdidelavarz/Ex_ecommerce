@@ -293,3 +293,51 @@ body {
 .animate-badge-bounce {
   animation: badgeBounce 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* ──────────────────────────────────────────────
+   Landing page — reveal on scroll, brand marquee, hero Ken-Burns
+   ────────────────────────────────────────────── */
+/* Applied by <Reveal> only after JS mounts, so no-JS renders stay visible */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* Brand logo strip — the track holds the list twice; +50% drifts start-ward in RTL */
+@keyframes marquee {
+  to { transform: translateX(50%); }
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Slow zoom on the active hero slide image */
+@keyframes kenburns {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+.animate-kenburns {
+  animation: kenburns 8s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-marquee,
+  .animate-kenburns {
+    animation: none;
+  }
+}
