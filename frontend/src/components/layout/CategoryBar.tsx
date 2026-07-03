@@ -15,7 +15,7 @@ export default function CategoryBar() {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   return (
-    <div className="hidden lg:block  bg-surface">
+    <div className="hidden lg:block">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-2 h-12">
           {/* All categories trigger + full panel */}

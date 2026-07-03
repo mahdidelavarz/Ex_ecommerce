@@ -49,7 +49,7 @@ export default async function HomePage() {
   return (
     <div className="bg-background">
       {/* Hero (client island) */}
-      <div className="flex h-[70vh] w-full items-center justify-center md:h-[85vh]">
+      <div className="flex h-[93dvh] w-full items-center justify-center md:h-dvh">
         <HeroSlider />
       </div>
 

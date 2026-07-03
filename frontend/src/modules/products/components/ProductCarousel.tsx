@@ -5,6 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ProductCard from "./ProductCard";
 import { SectionHeading } from "@/components/ui";
 import { MdiChevronLeft, MdiChevronRight } from "@/components/icons/Icons";
+import {
+  getCarouselState,
+  getDragScrollDelta,
+  scrollCarouselByCards,
+} from "@/lib/carousel-scroll";
 import type { ProductListResponse } from "../types/product.types";
 import type { ReactNode } from "react";
 
@@ -36,17 +41,15 @@ export default function ProductCarousel({
   const [atEnd, setAtEnd] = useState(false);
   const [progress, setProgress] = useState(0);
   // Drag-to-scroll state (kept in refs — no re-render per pointermove)
-  const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+  const drag = useRef({ active: false, lastX: 0, moved: false });
 
   const updateScrollState = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    // scrollLeft is negative in RTL — always compare absolute values
-    const pos = Math.abs(el.scrollLeft);
-    setAtStart(pos <= 1);
-    setAtEnd(pos >= max - 1);
-    setProgress(max > 0 ? Math.min(pos / max, 1) : 1);
+    const state = getCarouselState(el, "[data-carousel-card]");
+    setAtStart(state.atStart);
+    setAtEnd(state.atEnd);
+    setProgress(state.progress);
   }, []);
 
   useEffect(() => {
@@ -60,14 +63,10 @@ export default function ProductCarousel({
 
   if (!products || products.length === 0) return null;
 
-  // RTL-aware: scrollBy sign is flipped by the browser in RTL containers,
-  // so dir=1 always advances to the next (newer) cards.
   const scrollByCards = (dir: -1 | 1) => {
     const el = trackRef.current;
     if (!el) return;
-    const card = el.querySelector<HTMLElement>("[data-carousel-card]");
-    const amount = card ? card.offsetWidth + 24 : el.clientWidth * 0.8;
-    el.scrollBy({ left: dir * amount, behavior: "smooth" });
+    scrollCarouselByCards(el, "[data-carousel-card]", dir);
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -75,18 +74,21 @@ export default function ProductCarousel({
     if (e.pointerType !== "mouse") return;
     const el = trackRef.current;
     if (!el) return;
-    drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false };
+    drag.current = { active: true, lastX: e.clientX, moved: false };
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = trackRef.current;
     if (!el || !drag.current.active) return;
-    const delta = e.clientX - drag.current.startX;
+    const delta = e.clientX - drag.current.lastX;
     if (Math.abs(delta) > 5 && !drag.current.moved) {
       drag.current.moved = true;
       el.setPointerCapture(e.pointerId);
     }
-    if (drag.current.moved) el.scrollLeft = drag.current.startScroll - delta;
+    if (drag.current.moved) {
+      el.scrollBy({ left: getDragScrollDelta(el, delta), behavior: "auto" });
+      drag.current.lastX = e.clientX;
+    }
   };
 
   const endDrag = () => {

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import BlogCard from "./BlogCard";
 import { SectionHeading } from "@/components/ui";
 import { MdiChevronLeft, MdiChevronRight } from "@/components/icons/Icons";
+import { scrollCarouselByCards } from "@/lib/carousel-scroll";
 import type { BlogPostListItem } from "../types/blog.types";
 
 interface BlogSliderProps {
@@ -16,14 +17,10 @@ export default function BlogSlider({ posts, title = "از وبلاگ ما" }: Bl
 
   if (!posts || posts.length === 0) return null;
 
-  // RTL-aware scrolling: scrollBy with negative/positive deltas works the same
-  // in an RTL container (browser flips the sign), so "next" moves to newer cards.
   const scrollByCards = (dir: -1 | 1) => {
     const el = trackRef.current;
     if (!el) return;
-    const card = el.querySelector<HTMLElement>("[data-blog-card]");
-    const amount = card ? card.offsetWidth + 24 : el.clientWidth * 0.8;
-    el.scrollBy({ left: dir * amount, behavior: "smooth" });
+    scrollCarouselByCards(el, "[data-blog-card]", dir);
   };
 
   return (

@@ -44,24 +44,22 @@ export default function Header() {
 
   // Defer overflow:visible until the expand transition (300ms) completes.
   useEffect(() => {
-    if (scrolled) {
-      setBarExpanded(false);
-      return;
-    }
-    const t = setTimeout(() => setBarExpanded(true), 300);
+    const t = setTimeout(() => setBarExpanded(!scrolled), scrolled ? 0 : 300);
     return () => clearTimeout(t);
   }, [scrolled]);
 
   return (
-    <>
+    <div className="fixed top-0 right-0 left-0 z-50 border-b border-white/30 bg-surface/65 shadow-[0_14px_40px_-24px_rgb(42_23_38/0.55)] backdrop-blur-2xl backdrop-saturate-150 supports-[backdrop-filter]:bg-surface/55">
       {/* Tier 1 — utility bar (scrolls away). Hidden on admin pages. */}
       {!isAdmin && <TopBar />}
 
       {/* Tiers 2 & 3 — sticky. Sibling of TopBar (not nested) so its sticky
           containing block is <body>, keeping it pinned for the whole page. */}
       <header
-        className={`sticky top-0 z-30 bg-surface transition-shadow duration-200 ${
-          scrolled ? "shadow-card" : ""
+        className={`sticky top-0 z-30 overflow-visible border-b transition-[background-color,box-shadow,border-color] duration-300 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-white/50 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-l after:from-transparent after:via-white/45 after:to-transparent ${
+          scrolled
+            ? "border-white/35 bg-surface/75 shadow-[0_18px_44px_-28px_rgb(42_23_38/0.65)]"
+            : "border-white/20 bg-white/10 shadow-none"
         }`}
       >
         {/* Main bar */}
@@ -135,6 +133,6 @@ export default function Header() {
           onClose={closeMobileMenu}
         />
       )}
-    </>
+    </div>
   );
 }

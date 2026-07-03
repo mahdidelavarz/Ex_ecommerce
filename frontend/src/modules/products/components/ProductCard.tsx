@@ -35,7 +35,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <article className="group relative flex flex-col bg-surface rounded-card shadow-card hover:shadow-card-hover transition-shadow duration-200">
+    <article className="group relative flex h-full flex-col bg-surface rounded-card shadow-card hover:shadow-card-hover transition-shadow duration-200">
       {/* Wishlist — standalone (not nested in the link) */}
       {product.default_variant_id && (
         <div className="absolute top-3 left-3 z-10">
@@ -86,30 +86,29 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Body */}
       <div className="flex flex-1 flex-col p-4">
-        {/* Brand */}
-        {product.brand && (
-          <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.12em] text-text-muted">
-            {product.brand.name}
-          </p>
-        )}
+        <p className="mb-1 min-h-4 text-[11px] font-medium uppercase tracking-[0.12em] text-text-muted">
+          {product.brand?.name}
+        </p>
 
         {/* Title */}
-        <Link href={href}>
-          <h3 className="mb-2 line-clamp-2 font-medium leading-relaxed text-text-primary transition-colors group-hover:text-primary">
-            {product.title}
-          </h3>
-        </Link>
+        <div className="mb-3 flex min-h-14 items-start justify-between gap-3" dir="ltr">
+          {product.reviews_count > 0 ? (
+            <div className="flex shrink-0 items-center gap-1 pt-1 text-xs text-text-muted" dir="ltr">
+              <LucideStar className="h-3.5 w-3.5 text-secondary" />
+              <span className="font-medium text-text-secondary">
+                {toPersianDigits(product.avg_rating.toFixed(1))}
+              </span>
+            </div>
+          ) : (
+            <span className="w-9 shrink-0" aria-hidden />
+          )}
 
-        {/* Rating — only when actually rated */}
-        {product.reviews_count > 0 && (
-          <div className="mb-2 flex items-center gap-1 text-xs text-text-muted">
-            <LucideStar className="h-3.5 w-3.5 text-secondary" />
-            <span className="font-medium text-text-secondary">
-              {toPersianDigits(product.avg_rating.toFixed(1))}
-            </span>
-            <span>({toPersianDigits(product.reviews_count)})</span>
-          </div>
-        )}
+          <Link href={href} className="min-w-0 flex-1 text-right" dir="rtl">
+            <h3 className="line-clamp-2 font-medium leading-relaxed text-text-primary transition-colors group-hover:text-primary">
+              {product.title}
+            </h3>
+          </Link>
+        </div>
 
         {/* Quick add-to-cart — price lives inside the button */}
         <button
