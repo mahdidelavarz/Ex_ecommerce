@@ -20,6 +20,12 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ||
   "http://localhost:5000/api/v1";
 
+const FETCH_TIMEOUT_MS = 1500;
+
+function canFetchFromServer(url: string): boolean {
+  return /^https?:\/\//.test(url);
+}
+
 export interface PageMeta {
   page: number;
   limit: number;
@@ -50,9 +56,14 @@ async function fetchList<T>(
   params?: Record<string, QueryValue>,
   revalidate = 3600,
 ): Promise<{ data: T[]; meta: PageMeta | null }> {
+  if (!canFetchFromServer(API_BASE)) {
+    return { data: [], meta: null };
+  }
+
   try {
     const res = await fetch(`${API_BASE}${path}${buildQuery(params)}`, {
       next: { revalidate },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return { data: [], meta: null };
     const json = (await res.json()) as { data?: T[]; meta?: PageMeta };
@@ -67,8 +78,15 @@ async function fetchOne<T>(
   path: string,
   revalidate = 3600,
 ): Promise<T | null> {
+  if (!canFetchFromServer(API_BASE)) {
+    return null;
+  }
+
   try {
-    const res = await fetch(`${API_BASE}${path}`, { next: { revalidate } });
+    const res = await fetch(`${API_BASE}${path}`, {
+      next: { revalidate },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
     if (!res.ok) return null;
     const json = (await res.json()) as { data?: T };
     return json.data ?? null;

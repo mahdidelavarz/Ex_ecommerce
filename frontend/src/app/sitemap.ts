@@ -3,11 +3,25 @@ import { SITE_URL as BASE } from '@/lib/seo';
 
 export const revalidate = 3600;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE =
+  process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:5000/api/v1';
+
+const FETCH_TIMEOUT_MS = 1500;
+
+function canFetchFromServer(url: string): boolean {
+  return /^https?:\/\//.test(url);
+}
 
 async function fetchJson<T>(url: string): Promise<T | null> {
+  if (!canFetchFromServer(API_BASE)) return null;
+
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } });
+    const res = await fetch(url, {
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {

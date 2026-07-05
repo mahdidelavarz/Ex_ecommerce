@@ -3,13 +3,24 @@ import type { Metadata } from 'next';
 import type { ProductDetail } from '@/modules/products/types/product.types';
 import ProductPageClient from './ProductPageClient';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE =
+  process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:5000/api/v1';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://yoursite.com';
+const FETCH_TIMEOUT_MS = 1500;
+
+function canFetchFromServer(url: string): boolean {
+  return /^https?:\/\//.test(url);
+}
 
 async function fetchProduct(slug: string): Promise<ProductDetail | null> {
+  if (!canFetchFromServer(API_BASE)) return null;
+
   try {
     const res = await fetch(`${API_BASE}/products/${slug}`, {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;
     const json = await res.json();

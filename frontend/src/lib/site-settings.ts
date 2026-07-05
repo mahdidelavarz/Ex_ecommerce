@@ -2,7 +2,16 @@
 // Server-side reader for public store settings (contact info, socials, seals).
 // Single source of truth for the footer, contact and about pages.
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL =
+  process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:5000/api/v1';
+
+const FETCH_TIMEOUT_MS = 1500;
+
+function canFetchFromServer(url: string): boolean {
+  return /^https?:\/\//.test(url);
+}
 
 export interface SiteSettings {
   company_name: string;
@@ -44,9 +53,14 @@ const EMPTY_SETTINGS: SiteSettings = {
  * pages never crash during build or an outage.
  */
 export async function getSiteSettings(): Promise<SiteSettings> {
+  if (!canFetchFromServer(API_BASE_URL)) {
+    return EMPTY_SETTINGS;
+  }
+
   try {
     const res = await fetch(`${API_BASE_URL}/settings/public`, {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return EMPTY_SETTINGS;
     const json = (await res.json()) as { data?: Partial<SiteSettings> };
