@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import localFont from "next/font/local";
 import "./globals.css";
 import AuthInitProvider from "@/modules/auth/components/AuthInitProvider";
+import AuthRouteGuard from "@/modules/auth/components/AuthRouteGuard";
 import RouteChrome from "@/components/layout/RouteChrome";
 import QueryProvider from "@/lib/query-provider";
 import {
@@ -98,9 +99,11 @@ export default function RootLayout({
         >
           <QueryProvider>
             <AuthInitProvider>
-              <RouteChrome>
-                {children}
-              </RouteChrome>
+              <AuthRouteGuard>
+                <RouteChrome>
+                  {children}
+                </RouteChrome>
+              </AuthRouteGuard>
             </AuthInitProvider>
           </QueryProvider>
           <Toaster

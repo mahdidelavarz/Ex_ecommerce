@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import { authService } from '../services/auth.service';
 import { useAuthStore } from '../store/auth.store';
 import { MdiArrowRight, MdiShieldCheck } from '@/components/icons/Icons';
+import { getSafeRedirectPath } from '@/lib/public-routes';
 
 interface VerifyOTPFormProps {
   phoneNumber: string;
@@ -53,7 +54,10 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
       if (result.requiresProfileCompletion) {
         router.push('/profile');
       } else {
-        router.push('/');
+        const redirectPath = getSafeRedirectPath(
+          new URLSearchParams(window.location.search).get('redirect')
+        );
+        router.push(redirectPath);
       }
     } catch (error: unknown) {
       const message =

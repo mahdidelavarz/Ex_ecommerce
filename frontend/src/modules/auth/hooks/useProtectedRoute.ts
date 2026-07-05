@@ -3,6 +3,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getLoginRedirectPath } from '@/lib/public-routes';
 import { useAuthStore } from '../store/auth.store';
 
 export function useProtectedRoute() {
@@ -11,7 +12,8 @@ export function useProtectedRoute() {
 
   useEffect(() => {
     if (isInitialized && !isLoading && !isAuthenticated) {
-      router.push('/login');
+      const currentPath = `${window.location.pathname}${window.location.search}`;
+      router.replace(getLoginRedirectPath(currentPath));
     }
   }, [isInitialized, isLoading, isAuthenticated, router]);
 

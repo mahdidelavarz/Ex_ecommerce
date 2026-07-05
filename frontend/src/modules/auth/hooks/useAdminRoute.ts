@@ -3,6 +3,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getLoginRedirectPath } from '@/lib/public-routes';
 import { useAuthStore } from '../store/auth.store';
 
 export function useAdminRoute() {
@@ -12,9 +13,10 @@ export function useAdminRoute() {
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        router.push('/login');
+        const currentPath = `${window.location.pathname}${window.location.search}`;
+        router.replace(getLoginRedirectPath(currentPath));
       } else if (user?.role !== 'admin') {
-        router.push('/');
+        router.replace('/');
       }
     }
   }, [isLoading, isAuthenticated, user?.role, router]);

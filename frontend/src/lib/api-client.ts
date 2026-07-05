@@ -1,6 +1,7 @@
 // src/lib/api-client.ts
 import axios from 'axios';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
+import { getLoginRedirectPath, isPublicRoute, LOGIN_PATH } from '@/lib/public-routes';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
@@ -13,8 +14,13 @@ export const apiClient = axios.create({
 });
 
 const redirectToLogin = (): void => {
-  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-    window.location.href = '/login';
+  if (
+    typeof window !== 'undefined' &&
+    window.location.pathname !== LOGIN_PATH &&
+    !isPublicRoute(window.location.pathname)
+  ) {
+    const currentPath = `${window.location.pathname}${window.location.search}`;
+    window.location.href = getLoginRedirectPath(currentPath);
   }
 };
 
