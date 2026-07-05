@@ -63,7 +63,7 @@ export class AuthService {
     );
     const otpHash = await bcrypt.hash(otpCode, 10);
 
-    await this.otpRepository.save({
+    const otpRecord = await this.otpRepository.save({
       phone_number: phoneNumber,
       otp_hash: otpHash,
       attempts: 0,
@@ -71,7 +71,12 @@ export class AuthService {
       verified: false,
     });
 
-    await SMSService.sendOTP(phoneNumber, otpCode);
+    const smsResult = await SMSService.sendOTP(phoneNumber, otpCode);
+
+    if (!smsResult.success) {
+      await this.otpRepository.delete({ id: otpRecord.id });
+      throw new BadRequestError(smsResult.message);
+    }
 
     if (env.exposeOtp) {
       return {

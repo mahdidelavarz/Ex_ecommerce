@@ -5,6 +5,10 @@ import { AUTH } from '../shared/constants/config.constants';
 
 dotenv.config();
 
+if (process.env.npm_lifecycle_event === 'dev' || process.env.NODE_ENV === 'development') {
+  dotenv.config({ path: '.env.local', override: true });
+}
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('5000'),
@@ -24,6 +28,9 @@ const envSchema = z.object({
 
   OTP_EXPIRATION_MINUTES: z.string().default(String(AUTH.OTP_EXPIRY_MS / 60000)),
   OTP_MAX_ATTEMPTS: z.string().default(String(AUTH.OTP_MAX_ATTEMPTS)),
+
+  KAVENEGAR_API_KEY: z.string().optional(),
+  KAVENEGAR_SENDER: z.string().optional(),
   
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   
@@ -45,6 +52,24 @@ const envSchema = z.object({
   ZARINPAL_SANDBOX: z.string().default('true'),
   ZARINPAL_CALLBACK_URL: z.string().default('http://localhost:5000/api/v1/payments/verify'),
   FRONTEND_URL: z.string().default('http://localhost:3000'),
+}).superRefine((data, ctx) => {
+  if (data.NODE_ENV !== 'production') return;
+
+  if (!data.KAVENEGAR_API_KEY?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['KAVENEGAR_API_KEY'],
+      message: 'KAVENEGAR_API_KEY is required in production',
+    });
+  }
+
+  if (!data.KAVENEGAR_SENDER?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['KAVENEGAR_SENDER'],
+      message: 'KAVENEGAR_SENDER is required in production',
+    });
+  }
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -80,6 +105,11 @@ export const env = {
   otp: {
     expirationMinutes: parseInt(parsed.data.OTP_EXPIRATION_MINUTES),
     maxAttempts: parseInt(parsed.data.OTP_MAX_ATTEMPTS),
+  },
+
+  sms: {
+    kavenegarApiKey: parsed.data.KAVENEGAR_API_KEY ?? '',
+    kavenegarSender: parsed.data.KAVENEGAR_SENDER ?? '',
   },
   
   cors: {

@@ -12,8 +12,8 @@ interface KavenegarResponse {
 }
 
 export class SMSService {
-  private static readonly API_KEY = process.env.KAVENEGAR_API_KEY;
-  private static readonly SENDER = process.env.KAVENEGAR_SENDER;
+  private static readonly API_KEY = env.sms.kavenegarApiKey;
+  private static readonly SENDER = env.sms.kavenegarSender;
   private static readonly API_URL = 'https://api.kavenegar.com/v1';
 
   /**
@@ -33,12 +33,15 @@ export class SMSService {
     try {
       const url = `${this.API_URL}/${this.API_KEY}/sms/send.json`;
       const message = `کد تایید شما: ${otpCode}\nاین کد تا 2 دقیقه معتبر است.`;
+      const body = new URLSearchParams({
+        sender: this.SENDER,
+        receptor: phoneNumber,
+        message,
+      });
 
-      const response = await axios.post<KavenegarResponse>(url, null, {
-        params: {
-          sender: this.SENDER,
-          receptor: phoneNumber,
-          message: message,
+      const response = await axios.post<KavenegarResponse>(url, body.toString(), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         },
       });
 

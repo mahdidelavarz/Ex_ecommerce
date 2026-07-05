@@ -92,3 +92,4 @@ docker container prune
 docker exec -it ecommerce-backend-dev sh
 docker exec -it ecommerce-db-dev psql -U node_user -d ecommerce
 ```
+docker network create web-proxy
