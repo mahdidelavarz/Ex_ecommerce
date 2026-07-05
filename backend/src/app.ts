@@ -37,6 +37,11 @@ import blogRoutes from './modules/blog/blog.routes';
 
 const app = express();
 
+// The production backend runs behind the shared nginx reverse proxy. Trust the
+// single proxy hop so req.ip, secure cookies, and express-rate-limit handle
+// X-Forwarded-* headers correctly.
+app.set('trust proxy', 1);
+
 // Initialize database
 initializeDatabase();
 
