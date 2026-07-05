@@ -6,10 +6,9 @@ const nextConfig: NextConfig = {
   // Allow cross-origin dev requests from the LAN (e.g. testing on a phone).
   allowedDevOrigins: ['192.168.1.100', '192.168.1.*'],
   images: {
-    // In Docker dev, next/image optimizes server-side inside the frontend
-    // container where localhost:5000 is unreachable. Disable optimization in
-    // development so the browser fetches the port-mapped backend directly.
-    unoptimized: process.env.NODE_ENV !== 'production',
+    // The production server has restricted outbound network/DNS behavior, so
+    // avoid proxying remote images through Next's server-side optimizer.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
