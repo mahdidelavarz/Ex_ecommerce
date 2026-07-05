@@ -5,12 +5,8 @@ import { Toaster } from "react-hot-toast";
 import localFont from "next/font/local";
 import "./globals.css";
 import AuthInitProvider from "@/modules/auth/components/AuthInitProvider";
-import Header from "@/components/layout/Header";
-import ConditionalFooter from "@/components/layout/ConditionalFooter";
-import Footer from "@/components/layout/Footer";
+import RouteChrome from "@/components/layout/RouteChrome";
 import QueryProvider from "@/lib/query-provider";
-import CartDrawer from "@/modules/cart/components/CartDrawer";
-import BottomNav from "@/components/layout/bottom-nav/BottomNav";
 import {
   SITE_URL,
   SITE_NAME,
@@ -102,15 +98,9 @@ export default function RootLayout({
         >
           <QueryProvider>
             <AuthInitProvider>
-              <Header />
-              <main className="flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
+              <RouteChrome>
                 {children}
-              </main>
-              <CartDrawer />
-              <BottomNav />
-              <ConditionalFooter>
-                <Footer />
-              </ConditionalFooter>
+              </RouteChrome>
             </AuthInitProvider>
           </QueryProvider>
           <Toaster
