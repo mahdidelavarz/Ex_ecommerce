@@ -6,13 +6,11 @@ WORKDIR /app
 COPY package*.json ./
 
 FROM base AS deps
-# Route every tarball in the lockfile through npmmirror.com:
-#  - chabokan.net serves an incomplete `next` package inside Docker
-#  - registry.npmjs.org is unreachable from this build environment
-# npmmirror.com mirrors all of npm and is reachable, so rewrite both hosts to it.
-RUN sed -i \
-    -e 's|https://mirror2.chabokan.net/npm/|https://registry.npmmirror.com/|g' \
-    -e 's|https://registry.npmjs.org/|https://registry.npmmirror.com/|g' \
+# Route every tarball in the lockfile through Chabokan's npm mirror.
+RUN npm config set registry https://mirror2.chabokan.net/npm/ && \
+    sed -i \
+    -e 's|https://registry.npmmirror.com/|https://mirror2.chabokan.net/npm/|g' \
+    -e 's|https://registry.npmjs.org/|https://mirror2.chabokan.net/npm/|g' \
     package-lock.json && \
     npm ci
 
