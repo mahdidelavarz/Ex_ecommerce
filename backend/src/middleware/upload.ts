@@ -1,12 +1,20 @@
 // src/middleware/upload.ts
 import multer, { StorageEngine } from 'multer';
-import { S3Client } from '@aws-sdk/client-s3';
-import multerS3 from 'multer-s3';
 import path from 'path';
 import fs from 'fs';
 import { env } from '../config/env';
 
 function buildS3Storage(): StorageEngine {
+  let S3Client: any;
+  let multerS3: any;
+
+  try {
+    ({ S3Client } = require('@aws-sdk/client-s3'));
+    multerS3 = require('multer-s3');
+  } catch {
+    throw new Error('S3 uploads require @aws-sdk/client-s3 and multer-s3 to be installed');
+  }
+
   const s3 = new S3Client({
     region: env.s3.region,
     credentials: {
@@ -21,7 +29,7 @@ function buildS3Storage(): StorageEngine {
     bucket: env.s3.bucket!,
     acl: 'public-read',
     contentType: multerS3.AUTO_CONTENT_TYPE,
-    key: (_req, file, cb) => {
+    key: (_req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, key?: string) => void) => {
       const ext = path.extname(file.originalname).toLowerCase();
       cb(null, `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
     },
@@ -58,7 +66,7 @@ export const uploadMiddleware = multer({
 
 export function getFileUrl(file: Express.Multer.File): string {
   if (env.s3.enabled) {
-    return (file as Express.MulterS3.File).location;
+    return (file as any).location;
   }
   return `/uploads/${file.filename}`;
 }
