@@ -9,6 +9,7 @@ import AuthRouteGuard from "@/modules/auth/components/AuthRouteGuard";
 import RouteChrome from "@/components/layout/RouteChrome";
 import Footer from "@/components/layout/Footer";
 import QueryProvider from "@/lib/query-provider";
+import CartMergeProvider from "@/modules/cart/components/CartMergeProvider";
 import {
   SITE_URL,
   SITE_NAME,
@@ -100,11 +101,13 @@ export default function RootLayout({
         >
           <QueryProvider>
             <AuthInitProvider>
-              <AuthRouteGuard>
-                <RouteChrome footer={<Footer />}>
-                  {children}
-                </RouteChrome>
-              </AuthRouteGuard>
+              <CartMergeProvider>
+                <AuthRouteGuard>
+                  <RouteChrome footer={<Footer />}>
+                    {children}
+                  </RouteChrome>
+                </AuthRouteGuard>
+              </CartMergeProvider>
             </AuthInitProvider>
           </QueryProvider>
           <Toaster

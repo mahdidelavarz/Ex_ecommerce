@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cartService } from '../services/cart.service';
 import { useCartStore } from '../store/cart.store';
-import { useAuthStore } from '@/modules/auth/store/auth.store';
 import type { Cart, CartItem, CartVariant } from '../types/cart.types';
 import toast from 'react-hot-toast';
 
@@ -22,10 +21,20 @@ function recalcCart(cart: Cart, items: Cart['items']): Cart {
   };
 }
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: unknown } } }).response;
+    if (typeof response?.data?.message === 'string') {
+      return response.data.message;
+    }
+  }
+
+  return fallback;
+}
+
 export function useCart() {
   const queryClient = useQueryClient();
   const { setCart, setLoading } = useCartStore();
-  const { isAuthenticated } = useAuthStore();
 
   const { data: cart, isLoading } = useQuery({
     queryKey: ['cart'],
@@ -39,16 +48,6 @@ export function useCart() {
     if (cart) setCart(cart);
     setLoading(isLoading);
   }, [cart, isLoading, setCart, setLoading]);
-
-  // Merge guest cart when user logs in
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    const merge = async () => {
-      await cartService.mergeCart();
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-    };
-    merge();
-  }, [isAuthenticated, queryClient]);
 
   const addItem = useMutation({
     mutationFn: ({ variant_id, quantity = 1 }: { variant_id: string; quantity?: number; variant?: CartVariant }) =>
@@ -84,9 +83,9 @@ export function useCart() {
       queryClient.setQueryData<Cart>(CART_KEY, data);
       toast.success('به سبد خرید اضافه شد');
     },
-    onError: (error: any, _vars, ctx) => {
+    onError: (error: unknown, _vars, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(CART_KEY, ctx.previous);
-      toast.error(error.response?.data?.message || 'خطا در افزودن به سبد خرید');
+      toast.error(getErrorMessage(error, 'خطا در افزودن به سبد خرید'));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: CART_KEY });
@@ -107,9 +106,9 @@ export function useCart() {
       }
       return { previous };
     },
-    onError: (error: any, _vars, ctx) => {
+    onError: (error: unknown, _vars, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(CART_KEY, ctx.previous);
-      toast.error(error.response?.data?.message || 'خطا');
+      toast.error(getErrorMessage(error, 'خطا'));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: CART_KEY });
@@ -130,9 +129,9 @@ export function useCart() {
     onSuccess: () => {
       toast.success('از سبد خرید حذف شد');
     },
-    onError: (error: any, _vars, ctx) => {
+    onError: (error: unknown, _vars, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(CART_KEY, ctx.previous);
-      toast.error(error.response?.data?.message || 'خطا در حذف از سبد خرید');
+      toast.error(getErrorMessage(error, 'خطا در حذف از سبد خرید'));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: CART_KEY });

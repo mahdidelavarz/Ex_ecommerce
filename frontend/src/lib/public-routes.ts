@@ -12,6 +12,7 @@ export function isPublicRoute(pathname: string): boolean {
   return (
     normalized === '/' ||
     normalized === LOGIN_PATH ||
+    normalized === '/cart' ||
     normalized === '/products' ||
     normalized.startsWith('/products/')
   );
