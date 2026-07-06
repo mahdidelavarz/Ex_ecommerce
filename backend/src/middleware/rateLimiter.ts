@@ -33,6 +33,34 @@ export const authLimiter = rateLimit({
   skip: () => isDev,
 });
 
+export const sendOtpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many OTP requests, please try again later',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => isDev,
+  skipFailedRequests: true,
+});
+
+export const verifyOtpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many OTP verification attempts, please try again later',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => isDev,
+  skipSuccessfulRequests: true,
+});
+
 export const apiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 300,
