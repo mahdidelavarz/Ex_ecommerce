@@ -13,14 +13,13 @@ interface KavenegarResponse {
 
 export class SMSService {
   private static readonly API_KEY = env.sms.kavenegarApiKey;
-  private static readonly SENDER = env.sms.kavenegarSender;
+  private static readonly TEMPLATE = env.sms.kavenegarVerifyTemplate;
   private static readonly API_URL = 'https://api.kavenegar.com/v1';
 
-  /**
-   * Send OTP via Kavenegar SMS
-   */
-  static async sendOTP(phoneNumber: string, otpCode: string): Promise<{ success: boolean; message: string }> {
-    // In development, just log the OTP
+  static async sendOTP(
+    phoneNumber: string,
+    otpCode: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (env.nodeEnv === 'development') {
       logger.info(`📱 [DEV] OTP for ${phoneNumber}: ${otpCode}`);
       return {
@@ -29,54 +28,55 @@ export class SMSService {
       };
     }
 
-    // In production, send via Kavenegar
     try {
-      const url = `${this.API_URL}/${this.API_KEY}/sms/send.json`;
-      const message = `کد تایید شما: ${otpCode}\nاین کد تا 2 دقیقه معتبر است.`;
+      const url = `${this.API_URL}/${this.API_KEY}/verify/lookup.json`;
+
       const body = new URLSearchParams({
-        sender: this.SENDER,
         receptor: phoneNumber,
-        message,
+        token: otpCode,
+        template: this.TEMPLATE,
+        type: 'sms',
       });
 
-      const response = await axios.post<KavenegarResponse>(url, body.toString(), {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      const response = await axios.post<KavenegarResponse>(
+        url,
+        body.toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          },
         },
-      });
+      );
 
       if (response.data.return.status === 200) {
-        logger.info(`✅ SMS sent to ${phoneNumber}`);
+        logger.info(`✅ OTP SMS sent to ${phoneNumber}`);
         return {
           success: true,
-          message: 'پیامک با موفقیت ارسال شد',
+          message: 'کد تایید با موفقیت ارسال شد',
         };
       }
 
-      logger.error('Kavenegar API error:', response.data.return);
+      logger.error('Kavenegar Verify Lookup error:', response.data.return);
+
       return {
         success: false,
-        message: 'خطا در ارسال پیامک',
+        message: response.data.return.message || 'خطا در ارسال کد تایید',
       };
     } catch (error: unknown) {
       if (typeof error === 'object' && error !== null && 'response' in error) {
-        logger.error('Kavenegar Error:', (error as any).response?.data);
+        logger.error('Kavenegar Verify Lookup Error:', (error as any).response?.data);
       } else {
-        // Avoid logging the raw error object: AxiosError.config.url embeds
-        // the Kavenegar API key and would otherwise end up in the log files.
         const message = error instanceof Error ? error.message : String(error);
-        logger.error(`Kavenegar Error: ${message}`);
+        logger.error(`Kavenegar Verify Lookup Error: ${message}`);
       }
+
       return {
         success: false,
-        message: 'خطا در ارسال پیامک',
+        message: 'خطا در ارسال کد تایید',
       };
     }
   }
 
-  /**
-   * Generate random 4-digit OTP
-   */
   static generateOTP(): string {
     return Math.floor(1000 + Math.random() * 9000).toString();
   }

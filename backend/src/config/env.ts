@@ -31,6 +31,7 @@ const envSchema = z.object({
 
   KAVENEGAR_API_KEY: z.string().optional(),
   KAVENEGAR_SENDER: z.string().optional(),
+  KAVENEGAR_VERIFY_TEMPLATE: z.string().optional(),
   
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   
@@ -63,11 +64,11 @@ const envSchema = z.object({
     });
   }
 
-  if (!data.KAVENEGAR_SENDER?.trim()) {
+  if (!data.KAVENEGAR_VERIFY_TEMPLATE?.trim()) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['KAVENEGAR_SENDER'],
-      message: 'KAVENEGAR_SENDER is required in production',
+      path: ['KAVENEGAR_VERIFY_TEMPLATE'],
+      message: 'KAVENEGAR_VERIFY_TEMPLATE is required in production',
     });
   }
 });
@@ -110,6 +111,7 @@ export const env = {
   sms: {
     kavenegarApiKey: parsed.data.KAVENEGAR_API_KEY ?? '',
     kavenegarSender: parsed.data.KAVENEGAR_SENDER ?? '',
+    kavenegarVerifyTemplate: parsed.data.KAVENEGAR_VERIFY_TEMPLATE ?? '',
   },
   
   cors: {
