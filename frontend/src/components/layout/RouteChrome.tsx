@@ -3,15 +3,16 @@
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
 import ConditionalFooter from "@/components/layout/ConditionalFooter";
-import Footer from "@/components/layout/Footer";
 import CartDrawer from "@/modules/cart/components/CartDrawer";
 import BottomNav from "@/components/layout/bottom-nav/BottomNav";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 
 export default function RouteChrome({
   children,
+  footer,
 }: {
   children: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
@@ -35,9 +36,9 @@ export default function RouteChrome({
       </main>
       {!shouldHideChrome && <CartDrawer />}
       {!shouldHideChrome && <BottomNav />}
-      {!shouldHideChrome && (
+      {!shouldHideChrome && footer && (
         <ConditionalFooter>
-          <Footer />
+          {footer}
         </ConditionalFooter>
       )}
     </>

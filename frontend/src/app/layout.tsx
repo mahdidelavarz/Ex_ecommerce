@@ -7,6 +7,7 @@ import "./globals.css";
 import AuthInitProvider from "@/modules/auth/components/AuthInitProvider";
 import AuthRouteGuard from "@/modules/auth/components/AuthRouteGuard";
 import RouteChrome from "@/components/layout/RouteChrome";
+import Footer from "@/components/layout/Footer";
 import QueryProvider from "@/lib/query-provider";
 import {
   SITE_URL,
@@ -100,7 +101,7 @@ export default function RootLayout({
           <QueryProvider>
             <AuthInitProvider>
               <AuthRouteGuard>
-                <RouteChrome>
+                <RouteChrome footer={<Footer />}>
                   {children}
                 </RouteChrome>
               </AuthRouteGuard>

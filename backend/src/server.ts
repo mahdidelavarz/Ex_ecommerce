@@ -1,43 +1,64 @@
-// src/server.ts
 import 'reflect-metadata';
+import type { Server } from 'http';
 import app from './app';
 import { env } from './config/env';
+import { initializeDatabase } from './config/database';
 import { logger } from './shared/utils/logger';
 
 const PORT = env.port;
 
-const server = app.listen(PORT, () => {
-  logger.info(`✅ Server running in ${env.nodeEnv} mode on port ${PORT}`);
-  logger.info(`📍 API available at http://localhost:${PORT}${env.apiPrefix}`);
-  logger.info(`🏥 Health check at http://localhost:${PORT}/health`);
-});
+let server: Server | undefined;
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason: Error) => {
-  logger.error('Unhandled Rejection:', reason);
-  console.error('UNHANDLED REJECTION! 💥 Shutting down...');
-  
+const shutdown = (exitCode: number): void => {
+  if (!server) {
+    process.exit(exitCode);
+  }
+
   server.close(() => {
-    process.exit(1);
+    process.exit(exitCode);
   });
+};
+
+const startServer = async (): Promise<void> => {
+  try {
+    await initializeDatabase();
+
+    server = app.listen(PORT, () => {
+      logger.info(`Server running in ${env.nodeEnv} mode on port ${PORT}`);
+      logger.info(`API available at http://localhost:${PORT}${env.apiPrefix}`);
+      logger.info(`Health check at http://localhost:${PORT}/health`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+process.on('unhandledRejection', (reason: unknown) => {
+  logger.error('Unhandled Rejection:', reason);
+  console.error('UNHANDLED REJECTION! Shutting down...');
+  shutdown(1);
 });
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (error: Error) => {
   logger.error('Uncaught Exception:', error);
-  console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-  
+  console.error('UNCAUGHT EXCEPTION! Shutting down...');
+  shutdown(1);
+});
+
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received. Shutting down gracefully...');
+
+  if (!server) {
+    process.exit(0);
+  }
+
   server.close(() => {
-    process.exit(1);
+    logger.info('Process terminated');
+    process.exit(0);
   });
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    logger.info('Process terminated');
-  });
-});
+void startServer();
 
 export default server;

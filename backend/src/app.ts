@@ -10,7 +10,6 @@ import { generalLimiter, apiLimiter } from './middleware/rateLimiter';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { csrfProtection } from './middleware/csrf';
-import { initializeDatabase } from './config/database';
 import authRoutes from './modules/auth/auth.routes';
 import cookieParser from 'cookie-parser';
 import categoryRoutes from './modules/categories/category.routes';
@@ -41,9 +40,6 @@ const app = express();
 // single proxy hop so req.ip, secure cookies, and express-rate-limit handle
 // X-Forwarded-* headers correctly.
 app.set('trust proxy', 1);
-
-// Initialize database
-initializeDatabase();
 
 // Security middleware
 // HSTS forces browsers to upgrade http→https. On localhost (plain HTTP) this

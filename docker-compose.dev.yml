@@ -25,6 +25,12 @@ services:
     restart: unless-stopped
     ports:
       - "5000:5000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "const net=require('net');const socket=net.connect(5000,'127.0.0.1',()=>{socket.end();process.exit(0);});socket.setTimeout(2000,()=>{socket.destroy();process.exit(1);});socket.on('error',()=>process.exit(1));"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
     env_file:
       - ./backend/.env
     depends_on:
@@ -40,6 +46,11 @@ services:
       - DB_USERNAME=node_user
       - DB_PASSWORD=123
       - DB_NAME=ecommerce
+      - CORS_ORIGIN=http://localhost:3000
+      - FRONTEND_URL=http://localhost:3000
+      - KAVENEGAR_API_KEY=
+      - KAVENEGAR_SENDER=
+      - KAVENEGAR_VERIFY_TEMPLATE=
 
   frontend:
     build:
@@ -52,7 +63,8 @@ services:
     env_file:
       - ./frontend/.env.local
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
@@ -60,6 +72,7 @@ services:
     environment:
       - WATCHPACK_POLLING=true
       - NEXT_TELEMETRY_DISABLED=1
+      - API_PROXY_TARGET=http://backend:5000
       # Server-side (SSR) fetches run inside the container and can't use the
       # browser's localhost:5000 — reach the backend via its compose service name.
       - INTERNAL_API_URL=http://backend:5000/api/v1

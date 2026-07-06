@@ -20,11 +20,11 @@ export class SMSService {
     phoneNumber: string,
     otpCode: string,
   ): Promise<{ success: boolean; message: string }> {
-    if (env.nodeEnv === 'development') {
-      logger.info(`📱 [DEV] OTP for ${phoneNumber}: ${otpCode}`);
+    if (env.nodeEnv !== 'production') {
+      logger.info(`[DEV SMS] OTP for ${phoneNumber}: ${otpCode}`);
       return {
         success: true,
-        message: 'OTP logged in development mode',
+        message: 'OTP logged in non-production mode',
       };
     }
 
