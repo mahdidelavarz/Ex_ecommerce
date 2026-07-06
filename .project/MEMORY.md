@@ -8,5 +8,7 @@
 - [Frontend Patterns](frontend-patterns.md) — Module structure, React Query hooks, Zustand stores, API client
 - [Database Entities](database-entities.md) — 30+ TypeORM entities grouped by domain
 
+- [Frontend Route Auth](frontend-route-auth.md) - public/private page visibility and auth guard source
+
 ## Remaining Work
 - [Remaining](remaining.md) — All open issues: infra, security, checkout, backend bugs, products, reviews, admin pages, SEO, open questions
