@@ -1,9 +1,9 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
-import { ThemeProvider } from "next-themes";
 import { Toaster } from "react-hot-toast";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ThemeProvider } from "@/lib/theme-provider";
 import AuthInitProvider from "@/modules/auth/components/AuthInitProvider";
 import AuthRouteGuard from "@/modules/auth/components/AuthRouteGuard";
 import RouteChrome from "@/components/layout/RouteChrome";
@@ -14,8 +14,6 @@ import {
   SITE_URL,
   SITE_NAME,
   DEFAULT_OG_IMAGE,
-  organizationJsonLd,
-  websiteJsonLd,
 } from "@/lib/seo";
 
 const vazirmatn = localFont({
@@ -87,18 +85,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-dvh bg-background text-text-primary antialiased flex flex-col">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify([organizationJsonLd(), websiteJsonLd()]),
-          }}
-        />
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ThemeProvider>
           <QueryProvider>
             <AuthInitProvider>
               <CartMergeProvider>

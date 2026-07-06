@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/lib/theme-provider";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
 import {
   MdiAccountCircle,
