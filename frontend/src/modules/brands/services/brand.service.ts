@@ -1,7 +1,18 @@
 // src/modules/brands/services/brand.service.ts
 import { apiClient } from '@/lib/api-client';
+import {
+  BRAND_REVALIDATE_PATHS,
+  revalidateStorefront,
+} from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type { Brand, BrandMinimal, BrandsResponse } from '../types/brand.types';
+
+export type CreateBrandInput = {
+  name: string;
+  logo?: string | null;
+  description?: string | null;
+  is_active?: boolean;
+};
 
 export const brandService = {
   /**
@@ -14,7 +25,7 @@ export const brandService = {
     limit?: number;
   }): Promise<BrandsResponse> => {
     const response = await apiClient.get<
-      ApiResponse<Brand[]> & { meta: any }
+      ApiResponse<Brand[]> & { meta: BrandsResponse['meta'] }
     >('/brands', { params });
     return {
       data: response.data.data,
@@ -41,8 +52,9 @@ export const brandService = {
   /**
    * Create brand (admin)
    */
-  create: async (data: { name: string; logo?: string | null; description?: string | null; is_active?: boolean }): Promise<Brand> => {
+  create: async (data: CreateBrandInput): Promise<Brand> => {
     const response = await apiClient.post<ApiResponse<Brand>>('/brands', data);
+    await revalidateStorefront(BRAND_REVALIDATE_PATHS);
     return response.data.data;
   },
 
@@ -51,6 +63,7 @@ export const brandService = {
    */
   update: async (id: string, data: Partial<Brand>): Promise<Brand> => {
     const response = await apiClient.patch<ApiResponse<Brand>>(`/brands/${id}`, data);
+    await revalidateStorefront(BRAND_REVALIDATE_PATHS);
     return response.data.data;
   },
 
@@ -59,5 +72,6 @@ export const brandService = {
    */
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/brands/${id}`);
+    await revalidateStorefront(BRAND_REVALIDATE_PATHS);
   },
 };

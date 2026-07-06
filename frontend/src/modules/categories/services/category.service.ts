@@ -1,5 +1,9 @@
 // src/modules/categories/services/category.service.ts
 import { apiClient } from '@/lib/api-client';
+import {
+  CATEGORY_REVALIDATE_PATHS,
+  revalidateStorefront,
+} from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type {
   Category,
@@ -7,27 +11,6 @@ import type {
   CategoryTreeNode,
   CategoriesResponse,
 } from '../types/category.types';
-
-type RevalidatePath = string | { path: string; type?: 'page' | 'layout' };
-
-const CATEGORY_REVALIDATE_PATHS: RevalidatePath[] = [
-  '/',
-  '/products',
-  '/sitemap.xml',
-  { path: '/categories/[slug]', type: 'page' },
-];
-
-async function revalidateCategories(): Promise<void> {
-  try {
-    await fetch('/api/revalidate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paths: CATEGORY_REVALIDATE_PATHS }),
-    });
-  } catch {
-    /* ignore */
-  }
-}
 
 export const categoryService = {
   /**
@@ -77,7 +60,7 @@ export const categoryService = {
    */
   create: async (data: Partial<Category>): Promise<Category> => {
     const response = await apiClient.post<ApiResponse<Category>>('/categories', data);
-    await revalidateCategories();
+    await revalidateStorefront(CATEGORY_REVALIDATE_PATHS);
     return response.data.data;
   },
 
@@ -89,7 +72,7 @@ export const categoryService = {
       `/categories/${id}`,
       data
     );
-    await revalidateCategories();
+    await revalidateStorefront(CATEGORY_REVALIDATE_PATHS);
     return response.data.data;
   },
 
@@ -100,7 +83,7 @@ export const categoryService = {
     await apiClient.delete(`/categories/${id}`, {
       params: { force: force ? 'true' : 'false' },
     });
-    await revalidateCategories();
+    await revalidateStorefront(CATEGORY_REVALIDATE_PATHS);
   },
 
   /**
@@ -108,6 +91,6 @@ export const categoryService = {
    */
   bulkSort: async (items: Array<{ id: string; sort_order: number }>): Promise<void> => {
     await apiClient.patch('/categories/sort', { items });
-    await revalidateCategories();
+    await revalidateStorefront(CATEGORY_REVALIDATE_PATHS);
   },
 };

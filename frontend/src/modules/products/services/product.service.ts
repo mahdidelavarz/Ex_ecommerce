@@ -1,11 +1,34 @@
 // src/modules/products/services/product.service.ts
 import { apiClient } from '@/lib/api-client';
+import {
+  PRODUCT_REVALIDATE_PATHS,
+  revalidateStorefront,
+} from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type {
   ProductListResponse,
   ProductDetail,
   ProductFilters,
 } from '../types/product.types';
+
+export type PageMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
+};
+
+export type ProductListParams = Record<
+  string,
+  string | number | boolean | null | undefined
+>;
+export type ProductMutationPayload = Record<string, unknown>;
+export type ProductListResult = {
+  data: ProductListResponse[];
+  meta: PageMeta | null;
+};
 
 export const productService = {
   /**
@@ -25,11 +48,10 @@ export const productService = {
   /**
    * List products with filters
    */
-  list: async (params?: Record<string, any>): Promise<{
-    data: ProductListResponse[];
-    meta: any;
-  }> => {
-    const response = await apiClient.get<ApiResponse<ProductListResponse[]> & { meta: any }>(
+  list: async (params?: ProductListParams): Promise<ProductListResult> => {
+    const response = await apiClient.get<
+      ApiResponse<ProductListResponse[]> & { meta: PageMeta }
+    >(
       '/products',
       { params }
     );
@@ -43,9 +65,9 @@ export const productService = {
    * Get single product by id
    */
   getById: async (id: string): Promise<ProductDetail> => {
-  const response = await apiClient.get<ApiResponse<ProductDetail>>(`/products/id/${id}`);
-  return response.data.data;
-},
+    const response = await apiClient.get<ApiResponse<ProductDetail>>(`/products/id/${id}`);
+    return response.data.data;
+  },
 
   /**
    * Get single product by slug
@@ -80,16 +102,18 @@ export const productService = {
   /**
    * Create product (admin)
    */
-  create: async (data: any): Promise<ProductDetail> => {
+  create: async (data: ProductMutationPayload): Promise<ProductDetail> => {
     const response = await apiClient.post<ApiResponse<ProductDetail>>('/products', data);
+    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
     return response.data.data;
   },
 
   /**
    * Update product (admin)
    */
-  update: async (id: string, data: any): Promise<ProductDetail> => {
+  update: async (id: string, data: ProductMutationPayload): Promise<ProductDetail> => {
     const response = await apiClient.patch<ApiResponse<ProductDetail>>(`/products/${id}`, data);
+    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
     return response.data.data;
   },
 
@@ -98,6 +122,7 @@ export const productService = {
    */
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/products/${id}`);
+    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
   },
 
   /**
@@ -105,13 +130,18 @@ export const productService = {
    */
   bulkStatus: async (ids: string[], is_active: boolean): Promise<void> => {
     await apiClient.patch('/products/bulk-status', { ids, is_active });
+    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
   },
 
   /**
    * Add product image (admin)
    */
-  addImage: async (productId: string, data: any): Promise<any> => {
+  addImage: async (
+    productId: string,
+    data: ProductMutationPayload,
+  ): Promise<unknown> => {
     const response = await apiClient.post(`/products/${productId}/images`, data);
+    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
     return response.data.data;
   },
 
@@ -120,6 +150,7 @@ export const productService = {
    */
   deleteImage: async (productId: string, imageId: string): Promise<void> => {
     await apiClient.delete(`/products/${productId}/images/${imageId}`);
+    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
   },
 
   /**
@@ -127,5 +158,6 @@ export const productService = {
    */
   syncTags: async (productId: string, tag_ids: string[]): Promise<void> => {
     await apiClient.post(`/products/${productId}/tags`, { tag_ids });
+    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
   },
 };

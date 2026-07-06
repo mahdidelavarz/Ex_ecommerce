@@ -1,9 +1,24 @@
-// src/modules/settings/hooks/useSettings.ts
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { settingService } from '../services/setting.service';
 import toast from 'react-hot-toast';
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
+function errorMessage(error: ApiError, fallback: string) {
+  return error.response?.data?.message || fallback;
+}
 
 export function useAdminSettings() {
   return useQuery({
@@ -26,11 +41,15 @@ export function useUpdateSetting() {
   return useMutation({
     mutationFn: ({ key, value }: { key: string; value: string }) =>
       settingService.update(key, value),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
+    onSuccess: async (data) => {
       queryClient.setQueryData(['settings', data.key], data);
+      await queryClient.invalidateQueries({
+        queryKey: ['settings'],
+        refetchType: 'all',
+      });
       toast.success('تنظیمات ذخیره شد');
     },
-    onError: (error: any) => toast.error(error.response?.data?.message || 'خطا در ذخیره'),
+    onError: (error: ApiError) =>
+      toast.error(errorMessage(error, 'خطا در ذخیره')),
   });
 }

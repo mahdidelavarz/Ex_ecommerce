@@ -1,15 +1,40 @@
-// src/modules/products/hooks/useProducts.ts
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { productService } from '../services/product.service';
-import type { ProductListResponse } from '../types/product.types';
+import {
+  productService,
+  type ProductListParams,
+  type ProductListResult,
+  type ProductMutationPayload,
+} from '../services/product.service';
 
-type ProductListResult = { data: ProductListResponse[]; meta: any };
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
+function refreshProductQueries(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({
+    queryKey: ['products'],
+    refetchType: 'all',
+  });
+}
+
+function errorMessage(error: ApiError, fallback: string) {
+  return error.response?.data?.message || fallback;
+}
 
 export function useProducts(
-  params?: Record<string, any>,
+  params?: ProductListParams,
   options?: { initialData?: ProductListResult },
 ) {
   return useQuery({
@@ -50,25 +75,27 @@ export function useProductFilters(categoryId: string) {
 export function useCreateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => productService.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+    mutationFn: (data: ProductMutationPayload) => productService.create(data),
+    onSuccess: async () => {
+      await refreshProductQueries(queryClient);
       toast.success('محصول ایجاد شد');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در ایجاد محصول'),
+    onError: (e: ApiError) =>
+      toast.error(errorMessage(e, 'خطا در ایجاد محصول')),
   });
 }
 
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: ProductMutationPayload }) =>
       productService.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+    onSuccess: async () => {
+      await refreshProductQueries(queryClient);
       toast.success('محصول بروزرسانی شد');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در بروزرسانی محصول'),
+    onError: (e: ApiError) =>
+      toast.error(errorMessage(e, 'خطا در بروزرسانی محصول')),
   });
 }
 
@@ -76,11 +103,12 @@ export function useDeleteProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => productService.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+    onSuccess: async () => {
+      await refreshProductQueries(queryClient);
       toast.success('محصول حذف شد');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در حذف محصول'),
+    onError: (e: ApiError) =>
+      toast.error(errorMessage(e, 'خطا در حذف محصول')),
   });
 }
 
@@ -89,10 +117,11 @@ export function useBulkProductStatus() {
   return useMutation({
     mutationFn: ({ ids, is_active }: { ids: string[]; is_active: boolean }) =>
       productService.bulkStatus(ids, is_active),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+    onSuccess: async () => {
+      await refreshProductQueries(queryClient);
       toast.success('وضعیت محصولات بروزرسانی شد');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در بروزرسانی'),
+    onError: (e: ApiError) =>
+      toast.error(errorMessage(e, 'خطا در بروزرسانی')),
   });
 }

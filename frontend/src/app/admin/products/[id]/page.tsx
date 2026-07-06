@@ -443,8 +443,8 @@ export default function AdminProductFormPage() {
                 : "border-transparent text-text-secondary hover:text-text-primary"
             }`}
           >
-            <span className="w-4 h-4">{tab.icon}</span>
-            {tab.label}
+            <span className="">{tab.icon}</span>
+            <span className="">{tab.label}</span>
             {tab.count !== undefined && tab.count > 0 && (
               <span className="bg-primary-light text-primary text-xs px-1.5 py-0.5 rounded-full">
                 {tab.count}
