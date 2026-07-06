@@ -16,6 +16,7 @@ import { MdiCartOff, MdiStore, MdiImageOff } from '@/components/icons/Icons';
 import { useSetting } from '@/modules/settings/hooks/useSettings';
 import { useBottomBar } from '@/components/layout/bottom-nav/useBottomBar';
 import toast from 'react-hot-toast';
+import MobilePageHeader from '@/components/layout/MobilePageHeader';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -151,6 +152,7 @@ export default function CheckoutPage() {
   if (!cart || cart.items.length === 0) {
     return (
       <main className="min-h-screen bg-background">
+        <MobilePageHeader items={[{ label: 'سبد خرید', href: '/cart' }, { label: 'تکمیل سفارش' }]} />
         <div className="container mx-auto px-4 py-16">
           <EmptyState
             icon={MdiCartOff}
@@ -167,6 +169,7 @@ export default function CheckoutPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+          <MobilePageHeader items={[{ label: 'سبد خرید', href: '/cart' }, { label: 'تکمیل سفارش' }]} />
         <h1 className="text-2xl font-bold text-text-primary mb-8">تکمیل سفارش</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

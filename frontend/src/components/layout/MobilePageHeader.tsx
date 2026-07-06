@@ -26,7 +26,7 @@ export default function MobilePageHeader({ items, action }: MobilePageHeaderProp
 
   return (
     <div
-      className="md:hidden sticky top-16 z-20 -mx-4 mb-4 px-3 h-12 flex items-center gap-2
+      className="md:hidden sticky top-0 z-20 -mx-4 mb-4 px-3 h-12 flex items-center gap-2
         border-b border-border bg-surface/95 backdrop-blur-md"
     >
       <button

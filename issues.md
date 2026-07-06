@@ -5,3 +5,6 @@
 5. cart page in mobile has a header bar for bread crump , by scrolling page down , header goes in , this bar must take its place , like its sticked to header
 
 6. checkout page dose not have breadcrumb bar 
+
+MobilePageHeader
+exist in : product-detail , cart , wishlist
