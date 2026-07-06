@@ -25,8 +25,8 @@ export default function AuthRouteGuard({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background text-text-secondary">
-      Loading...
+    <div className="flex h-dvh items-center justify-center overflow-hidden bg-background text-text-secondary">
+      در حال بارگذاری...
     </div>
   );
 }

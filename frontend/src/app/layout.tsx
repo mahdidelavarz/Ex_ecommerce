@@ -84,7 +84,7 @@ export default function RootLayout({
       className={vazirmatn.variable}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background text-text-primary antialiased flex flex-col">
+      <body className="min-h-dvh bg-background text-text-primary antialiased flex flex-col">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -8,15 +8,14 @@ import OtpInput from '@/components/ui/OtpInput';
 import Button from '@/components/ui/Button';
 import { authService } from '../services/auth.service';
 import { useAuthStore } from '../store/auth.store';
-import { MdiArrowRight, MdiShieldCheck } from '@/components/icons/Icons';
+import { MdiShieldCheck } from '@/components/icons/Icons';
 import { getSafeRedirectPath } from '@/lib/public-routes';
 
 interface VerifyOTPFormProps {
   phoneNumber: string;
-  onBack: () => void;
 }
 
-export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProps) {
+export default function VerifyOTPForm({ phoneNumber }: VerifyOTPFormProps) {
   const router = useRouter();
   const { login } = useAuthStore();
   const [otp, setOtp] = useState('');
@@ -75,7 +74,7 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
       setTimer(120);
       setFailedAttempts(0);
       toast.success('کد تایید مجدداً ارسال شد');
-    } catch (error: unknown) {
+    } catch {
       toast.error('خطا در ارسال مجدد کد');
     }
   };
@@ -87,16 +86,7 @@ export default function VerifyOTPForm({ phoneNumber, onBack }: VerifyOTPFormProp
   };
 
   return (
-    <div className="bg-surface rounded-2xl shadow-card p-8">
-      <button
-        onClick={onBack}
-        disabled={isLoading}
-        className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors mb-6"
-      >
-        <MdiArrowRight className="w-5 h-5" />
-        بازگشت
-      </button>
-
+    <div className="bg-surface rounded-2xl shadow-card p-6 sm:p-8">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
           <MdiShieldCheck className="w-8 h-8 text-primary" />

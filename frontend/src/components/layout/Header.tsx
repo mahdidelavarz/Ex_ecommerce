@@ -13,7 +13,7 @@ import { useMobileMenuStore } from "./mobileMenu.store";
 import { useAdminMenuStore } from "./adminMenu.store";
 import { MdiMenu, MdiStore } from "../icons/Icons";
 
-export default function Header() {
+export default function Header({isOnLanding} : {isOnLanding ?: boolean}) {
   const { isOpen: isMobileMenuOpen, open: openMobileMenu, close: closeMobileMenu } = useMobileMenuStore();
   const openAdminMenu = useAdminMenuStore((s) => s.open);
   const pathname = usePathname();
@@ -49,7 +49,7 @@ export default function Header() {
   }, [scrolled]);
 
   return (
-    <div className="fixed top-0 right-0 left-0 z-50 border-b border-white/30 bg-surface/65 shadow-[0_14px_40px_-24px_rgb(42_23_38/0.55)] backdrop-blur-2xl backdrop-saturate-150 supports-[backdrop-filter]:bg-surface/55">
+    <div className={`${isOnLanding ? ' fixed top-0 right-0 left-0' : ''} z-50  shadow-[0_14px_40px_-24px_rgb(42_23_38/0.55)] backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-surface/55`}>
       {/* Tier 1 — utility bar (scrolls away). Hidden on admin pages. */}
       {!isAdmin && <TopBar />}
 

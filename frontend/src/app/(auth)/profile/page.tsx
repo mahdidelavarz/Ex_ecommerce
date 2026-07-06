@@ -5,6 +5,7 @@ import { ComponentType, SVGProps, useState } from "react";
 import Link from "next/link";
 import { useProtectedRoute } from "@/modules/auth/hooks/useProtectedRoute";
 import { useAuth } from "@/modules/auth/hooks/useAuth";
+import AuthPageShell from "@/modules/auth/components/AuthPageShell";
 import CompleteProfileForm from "@/modules/auth/components/CompleteProfileForm";
 import EditProfileForm from "@/modules/auth/components/EditProfileForm";
 import { formatDate } from "@/utils/formatDate";
@@ -29,7 +30,7 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex h-dvh items-center justify-center overflow-hidden bg-background">
         <div className="text-center">
           <SvgSpinnersRingResize
             className="animate-spin text-primary mx-auto mb-4"
@@ -43,24 +44,22 @@ export default function ProfilePage() {
 
   if (!user?.profile_completed) {
     return (
-      <div className="min-h-screen bg-background py-12">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <div className="bg-surface rounded-2xl shadow-card p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
-                <MdiAccountEdit className="text-primary" width={32} />
-              </div>
-              <h1 className="text-2xl font-bold text-text-primary mb-2">
-                تکمیل اطلاعات
-              </h1>
-              <p className="text-text-secondary">
-                لطفاً اطلاعات خود را تکمیل کنید
-              </p>
+      <AuthPageShell backHref="/" backLabel="بازگشت به خانه">
+        <div className="bg-surface rounded-2xl shadow-card p-6 sm:p-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <MdiAccountEdit className="text-primary" width={32} />
             </div>
-            <CompleteProfileForm />
+            <h1 className="text-2xl font-bold text-text-primary mb-2">
+              تکمیل اطلاعات
+            </h1>
+            <p className="text-text-secondary">
+              لطفاً اطلاعات خود را تکمیل کنید
+            </p>
           </div>
+          <CompleteProfileForm />
         </div>
-      </div>
+      </AuthPageShell>
     );
   }
 

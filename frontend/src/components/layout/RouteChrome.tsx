@@ -6,6 +6,7 @@ import ConditionalFooter from "@/components/layout/ConditionalFooter";
 import Footer from "@/components/layout/Footer";
 import CartDrawer from "@/modules/cart/components/CartDrawer";
 import BottomNav from "@/components/layout/bottom-nav/BottomNav";
+import { useAuthStore } from "@/modules/auth/store/auth.store";
 
 export default function RouteChrome({
   children,
@@ -13,23 +14,28 @@ export default function RouteChrome({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { isAuthenticated, user } = useAuthStore();
   const isLoginPage = pathname === "/login";
+  const isCompleteProfilePage =
+    pathname === "/profile" && isAuthenticated && user?.profile_completed === false;
+  const shouldHideChrome = isLoginPage || isCompleteProfilePage;
+  const isLandingPage = pathname === "/";
 
   return (
     <>
-      {!isLoginPage && <Header />}
+      {!shouldHideChrome && <Header isOnLanding={isLandingPage} />}
       <main
         className={
-          isLoginPage
-            ? "flex-1 overflow-hidden"
+          shouldHideChrome
+            ? "h-dvh overflow-hidden"
             : "flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0"
         }
       >
         {children}
       </main>
-      {!isLoginPage && <CartDrawer />}
-      {!isLoginPage && <BottomNav />}
-      {!isLoginPage && (
+      {!shouldHideChrome && <CartDrawer />}
+      {!shouldHideChrome && <BottomNav />}
+      {!shouldHideChrome && (
         <ConditionalFooter>
           <Footer />
         </ConditionalFooter>

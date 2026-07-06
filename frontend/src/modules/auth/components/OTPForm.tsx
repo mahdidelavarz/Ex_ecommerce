@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
@@ -10,7 +10,7 @@ import PhoneInput from '@/components/ui/PhoneInput';
 import Button from '@/components/ui/Button';
 import { authService } from '../services/auth.service';
 import { LucideLogIn } from '@/components/icons/Icons';
-
+import Link from 'next/link';
 const phoneSchema = z.object({
   phone_number: z
     .string()
@@ -30,13 +30,13 @@ export default function OTPForm({ onSuccess }: OTPFormProps) {
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
+    control,
   } = useForm<PhoneFormData>({
     resolver: zodResolver(phoneSchema),
     defaultValues: { phone_number: '' },
   });
 
-  const phoneNumber = watch('phone_number');
+  const phoneNumber = useWatch({ control, name: 'phone_number' }) ?? '';
 
   const onSubmit = async (data: PhoneFormData) => {
     setIsLoading(true);
@@ -56,7 +56,7 @@ export default function OTPForm({ onSuccess }: OTPFormProps) {
   };
 
   return (
-    <div className="bg-surface rounded-2xl shadow-card p-8">
+    <div className="bg-surface rounded-2xl shadow-card p-6 sm:p-8">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
           <LucideLogIn className="w-8 h-8 text-primary" />
@@ -89,7 +89,7 @@ export default function OTPForm({ onSuccess }: OTPFormProps) {
       </form>
 
       <p className="text-text-muted text-sm text-center mt-6">
-        با ورود به سایت، قوانین و شرایط استفاده را می‌پذیرید
+        با ورود به سایت، <Link href={'/terms'}><b className='text-primary'>قوانین و شرایط</b></Link> استفاده را می‌پذیرید
       </p>
     </div>
   );
