@@ -8,6 +8,27 @@ import type {
   CategoriesResponse,
 } from '../types/category.types';
 
+type RevalidatePath = string | { path: string; type?: 'page' | 'layout' };
+
+const CATEGORY_REVALIDATE_PATHS: RevalidatePath[] = [
+  '/',
+  '/products',
+  '/sitemap.xml',
+  { path: '/categories/[slug]', type: 'page' },
+];
+
+async function revalidateCategories(): Promise<void> {
+  try {
+    await fetch('/api/revalidate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paths: CATEGORY_REVALIDATE_PATHS }),
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
 export const categoryService = {
   /**
    * List categories with optional filters
@@ -19,7 +40,9 @@ export const categoryService = {
     page?: number;
     limit?: number;
   }): Promise<CategoriesResponse> => {
-    const response = await apiClient.get<ApiResponse<Category[]> & { meta: any }>(
+    const response = await apiClient.get<
+      ApiResponse<Category[]> & { meta: CategoriesResponse['meta'] }
+    >(
       '/categories',
       { params }
     );
@@ -54,6 +77,7 @@ export const categoryService = {
    */
   create: async (data: Partial<Category>): Promise<Category> => {
     const response = await apiClient.post<ApiResponse<Category>>('/categories', data);
+    await revalidateCategories();
     return response.data.data;
   },
 
@@ -65,6 +89,7 @@ export const categoryService = {
       `/categories/${id}`,
       data
     );
+    await revalidateCategories();
     return response.data.data;
   },
 
@@ -75,6 +100,7 @@ export const categoryService = {
     await apiClient.delete(`/categories/${id}`, {
       params: { force: force ? 'true' : 'false' },
     });
+    await revalidateCategories();
   },
 
   /**
@@ -82,5 +108,6 @@ export const categoryService = {
    */
   bulkSort: async (items: Array<{ id: string; sort_order: number }>): Promise<void> => {
     await apiClient.patch('/categories/sort', { items });
+    await revalidateCategories();
   },
 };

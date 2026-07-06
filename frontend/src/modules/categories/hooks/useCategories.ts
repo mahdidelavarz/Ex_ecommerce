@@ -1,10 +1,34 @@
 // src/modules/categories/hooks/useCategories.ts
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { categoryService } from '../services/category.service';
 import type { Category } from '../types/category.types';
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
+function refreshCategoryQueries(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({
+    queryKey: ['categories'],
+    refetchType: 'all',
+  });
+}
+
+function errorMessage(error: ApiError, fallback: string) {
+  return error.response?.data?.message || fallback;
+}
 
 export function useCategories(params?: {
   parent_id?: string | null;
@@ -41,11 +65,12 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Partial<Category>) => categoryService.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    onSuccess: async () => {
+      await refreshCategoryQueries(queryClient);
       toast.success('دسته‌بندی ایجاد شد');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در ایجاد دسته‌بندی'),
+    onError: (e: ApiError) =>
+      toast.error(errorMessage(e, 'خطا در ایجاد دسته‌بندی')),
   });
 }
 
@@ -54,11 +79,12 @@ export function useUpdateCategory() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Category> }) =>
       categoryService.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    onSuccess: async () => {
+      await refreshCategoryQueries(queryClient);
       toast.success('دسته‌بندی بروزرسانی شد');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در بروزرسانی دسته‌بندی'),
+    onError: (e: ApiError) =>
+      toast.error(errorMessage(e, 'خطا در بروزرسانی دسته‌بندی')),
   });
 }
 
@@ -67,10 +93,11 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: ({ id, force }: { id: string; force?: boolean }) =>
       categoryService.delete(id, force),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    onSuccess: async () => {
+      await refreshCategoryQueries(queryClient);
       toast.success('دسته‌بندی حذف شد');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'خطا در حذف دسته‌بندی'),
+    onError: (e: ApiError) =>
+      toast.error(errorMessage(e, 'خطا در حذف دسته‌بندی')),
   });
 }

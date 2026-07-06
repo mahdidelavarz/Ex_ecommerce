@@ -12,6 +12,8 @@ export const corsConfig = cors({
     'X-Requested-With',
     'Accept',
     'Origin',
+    'Cache-Control',
+    'Pragma',
     'x-session-id',
   ],
   exposedHeaders: ['Set-Cookie'],  // ← اینو اضافه کن

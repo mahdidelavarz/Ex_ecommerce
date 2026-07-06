@@ -90,6 +90,16 @@ if (!env.s3.enabled) {
 // API routes
 const apiPrefix = env.apiPrefix;
 app.use(apiPrefix, apiLimiter);
+app.use(apiPrefix, (_req, res, next) => {
+  res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate',
+  );
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
 
 // In the routes section:
 app.use(`${apiPrefix}/auth`, authRoutes);
