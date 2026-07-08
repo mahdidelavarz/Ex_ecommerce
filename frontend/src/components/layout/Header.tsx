@@ -21,10 +21,20 @@ export default function Header({isOnLanding} : {isOnLanding ?: boolean}) {
   // storefront category nav, and the storefront mobile category drawer.
   const isAdmin = pathname?.startsWith("/admin") ?? false;
   const [scrolled, setScrolled] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   // Keep `overflow-hidden` during the collapse animation so the bar clips
   // cleanly; once fully expanded, switch to visible so the hover dropdowns
   // (which overflow below the bar) aren't clipped.
   const [barExpanded, setBarExpanded] = useState(true);
+  const shouldCollapseChrome = !isAdmin && isDesktop && scrolled;
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   // Scroll-aware: condense + raise shadow once the page scrolls.
   useEffect(() => {
@@ -44,20 +54,41 @@ export default function Header({isOnLanding} : {isOnLanding ?: boolean}) {
 
   // Defer overflow:visible until the expand transition (300ms) completes.
   useEffect(() => {
-    const t = setTimeout(() => setBarExpanded(!scrolled), scrolled ? 0 : 300);
+    const t = setTimeout(
+      () => setBarExpanded(!shouldCollapseChrome),
+      shouldCollapseChrome ? 0 : 300,
+    );
     return () => clearTimeout(t);
-  }, [scrolled]);
+  }, [shouldCollapseChrome]);
 
   return (
-    <div className={`${isOnLanding ? ' fixed top-0 right-0 left-0' : ''} z-50  shadow-[0_14px_40px_-24px_rgb(42_23_38/0.55)] backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-surface/55`}>
+    <div
+      className={`${
+        isAdmin
+          ? "sticky top-0"
+          : isOnLanding
+            ? "fixed left-0 right-0 top-0"
+            : "sticky top-0"
+      } z-50 shadow-[0_14px_40px_-24px_rgb(42_23_38/0.55)] backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-surface/55`}
+    >
       {/* Tier 1 — utility bar (scrolls away). Hidden on admin pages. */}
-      {!isAdmin && <TopBar />}
+      {!isAdmin && (
+        <div
+          className={`transition-all duration-300 ease-out ${
+            shouldCollapseChrome
+              ? "max-h-0 -translate-y-2 overflow-hidden opacity-0"
+              : "max-h-10 translate-y-0 overflow-visible opacity-100"
+          }`}
+        >
+          <TopBar />
+        </div>
+      )}
 
       {/* Tiers 2 & 3 — sticky. Sibling of TopBar (not nested) so its sticky
           containing block is <body>, keeping it pinned for the whole page. */}
       <header
         className={`sticky top-0 z-30 overflow-visible border-b transition-[background-color,box-shadow,border-color] duration-300 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-white/50 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-l after:from-transparent after:via-white/45 after:to-transparent ${
-          scrolled
+          shouldCollapseChrome
             ? "border-white/35 bg-surface/75 shadow-[0_18px_44px_-28px_rgb(42_23_38/0.65)]"
             : "border-white/20 bg-white/10 shadow-none"
         }`}
@@ -116,7 +147,7 @@ export default function Header({isOnLanding} : {isOnLanding ?: boolean}) {
             className={`transition-all duration-300 ease-out ${
               barExpanded ? "overflow-visible" : "overflow-hidden"
             } ${
-              scrolled
+              shouldCollapseChrome
                 ? "max-h-0 opacity-0 -translate-y-2"
                 : "max-h-16 opacity-100 translate-y-0"
             }`}
