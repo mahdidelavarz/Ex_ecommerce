@@ -64,3 +64,14 @@ export interface BulkSortDto {
     sort_order: number;
   }>;
 }
+
+export interface CategoryListOptions {
+  parent_id?: string | null;
+  is_active?: boolean;
+  has_image?: boolean;
+  search?: string;
+  page?: number;
+  limit?: number;
+  sort_by?: string;
+  sort_order?: 'ASC' | 'DESC';
+}

@@ -17,6 +17,7 @@ export class CategoryRepository {
   async findAll(options: {
     parent_id?: string | null;
     is_active?: boolean;
+    has_image?: boolean;
     search?: string;
     page: number;
     limit: number;
@@ -48,6 +49,14 @@ export class CategoryRepository {
       qb.andWhere("category.is_active = :is_active", {
         is_active: options.is_active,
       });
+    }
+
+    if (options.has_image !== undefined) {
+      if (options.has_image) {
+        qb.andWhere("category.image IS NOT NULL AND category.image != ''");
+      } else {
+        qb.andWhere("(category.image IS NULL OR category.image = '')");
+      }
     }
 
     if (options.search) {
@@ -100,9 +109,9 @@ export class CategoryRepository {
     return { category, productsCount };
   }
 
-  async getTree() {
+  async getTree(includeInactive = false) {
     const categories = await this.repo.find({
-      where: { is_active: true },
+      where: includeInactive ? {} : { is_active: true },
       order: { sort_order: "ASC", name: "ASC" },
     });
 
@@ -127,7 +136,10 @@ export class CategoryRepository {
   }
 
   async update(id: string, dto: UpdateCategoryDto) {
-    const category = await this.repo.findOne({ where: { id } });
+    const category = await this.repo.findOne({
+      where: { id },
+      relations: ["children"],
+    });
     if (!category) {
       throw new NotFoundError("دسته‌بندی مورد نظر یافت نشد");
     }
@@ -141,6 +153,11 @@ export class CategoryRepository {
     if (dto.parent_id) {
       if (dto.parent_id === id) {
         throw new BadRequestError("یک دسته‌بندی نمی‌تواند والد خودش باشد");
+      }
+      if (category.children?.length) {
+        throw new BadRequestError(
+          "دسته‌بندی دارای زیرمجموعه نمی‌تواند زیرمجموعه دسته دیگری شود",
+        );
       }
       await this.validateParent(dto.parent_id, id);
     }
@@ -213,10 +230,10 @@ export class CategoryRepository {
   }
 
   async getProductsBySlug(slug: string, page: number, limit: number) {
-    const category = await this.repo.findOne({ where: { slug } });
+    const category = await this.repo.findOne({ where: { slug, is_active: true } });
     if (!category) throw new NotFoundError('دسته‌بندی یافت نشد');
 
-    const childIds = await this.getAllChildrenIds(category.id);
+    const childIds = await this.getAllChildrenIds(category.id, true);
     const allIds = [category.id, ...childIds];
 
     const [products, total] = await this.productRepo
@@ -274,6 +291,18 @@ export class CategoryRepository {
       throw new NotFoundError("دسته‌بندی والد یافت نشد");
     }
 
+    if (parent.parent_id) {
+      throw new BadRequestError(
+        "فقط دسته‌بندی‌های اصلی می‌توانند والد باشند",
+      );
+    }
+
+    if (!parent.is_active) {
+      throw new BadRequestError(
+        "دسته‌بندی والد باید فعال باشد",
+      );
+    }
+
     // Check circular reference: the chosen parent must not be one of this
     // category's own descendants (which would create a loop in the tree).
     if (currentId) {
@@ -286,12 +315,14 @@ export class CategoryRepository {
     }
   }
 
-  private async getAllChildrenIds(categoryId: string): Promise<string[]> {
+  private async getAllChildrenIds(categoryId: string, activeOnly = false): Promise<string[]> {
     const rows: { id: string }[] = await this.repo.query(
       `WITH RECURSIVE tree AS (
          SELECT id FROM categories WHERE parent_id = $1
+         ${activeOnly ? 'AND is_active = true' : ''}
          UNION ALL
          SELECT c.id FROM categories c INNER JOIN tree t ON c.parent_id = t.id
+         ${activeOnly ? 'WHERE c.is_active = true' : ''}
        )
        SELECT id FROM tree`,
       [categoryId],
@@ -323,7 +354,7 @@ export class CategoryRepository {
       const node = map.get(cat.id);
       if (cat.parent_id && map.has(cat.parent_id)) {
         map.get(cat.parent_id).children.push(node);
-      } else {
+      } else if (!cat.parent_id) {
         roots.push(node);
       }
     });

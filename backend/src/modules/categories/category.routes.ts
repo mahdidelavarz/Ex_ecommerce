@@ -14,13 +14,35 @@ import {
 const router = Router();
 const controller = new CategoryController();
 
+// Admin routes
+router.get(
+  '/admin',
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate({ query: categoryQuerySchema }),
+  controller.listAdmin
+);
+
+router.get(
+  '/admin/tree',
+  authenticate,
+  authorize(UserRole.ADMIN),
+  controller.treeAdmin
+);
+
+router.get(
+  '/admin/:id',
+  authenticate,
+  authorize(UserRole.ADMIN),
+  controller.getByIdAdmin
+);
+
 // Public routes
 router.get('/', validate({ query: categoryQuerySchema }), controller.list);
 router.get('/tree', controller.tree);
 router.get('/:slug/products', controller.getProductsBySlug);
 router.get('/:id', controller.getById);
 
-// Admin routes
 router.post(
   '/',
   authenticate,

@@ -2,6 +2,10 @@
 import { z } from 'zod';
 
 const iconifyPattern = /^[a-z0-9-]+:[a-z0-9-]+$/;
+const nullableUuidQuery = z.preprocess(
+  (val) => (val === 'null' ? null : val),
+  z.string().uuid().nullable().optional()
+);
 
 export const createCategorySchema = z.object({
   parent_id: z.string().uuid('شناسه والد نامعتبر است').nullable().optional(),
@@ -66,8 +70,12 @@ export const bulkSortSchema = z.object({
 });
 
 export const categoryQuerySchema = z.object({
-  parent_id: z.string().uuid().nullable().optional(),
+  parent_id: nullableUuidQuery,
   is_active: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  has_image: z
     .string()
     .transform((val) => val === 'true')
     .optional(),

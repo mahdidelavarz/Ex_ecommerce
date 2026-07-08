@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 import { useAdminRoute } from '@/modules/auth/hooks/useAdminRoute';
 import { categoryService } from '@/modules/categories/services/category.service';
 import {
-  useCategoryTree,
+  useAdminCategoryTree,
   useCreateCategory,
   useUpdateCategory,
 } from '@/modules/categories/hooks/useCategories';
@@ -22,9 +22,12 @@ import {
   SolarFolderWithFilesBold,
   MdiInformation,
   MdiImageMultiple,
+  MdiImageOff,
+  MdiClose,
   LucideSearch,
   MdiCheckCircle,
   MdiFolderOpenOutline,
+  SvgSpinnersRingResize,
 } from '@/components/icons/Icons';
 import { Icon } from '@iconify/react';
 
@@ -33,9 +36,9 @@ const iconifyPattern = /^[a-z0-9-]+:[a-z0-9-]+$/;
 function flattenTree(
   nodes: CategoryTreeNode[],
   depth = 0,
-): Array<{ id: string; name: string; depth: number }> {
+): Array<{ id: string; name: string; depth: number; is_active: boolean }> {
   return nodes.flatMap((node) => [
-    { id: node.id, name: node.name, depth },
+    { id: node.id, name: node.name, depth, is_active: node.is_active },
     ...flattenTree(node.children ?? [], depth + 1),
   ]);
 }
@@ -91,6 +94,13 @@ const categoryFormSchema = z
   });
 
 type CategoryFormData = z.infer<typeof categoryFormSchema>;
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
 
 export default function AdminCategoryFormPage() {
   const router = useRouter();
@@ -98,19 +108,22 @@ export default function AdminCategoryFormPage() {
   const { isLoading: isAuthLoading } = useAdminRoute();
   const isEdit = params.id !== 'new';
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [mediaType, setMediaType] = useState<'icon' | 'image'>('icon');
 
-  const { data: categoryTree } = useCategoryTree();
+  const { data: categoryTree } = useAdminCategoryTree();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
 
   const validParents = useMemo(() => {
     const flat = flattenTree(categoryTree ?? []);
-    if (!isEdit) return flat;
+    if (!isEdit) return flat.filter((cat) => cat.depth === 0 && cat.is_active);
     const currentId = params.id as string;
     const subtree = findNode(categoryTree ?? [], currentId);
+    const hasChildren = (subtree?.children?.length ?? 0) > 0;
+    if (hasChildren) return [];
     const excludeIds = new Set([currentId, ...collectDescendantIds(subtree?.children ?? [])]);
-    return flat.filter((cat) => !excludeIds.has(cat.id));
+    return flat.filter((cat) => cat.depth === 0 && cat.is_active && !excludeIds.has(cat.id));
   }, [categoryTree, isEdit, params.id]);
 
   const {
@@ -159,7 +172,7 @@ export default function AdminCategoryFormPage() {
 
   const loadCategory = async (id: string) => {
     try {
-      const category = await categoryService.getBySlug(id);
+      const category = await categoryService.getByIdAdmin(id);
       reset({
         parent_id: category.parent_id || null,
         name: category.name,
@@ -173,9 +186,24 @@ export default function AdminCategoryFormPage() {
         seo_description: category.seo?.description || null,
       });
       setMediaType(category.image ? 'image' : 'icon');
-    } catch (error) {
+    } catch {
       toast.error('خطا در دریافت اطلاعات دسته‌بندی');
       router.push('/admin/categories');
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const url = await categoryService.uploadImage(file);
+      setValue('image', url, { shouldValidate: true, shouldDirty: true });
+      toast.success('تصویر بارگذاری شد');
+    } catch (error: unknown) {
+      const message =
+        (error as ApiError).response?.data?.message || 'خطا در بارگذاری تصویر';
+      toast.error(message);
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -227,11 +255,15 @@ export default function AdminCategoryFormPage() {
         description="جایگاه دسته در ساختار درختی"
         icon={MdiFolderOpenOutline}
       >
-        <Select label="دسته والد" {...register('parent_id')}>
+        <Select
+          label="دسته والد"
+          hint="برای جلوگیری از ساختارهای پیچیده، فقط دسته‌های اصلی می‌توانند والد باشند."
+          {...register('parent_id')}
+        >
           <option value="">بدون والد (دسته اصلی)</option>
           {validParents.map((cat) => (
             <option key={cat.id} value={cat.id}>
-              {'—'.repeat(cat.depth)} {cat.name}
+              {cat.name}
             </option>
           ))}
         </Select>
@@ -380,17 +412,63 @@ export default function AdminCategoryFormPage() {
           </div>
         )}
 
-        {/* Conditional: Image URL */}
+        {/* Conditional: Image upload */}
         {mediaType === 'image' && (
-          <Input
-            label="آدرس تصویر"
-            type="text"
-            dir="ltr"
-            wrapperClassName="md:col-span-2"
-            {...register('image')}
-            placeholder="https://..."
-            error={errors.image?.message}
-          />
+          <div className="space-y-3 md:col-span-2">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-card bg-surface-raised">
+              {selectedImage ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedImage}
+                    alt="پیش‌نمایش دسته‌بندی"
+                    className="h-full w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setValue('image', null, { shouldValidate: true, shouldDirty: true })}
+                    aria-label="حذف تصویر"
+                    className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 text-text-primary shadow-card transition-colors hover:bg-surface"
+                  >
+                    <MdiClose className="h-4 w-4" />
+                  </button>
+                </>
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  {uploadingImage ? (
+                    <SvgSpinnersRingResize className="text-primary" width={32} />
+                  ) : (
+                    <MdiImageOff className="h-10 w-10 text-text-muted" />
+                  )}
+                </div>
+              )}
+            </div>
+
+            <label className="inline-flex w-full cursor-pointer items-center justify-center rounded-button border border-border bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:border-primary hover:text-primary">
+              {uploadingImage ? 'در حال بارگذاری...' : 'انتخاب تصویر'}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                disabled={uploadingImage}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+
+            <Input
+              label="آدرس تصویر"
+              type="text"
+              dir="ltr"
+              {...register('image')}
+              placeholder="https://..."
+              error={errors.image?.message}
+              hint="در صورت نیاز می‌توانید به جای بارگذاری، آدرس مستقیم تصویر را وارد کنید."
+            />
+          </div>
         )}
       </FormSection>
 

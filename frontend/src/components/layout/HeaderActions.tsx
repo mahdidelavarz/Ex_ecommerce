@@ -7,7 +7,6 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 import { useCartStore } from "@/modules/cart/store/cart.store";
 import { useCart } from "@/modules/cart/hooks/useCart";
 import { useWishlist } from "@/modules/wishlist/hooks/useWishlist";
-import ThemeToggle from "./ThemeToggle";
 import AccountMenu from "./AccountMenu";
 import {
   LucideLogIn,
@@ -69,7 +68,6 @@ export default function HeaderActions() {
         <AccountMenu />
       ) : (
         <>
-          <ThemeToggle />
           <Link
             href="/login"
             className="flex items-center gap-2 px-3 sm:px-4 h-10 bg-primary text-white rounded-button

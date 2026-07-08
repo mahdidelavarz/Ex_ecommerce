@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
-  useCategories,
+  useAdminCategories,
   useDeleteCategory,
 } from "@/modules/categories/hooks/useCategories";
 import { useAdminRoute } from "@/modules/auth/hooks/useAdminRoute";
@@ -46,7 +46,7 @@ export default function AdminCategoriesPage() {
   const [search, setSearch] = useState("");
   const [parentFilter, setParentFilter] = useState<string | null>(null);
 
-  const { data, isLoading } = useCategories({
+  const { data, isLoading } = useAdminCategories({
     page,
     limit: 20,
     search: search || undefined,

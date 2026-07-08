@@ -17,7 +17,26 @@ export class CategoryController {
   list = asyncHandler(async (req: Request, res: Response) => {
     const result = await this.service.list({
       parent_id: req.query.parent_id as string | null,
-      is_active: req.query.is_active === 'true' ? true : req.query.is_active === 'false' ? false : undefined,
+      is_active: true,
+      has_image: req.query.has_image as boolean | undefined,
+      search: req.query.search as string,
+      page: req.query.page ? parseInt(req.query.page as string) : undefined,
+      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+      sort_by: req.query.sort_by as string,
+      sort_order: req.query.sort_order as 'ASC' | 'DESC',
+    });
+
+    ApiResponseHelper.success(res, result.data, 'Categories fetched successfully', 200, result.meta);
+  });
+
+  /**
+   * GET /api/v1/categories/admin - Admin list, including inactive categories.
+   */
+  listAdmin = asyncHandler(async (req: Request, res: Response) => {
+    const result = await this.service.list({
+      parent_id: req.query.parent_id as string | null,
+      is_active: req.query.is_active as boolean | undefined,
+      has_image: req.query.has_image as boolean | undefined,
       search: req.query.search as string,
       page: req.query.page ? parseInt(req.query.page as string) : undefined,
       limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
@@ -37,10 +56,26 @@ export class CategoryController {
   });
 
   /**
+   * GET /api/v1/categories/admin/tree - Admin tree, including inactive categories.
+   */
+  treeAdmin = asyncHandler(async (req: Request, res: Response) => {
+    const tree = await this.service.getTree(true);
+    ApiResponseHelper.success(res, tree);
+  });
+
+  /**
    * GET /api/v1/categories/:id - Get single category
    */
   getById = asyncHandler(async (req: Request, res: Response) => {
     const category = await this.service.getByIdOrSlug(req.params.id);
+    ApiResponseHelper.success(res, category);
+  });
+
+  /**
+   * GET /api/v1/categories/admin/:id - Admin single category.
+   */
+  getByIdAdmin = asyncHandler(async (req: Request, res: Response) => {
+    const category = await this.service.getByIdOrSlug(req.params.id, true);
     ApiResponseHelper.success(res, category);
   });
 

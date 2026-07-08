@@ -6,13 +6,16 @@ import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { useCategoryTree } from "@/modules/categories/hooks/useCategories";
 import type { CategoryTreeNode } from "@/modules/categories/types/category.types";
-import { Skeleton } from "@/components/ui";
-import { MdiMenu, MdiChevronDown, MdiNewspaperVariantOutline } from "../icons/Icons";
+import {
+  MdiMenu,
+  MdiChevronDown,
+  MdiNewspaperVariantOutline,
+  MdiTagMultiple,
+} from "../icons/Icons";
 
 export default function CategoryBar() {
-  const { data: categories, isLoading } = useCategoryTree();
+  const { data: categories } = useCategoryTree();
   const [allOpen, setAllOpen] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
 
   return (
     <div className="hidden lg:block">
@@ -58,71 +61,24 @@ export default function CategoryBar() {
             )}
           </div>
 
-          {/* <div className="w-px h-6 bg-border" /> */}
+          <div className="mx-2 h-6 w-px bg-border" />
 
-          {/* Blog link */}
-          {/* <Link
-            href="/blog"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-button text-sm font-medium text-text-secondary transition-colors hover:text-primary"
-          >
-            <MdiNewspaperVariantOutline className="w-4 h-4" />
-            وبلاگ
-          </Link> */}
-
-          <div className="w-px h-6 bg-border mr-2" />
-
-          {/* Inline top-level category links */}
-          {isLoading ? (
-            <div className="flex items-center gap-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-8 w-24" />
-              ))}
-            </div>
-          ) : (
-            <nav aria-label="دسته‌بندی محصولات" className="flex items-center gap-1">
-              {categories?.slice(0, 7).map((category) => (
-                <div
-                  key={category.id}
-                  className="relative h-full flex items-center"
-                  onMouseEnter={() => setActiveId(category.id)}
-                  onMouseLeave={() => setActiveId(null)}
-                >
-                  <Link
-                    href={`/categories/${category.slug}`}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-button text-sm font-medium transition-colors ${
-                      activeId === category.id
-                        ? "text-primary"
-                        : "text-text-secondary hover:text-text-primary"
-                    }`}
-                  >
-                    {category.icon && (
-                      <Icon icon={category.icon} className="w-4 h-4" />
-                    )}
-                    {category.name}
-                    {category.children.length > 0 && (
-                      <MdiChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${
-                          activeId === category.id ? "rotate-180" : ""
-                        }`}
-                      />
-                    )}
-                  </Link>
-
-                  {category.children.length > 0 && (
-                    <div
-                      className={`absolute right-0 top-full min-w-[14rem] bg-surface rounded-card shadow-modal border border-border p-4 z-50 origin-top transition-all duration-200 ease-out ${
-                        activeId === category.id
-                          ? "opacity-100 translate-y-0 visible"
-                          : "opacity-0 -translate-y-1 invisible pointer-events-none"
-                      }`}
-                    >
-                      <CategoryColumn category={category} hideHeadingLink />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </nav>
-          )}
+          <nav aria-label="لینک‌های فروشگاه" className="flex items-center gap-1">
+            <Link
+              href="/brands"
+              className="flex items-center gap-1.5 rounded-button px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-raised hover:text-primary"
+            >
+              <MdiTagMultiple className="h-4 w-4" />
+              برندها
+            </Link>
+            <Link
+              href="/blog"
+              className="flex items-center gap-1.5 rounded-button px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-raised hover:text-primary"
+            >
+              <MdiNewspaperVariantOutline className="h-4 w-4" />
+              وبلاگ
+            </Link>
+          </nav>
         </div>
       </div>
     </div>

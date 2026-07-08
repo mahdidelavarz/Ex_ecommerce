@@ -33,6 +33,7 @@ function errorMessage(error: ApiError, fallback: string) {
 export function useCategories(params?: {
   parent_id?: string | null;
   is_active?: boolean;
+  has_image?: boolean;
   search?: string;
   page?: number;
   limit?: number;
@@ -44,11 +45,34 @@ export function useCategories(params?: {
   });
 }
 
+export function useAdminCategories(params?: {
+  parent_id?: string | null;
+  is_active?: boolean;
+  has_image?: boolean;
+  search?: string;
+  page?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: ['categories', 'admin', params],
+    queryFn: () => categoryService.adminList(params),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function useCategoryTree() {
   return useQuery({
     queryKey: ['categories', 'tree'],
     queryFn: () => categoryService.getTree(),
     staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+export function useAdminCategoryTree() {
+  return useQuery({
+    queryKey: ['categories', 'admin', 'tree'],
+    queryFn: () => categoryService.getAdminTree(),
+    staleTime: 10 * 60 * 1000,
   });
 }
 

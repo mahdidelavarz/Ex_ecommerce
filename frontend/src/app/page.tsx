@@ -41,7 +41,7 @@ export default async function HomePage() {
     fetchProducts({ ...PUBLIC, has_discount: true, has_stock: true, limit: 10 }, 600),
     fetchProducts({ ...PUBLIC, sort_by: "sales", sort_order: "DESC", has_stock: true, limit: 10 }),
     fetchProducts({ ...PUBLIC, sort_by: "created_at", sort_order: "DESC", limit: 10 }),
-    fetchCategories({ is_active: true, limit: 12 }),
+    fetchCategories({ is_active: true, parent_id: "null", has_image: true, limit: 7 }),
     fetchBrands({ is_active: true, limit: 20 }),
     fetchBlogPosts({ is_published: true, limit: 8, sort_by: "published_at", sort_order: "DESC" }),
   ]);

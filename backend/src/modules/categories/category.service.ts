@@ -4,9 +4,9 @@ import {
   CreateCategoryDto,
   UpdateCategoryDto,
   BulkSortDto,
-  CategoryListResponse,
-  CategoryTreeNode,
+  CategoryListOptions,
 } from './category.types';
+import { NotFoundError } from '../../shared/utils/errors';
 
 /**
  * @module Categories
@@ -18,15 +18,7 @@ import {
 export class CategoryService {
   private repo = new CategoryRepository();
 
-  async list(options: {
-    parent_id?: string | null;
-    is_active?: boolean;
-    search?: string;
-    page?: number;
-    limit?: number;
-    sort_by?: string;
-    sort_order?: 'ASC' | 'DESC';
-  }) {
+  async list(options: CategoryListOptions) {
     const page = options.page || 1;
     const limit = options.limit || 50;
     const sort_by = options.sort_by || 'sort_order';
@@ -66,8 +58,12 @@ export class CategoryService {
     };
   }
 
-  async getByIdOrSlug(idOrSlug: string) {
+  async getByIdOrSlug(idOrSlug: string, includeInactive = false) {
     const { category, productsCount } = await this.repo.findByIdOrSlug(idOrSlug);
+
+    if (!includeInactive && (!category.is_active || category.parent?.is_active === false)) {
+      throw new NotFoundError("دسته‌بندی مورد نظر یافت نشد");
+    }
 
     return {
       id: category.id,
@@ -87,12 +83,14 @@ export class CategoryService {
             slug: category.parent.slug,
           }
         : null,
-      children: category.children?.map((child) => ({
-        id: child.id,
-        name: child.name,
-        slug: child.slug,
-        image: child.image,
-      })),
+      children: category.children
+        ?.filter((child) => includeInactive || child.is_active)
+        .map((child) => ({
+          id: child.id,
+          name: child.name,
+          slug: child.slug,
+          image: child.image,
+        })),
       products_count: productsCount,
       seo: {
         title: category.seo_title,
@@ -101,8 +99,8 @@ export class CategoryService {
     };
   }
 
-  async getTree() {
-    return this.repo.getTree();
+  async getTree(includeInactive = false) {
+    return this.repo.getTree(includeInactive);
   }
 
   async create(dto: CreateCategoryDto) {

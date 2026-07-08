@@ -12,21 +12,54 @@ import type {
   CategoriesResponse,
 } from '../types/category.types';
 
+type CategoryListParams = {
+  parent_id?: string | null;
+  is_active?: boolean;
+  has_image?: boolean;
+  search?: string;
+  page?: number;
+  limit?: number;
+};
+
 export const categoryService = {
+  /**
+   * Upload an image file (admin). Returns the absolute URL to store.
+   */
+  uploadImage: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post<ApiResponse<{ url: string }>>(
+      '/uploads',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    );
+    return response.data.data.url;
+  },
+
   /**
    * List categories with optional filters
    */
-  list: async (params?: {
-    parent_id?: string | null;
-    is_active?: boolean;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<CategoriesResponse> => {
+  list: async (params?: CategoryListParams): Promise<CategoriesResponse> => {
     const response = await apiClient.get<
       ApiResponse<Category[]> & { meta: CategoriesResponse['meta'] }
     >(
       '/categories',
+      { params }
+    );
+    return {
+      data: response.data.data,
+      meta: response.data.meta,
+    };
+  },
+
+  /**
+   * Admin list categories, including inactive categories.
+   */
+  adminList: async (params?: CategoryListParams): Promise<CategoriesResponse> => {
+    const response = await apiClient.get<
+      ApiResponse<Category[]> & { meta: CategoriesResponse['meta'] }
+    >(
+      '/categories/admin',
       { params }
     );
     return {
@@ -46,11 +79,31 @@ export const categoryService = {
   },
 
   /**
+   * Get category by id for admin edit screens, including inactive categories.
+   */
+  getByIdAdmin: async (id: string): Promise<CategoryDetail> => {
+    const response = await apiClient.get<ApiResponse<CategoryDetail>>(
+      `/categories/admin/${id}`
+    );
+    return response.data.data;
+  },
+
+  /**
    * Get full category tree
    */
   getTree: async (): Promise<CategoryTreeNode[]> => {
     const response = await apiClient.get<ApiResponse<CategoryTreeNode[]>>(
       '/categories/tree'
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get full category tree for admin screens, including inactive categories.
+   */
+  getAdminTree: async (): Promise<CategoryTreeNode[]> => {
+    const response = await apiClient.get<ApiResponse<CategoryTreeNode[]>>(
+      '/categories/admin/tree'
     );
     return response.data.data;
   },
