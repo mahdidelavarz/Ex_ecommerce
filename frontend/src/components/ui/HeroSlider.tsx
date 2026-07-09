@@ -46,8 +46,8 @@ type HeroSliderProps = {
 const DEFAULT_SLIDES: HeroSlide[] = [
   {
     id: "lux",
-    desktopImage:"images/cosmetics-banner-desktop.png",
-    phoneImage : "images/cosmetics-banner-phone.png",
+    desktopImage:"images/cosmetics-banner-desktop.webp",
+    phoneImage : "images/cosmetics-banner-phone.webp",
     title: "مجموعه‌ی لوکس آرایشی",
     subtitle: "زیبایی ماندگار با بهترین برندهای جهان",
     ctaLabel: "مشاهده محصولات",
@@ -56,8 +56,8 @@ const DEFAULT_SLIDES: HeroSlide[] = [
   },
   {
     id: "skincare",
-    desktopImage:"images/skincare-banner-desktop.png",
-    phoneImage : "images/skincare-banner-phone.png",
+    desktopImage:"images/skin.webp",
+    phoneImage : "images/skin2.webp",
     title: "مراقبت از پوست",
     subtitle: "درخششی طبیعی برای هر روز شما",
     ctaLabel: "خرید محصولات مراقبت پوست",
@@ -66,8 +66,8 @@ const DEFAULT_SLIDES: HeroSlide[] = [
   },
   {
     id: "fragrance",
-    desktopImage:"images/haircare-banner-desktop.png",
-    phoneImage : "images/haircare-banner-phone.png",
+    desktopImage:"images/hair.webp",
+    phoneImage : "images/hair2.webp",
     title: "مراقبت از مو",
     subtitle: "زیبایی و سلامت موهای شما با محصولات حرفه‌ای",
     ctaLabel: "خرید محصولات مراقبت مو",
@@ -98,6 +98,7 @@ export function HeroSlider({
   const [{ w, h }, setSize] = useState({ w: 0, h: 0 });
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
   const phone = useIsPhone();
 
   const count = slides.length;
@@ -146,6 +147,39 @@ export function HeroSlider({
     }
   };
 
+  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!hasControls || !phone) return;
+    const touch = e.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+    setPaused(true);
+  };
+
+  const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!hasControls || !phone || !start) return;
+
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) {
+      window.setTimeout(() => setPaused(false), 800);
+      return;
+    }
+
+    if (dx < 0) {
+      next();
+    } else {
+      prev();
+    }
+    window.setTimeout(() => setPaused(false), 800);
+  };
+
+  const onTouchCancel = () => {
+    touchStart.current = null;
+    setPaused(false);
+  };
+
   const ready = w > 0 && h > 0;
 
   return (
@@ -163,6 +197,9 @@ export function HeroSlider({
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchCancel}
     >
       {ready && (
         <>
@@ -220,7 +257,7 @@ export function HeroSlider({
 
                   {/* Caption */}
                   <div
-                    className={`absolute inset-0 flex flex-col justify-center gap-4 p-8 md:p-16 ${
+                    className={`absolute inset-0 flex flex-col justify-end gap-3 px-5 pb-24 pt-16 mb-12 md:justify-center md:gap-4 md:p-16 md:mb-0 ${
                       alignCenter
                         ? "items-center text-center"
                         : "items-start text-right"
@@ -228,9 +265,9 @@ export function HeroSlider({
                   >
                     {isActive && (
                       <div
-                        className={`flex flex-col gap-4 lg:mr-30 ${
+                        className={`flex max-w-[18rem] flex-col gap-2.5 md:max-w-xl md:gap-4 lg:mr-30 ${
                           alignCenter ? "items-center" : "items-start"
-                        } max-w-xl`}
+                        }`}
                       >
                         {slide.eyebrow && (
                           <p
@@ -242,7 +279,7 @@ export function HeroSlider({
                           </p>
                         )}
                         <h2
-                          className="animate-fade-in text-4xl font-black leading-[1.2] text-white drop-shadow-md md:text-6xl"
+                          className="animate-fade-in text-2xl font-black leading-[1.25] text-white drop-shadow-md sm:text-3xl md:text-6xl"
                           style={{
                             animationDelay: "120ms",
                             animationFillMode: "both",
@@ -252,7 +289,7 @@ export function HeroSlider({
                         </h2>
                         {slide.subtitle && (
                           <p
-                            className="animate-fade-in max-w-md text-base font-light leading-8 text-white/85 drop-shadow md:text-xl"
+                            className="animate-fade-in max-w-[17rem] text-sm font-light leading-6 text-white/85 drop-shadow md:max-w-md md:text-xl md:leading-8"
                             style={{
                               animationDelay: "240ms",
                               animationFillMode: "both",
@@ -271,15 +308,15 @@ export function HeroSlider({
                           >
                             <Link
                               href={slide.ctaHref}
-                              className="inline-flex items-center gap-2 rounded-full bg-secondary px-8 py-3.5 text-base font-bold text-[#2A1726] shadow-card transition-all duration-200 hover:gap-3 hover:bg-secondary-hover"
+                              className="inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-bold text-[#2A1726] shadow-card transition-all duration-200 hover:gap-3 hover:bg-secondary-hover md:px-8 md:py-3.5 md:text-base"
                             >
                               {slide.ctaLabel}
-                              <MdiChevronLeft className="h-5 w-5" />
+                              <MdiChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
                             </Link>
                             {slide.ctaSecondary && (
                               <Link
                                 href={slide.ctaSecondary.href}
-                                className="inline-flex items-center rounded-full border border-white/50 px-8 py-3.5 text-base font-medium text-white backdrop-blur-sm transition-colors duration-200 hover:bg-white/10"
+                                className="inline-flex items-center rounded-full border border-white/50 px-5 py-2.5 text-sm font-medium text-white backdrop-blur-sm transition-colors duration-200 hover:bg-white/10 md:px-8 md:py-3.5 md:text-base"
                               >
                                 {slide.ctaSecondary.label}
                               </Link>
@@ -301,7 +338,7 @@ export function HeroSlider({
                 type="button"
                 onClick={next}
                 aria-label="اسلاید بعدی"
-                className="absolute top-1/2 start-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface"
+                className="absolute top-1/2 start-4 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface md:flex"
               >
                 <MdiChevronRight className="h-6 w-6" />
               </button>
@@ -309,7 +346,7 @@ export function HeroSlider({
                 type="button"
                 onClick={prev}
                 aria-label="اسلاید قبلی"
-                className="absolute top-1/2 end-4 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface"
+                className="absolute top-1/2 end-4 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-surface/80 text-text-primary shadow-card backdrop-blur transition-all duration-200 hover:scale-110 hover:bg-surface md:flex"
               >
                 <MdiChevronLeft className="h-6 w-6" />
               </button>

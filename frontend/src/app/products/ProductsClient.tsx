@@ -7,13 +7,13 @@ import { useCategories } from '@/modules/categories/hooks/useCategories';
 import { useAllBrands } from '@/modules/brands/hooks/useBrands';
 import { useAllTags } from '@/modules/tags/hooks/useTags';
 import ProductGrid from '@/modules/products/components/ProductGrid';
-import { Drawer, Input, Pagination, Select, Toggle } from '@/components/ui';
-import { LucideSearch, MdiChevronLeft, MdiClose, MdiMenu } from '@/components/icons/Icons';
+import { Drawer, Input, Pagination, Select, Toggle, type PaginationMeta } from '@/components/ui';
+import { LucideSearch, MdiClose, MdiMenu } from '@/components/icons/Icons';
 import type { ProductListResponse } from '@/modules/products/types/product.types';
 
 interface ProductsClientProps {
   /** Server-fetched first render of the product list for the current URL. */
-  initialData: { data: ProductListResponse[]; meta: any };
+  initialData: { data: ProductListResponse[]; meta: PaginationMeta | null };
 }
 
 export default function ProductsClient({ initialData }: ProductsClientProps) {
@@ -299,6 +299,7 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
           <ProductGrid
             products={productsData?.data || []}
             isLoading={isLoading}
+            mobileLayout="list"
             emptyMessage="محصولی با این فیلترها یافت نشد"
           />
 

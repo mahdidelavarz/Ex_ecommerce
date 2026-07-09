@@ -571,10 +571,10 @@ export default function AdminProductFormPage() {
             {imageFields.map((field, index) => (
               <div
                 key={field.id}
-                className="flex items-start gap-4 p-4 bg-surface-raised rounded-card"
+                className="grid grid-cols-1 gap-4 rounded-card border border-border bg-surface-raised p-3 sm:grid-cols-[6rem_minmax(0,1fr)_auto_auto] sm:items-start sm:p-4"
               >
                 {/* Preview */}
-                <div className="w-20 h-20 shrink-0 rounded-card border border-border bg-surface overflow-hidden flex items-center justify-center">
+                <div className="h-28 w-28 shrink-0 rounded-card border border-border bg-surface overflow-hidden flex items-center justify-center justify-self-start sm:h-24 sm:w-24">
                   {watchedImages?.[index]?.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -583,11 +583,11 @@ export default function AdminProductFormPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <MdiImageMultiple className="w-6 h-6 text-text-muted" />
+                    <MdiImageMultiple className="w-7 h-7 text-text-muted" />
                   )}
                 </div>
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="sm:col-span-2">
+                <div className="min-w-0 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                  <div className="min-w-0 space-y-3">
                     <Input
                       label="آدرس تصویر"
                       dir="ltr"
@@ -595,15 +595,21 @@ export default function AdminProductFormPage() {
                       placeholder="https://..."
                       className="text-sm"
                     />
-                    <label className="inline-flex items-center gap-2 mt-2 cursor-pointer text-xs text-primary hover:underline">
+                    <label
+                      className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-button border-2 border-primary px-4 py-2 text-sm font-medium text-primary transition-colors sm:w-auto ${
+                        uploadingIndex !== null
+                          ? "cursor-not-allowed opacity-50"
+                          : "cursor-pointer hover:bg-primary-light"
+                      }`}
+                    >
                       {uploadingIndex === index ? (
                         <>
-                          <SvgSpinnersRingResize className="w-4 h-4" />
+                          <SvgSpinnersRingResize className="w-5 h-5" />
                           در حال بارگذاری...
                         </>
                       ) : (
                         <>
-                          <MdiImageMultiple className="w-4 h-4" />
+                          <MdiImageMultiple className="w-5 h-5" />
                           بارگذاری فایل
                         </>
                       )}
@@ -627,7 +633,7 @@ export default function AdminProductFormPage() {
                     className="text-sm"
                   />
                 </div>
-                <div className="mt-6">
+                <div className="flex items-center justify-self-start sm:pt-8">
                   <Checkbox
                     label={<span className="text-xs">تصویر اصلی</span>}
                     {...register(`images.${index}.is_thumbnail`)}
@@ -637,9 +643,10 @@ export default function AdminProductFormPage() {
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    className="p-2 hover:bg-error-light rounded-button text-error mt-5 cursor-pointer"
+                    className="p-2 hover:bg-error-light rounded-button text-error cursor-pointer justify-self-start sm:mt-8"
+                    aria-label="حذف تصویر"
                   >
-                    <MdiClose className="w-4 h-4" />
+                    <MdiClose className="w-5 h-5" />
                   </button>
                 )}
               </div>

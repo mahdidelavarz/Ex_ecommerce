@@ -20,6 +20,7 @@ export default function RouteChrome({
   const isCompleteProfilePage =
     pathname === "/profile" && isAuthenticated && user?.profile_completed === false;
   const shouldHideChrome = isLoginPage || isCompleteProfilePage;
+  const isAdminPage = pathname?.startsWith("/admin") ?? false;
   const isLandingPage = pathname === "/";
 
   return (
@@ -29,6 +30,8 @@ export default function RouteChrome({
         className={
           shouldHideChrome
             ? "h-dvh overflow-hidden"
+            : isAdminPage
+              ? "flex-1 min-h-0 overflow-hidden"
             : "flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0"
         }
       >

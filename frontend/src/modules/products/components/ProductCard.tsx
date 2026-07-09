@@ -17,15 +17,20 @@ import {
 
 interface ProductCardProps {
   product: ProductListResponse;
+  mobileLayout?: 'grid' | 'list';
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, mobileLayout = 'grid' }: ProductCardProps) {
   const { addItem, isAdding } = useCart();
 
   const minPrice = product.price_range.min;
   const isRange = product.price_range.max > product.price_range.min;
   const outOfStock = product.total_stock === 0;
   const href = `/products/${product.slug}`;
+  const priceLabel =
+    outOfStock || !product.default_variant_id || minPrice <= 0
+      ? 'ناموجود'
+      : `${isRange ? 'از ' : ''}${formatPrice(minPrice)}`;
 
   const canQuickAdd = !!product.default_variant_id && product.default_variant_stock > 0;
 
@@ -35,7 +40,69 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <article className="group relative flex h-full flex-col bg-surface rounded-card shadow-card hover:shadow-card-hover transition-shadow duration-200">
+    <>
+      {mobileLayout === 'list' && (
+        <article className="group relative grid min-h-32 grid-cols-[5rem_minmax(0,1fr)_5.25rem] gap-2.5 border-b border-border bg-surface py-4 md:hidden">
+          <Link
+            href={href}
+            className="relative block aspect-square overflow-hidden rounded-card bg-surface-raised"
+            aria-label={product.title}
+          >
+            {product.thumbnail ? (
+              <Image
+                src={product.thumbnail}
+                alt={product.title}
+                fill
+                className="object-contain p-1.5 transition-transform duration-500 ease-out group-hover:scale-105"
+                sizes="80px"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <MdiImageOff className="h-9 w-9 text-text-muted" />
+              </div>
+            )}
+            {product.discount_percent > 0 && !outOfStock && (
+              <span className="absolute bottom-1.5 left-1.5 rounded-full bg-error px-2 py-0.5 text-[10px] font-bold text-white shadow-card">
+                {toPersianDigits(product.discount_percent)}٪
+              </span>
+            )}
+          </Link>
+
+          <Link href={href} className="min-w-0 pt-1" aria-label={product.title}>
+            {product.brand?.name && (
+              <p className="mb-1 truncate text-[11px] font-medium text-text-muted">
+                {product.brand.name}
+              </p>
+            )}
+            <h3 className="line-clamp-2 text-sm font-bold leading-7 text-text-primary transition-colors group-hover:text-primary">
+              {product.title}
+            </h3>
+            {product.short_description && (
+              <p className="mt-1 line-clamp-2 text-xs leading-6 text-text-secondary">
+                {product.short_description}
+              </p>
+            )}
+          </Link>
+
+          <div className="flex min-w-0 flex-col items-end justify-end gap-3 pb-0.5">
+            <div className="flex items-center gap-1 text-xs" dir="ltr">
+              <LucideStar className="h-4 w-4 fill-secondary text-secondary" />
+              <span className="font-bold text-text-primary">
+                {toPersianDigits(product.avg_rating ? product.avg_rating.toFixed(1) : '0')}
+              </span>
+            </div>
+            <p className={`whitespace-nowrap text-left text-sm font-extrabold leading-6 ${outOfStock ? 'text-text-muted' : 'text-text-primary'}`}>
+              {priceLabel}
+            </p>
+          </div>
+        </article>
+      )}
+
+      <article
+        className={`group relative h-full flex-col bg-surface rounded-card shadow-card hover:shadow-card-hover transition-shadow duration-200 ${
+          mobileLayout === 'list' ? 'hidden md:flex' : 'flex'
+        }`}
+      >
       {/* Wishlist — standalone (not nested in the link) */}
       {product.default_variant_id && (
         <div className="absolute top-3 left-3 z-10">
@@ -130,6 +197,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </span>
         </button>
       </div>
-    </article>
+      </article>
+    </>
   );
 }

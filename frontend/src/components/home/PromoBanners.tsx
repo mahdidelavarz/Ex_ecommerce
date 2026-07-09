@@ -11,7 +11,7 @@ const BANNERS = [
     cta: "خرید محصولات پوست",
     href: "/products",
     image:
-      "https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?auto=format&fit=crop&w=1200&q=80",
+      "images/promo.webp",
   },
   {
     eyebrow: "آرایش لب",
@@ -20,7 +20,7 @@ const BANNERS = [
     cta: "کشف رنگ‌ها",
     href: "/products",
     image:
-      "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=1200&q=80",
+      "images/promo2.webp",
   },
 ];
 
