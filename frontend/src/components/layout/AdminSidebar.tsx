@@ -16,6 +16,7 @@ import {
   MdiClose,
   MdiCog,
   MdiCommentTextOutline,
+  MdiInformation,
   MdiKeyboardReturn,
   MdiNewspaperVariantOutline,
   MdiPackageVariant,
@@ -73,6 +74,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { title: "کاربران", icon: MdiAccountGroup, href: "/admin/users" },
       { title: "تنظیمات", icon: MdiCog, href: "/admin/settings" },
+      { title: "راهنما", icon: MdiInformation, href: "/admin/help" },
       { title: "کامپوننت‌ها (UI)", icon: MdiShape, href: "/admin/ui-showcase" },
     ],
   },
