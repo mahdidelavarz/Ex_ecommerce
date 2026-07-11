@@ -23,6 +23,7 @@ interface ProductCarouselProps {
   onDark?: boolean;
   /** Extra full-width row between the heading and the track (e.g. countdown) */
   headerExtra?: ReactNode;
+  size?: "default" | "compact";
   className?: string;
 }
 
@@ -33,7 +34,8 @@ export default function ProductCarousel({
   href,
   linkLabel,
   onDark = false,
-  headerExtra,
+  // headerExtra,
+  size = "default",
   className = "",
 }: ProductCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -109,6 +111,13 @@ export default function ProductCarousel({
       ? "bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
       : "bg-surface text-text-primary shadow-card hover:bg-surface-raised"
   }`;
+  const compact = size === "compact";
+  const trackClass = compact
+    ? "gap-3 md:gap-4"
+    : "gap-4 md:gap-6";
+  const slideClass = compact
+    ? "w-[62%] sm:w-[38%] md:w-[27%] lg:w-[20%] xl:w-[18%]"
+    : "w-[70%] sm:w-[45%] md:w-[31%] lg:w-[23%]";
 
   return (
     <div className={className}>
@@ -142,7 +151,7 @@ export default function ProductCarousel({
         }
       />
 
-      {headerExtra && <div className="mb-6">{headerExtra}</div>}
+      {/* {headerExtra && <div className={compact ? "mb-5" : "mb-6"}>{headerExtra}</div>} */}
 
       <div
         ref={trackRef}
@@ -152,13 +161,13 @@ export default function ProductCarousel({
         onPointerUp={endDrag}
         onPointerLeave={endDrag}
         onClickCapture={onClickCapture}
-        className="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto pb-2 select-none active:cursor-grabbing md:gap-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className={`flex cursor-grab snap-x snap-mandatory overflow-x-auto pb-2 select-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${trackClass}`}
       >
         {products.map((product) => (
           <div
             key={product.id}
             data-carousel-card
-            className="w-[70%] shrink-0 snap-start sm:w-[45%] md:w-[31%] lg:w-[23%]"
+            className={`${slideClass} shrink-0 snap-start`}
           >
             <ProductCard product={product} />
           </div>

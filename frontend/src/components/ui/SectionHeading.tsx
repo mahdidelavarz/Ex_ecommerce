@@ -33,7 +33,7 @@ export default function SectionHeading({
   const centered = align === "center";
 
   const heading = (
-    <div className={centered ? "flex flex-col items-center text-center" : ""}>
+    <div className={centered ? "flex flex-col items-center text-center" : "flex flex-col gap-4"}>
       {eyebrow && (
         <p
           className={`mb-2 flex items-center gap-2 text-xs font-bold tracking-[0.25em] ${
@@ -46,13 +46,13 @@ export default function SectionHeading({
         </p>
       )}
       <h2
-        className={`text-2xl font-bold md:text-3xl ${
+        className={`text-2xl font-bold md:text-3xl text-nowrap ${
           onDark ? "text-white" : "text-text-primary"
         }`}
       >
         {title}
       </h2>
-      <div className="mt-2 h-1 w-16 rounded-full bg-gradient-to-l from-secondary to-primary" />
+      {/* <div className="mt-2 h-1 w-16 rounded-full bg-gradient-to-l from-secondary to-primary" /> */}
       {subtitle && (
         <p
           className={`mt-3 text-sm leading-7 ${
@@ -70,7 +70,7 @@ export default function SectionHeading({
   }
 
   return (
-    <div className={`mb-8 flex items-end justify-between gap-4 ${className}`}>
+    <div className={`mb-8 flex items-start justify-between gap-4 ${className}`}>
       {heading}
       {(href || actions) && (
         <div className="flex shrink-0 items-center gap-2">
@@ -83,8 +83,8 @@ export default function SectionHeading({
                   : "text-primary hover:text-primary-hover"
               }`}
             >
-              {linkLabel}
               <MdiArrowRight className="h-4 w-4" />
+              {linkLabel}
             </Link>
           )}
           {actions}

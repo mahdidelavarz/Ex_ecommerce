@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/modules/auth/store/auth.store';
 import { useAddToWishlist, useRemoveFromWishlist, useWishlist } from '../hooks/useWishlist';
-import { MdiHeart, MdiHeartOutline } from '@/components/icons/Icons';
+import {  SolarHeartAngleBold, SolarHeartAngleOutline } from '@/components/icons/Icons';
 
 interface WishlistButtonProps {
   variantId: string;
@@ -48,14 +48,14 @@ export default function WishlistButton({ variantId, className = '', size = 24 }:
     <button
       onClick={handleToggle}
       disabled={isPending}
-      className={`p-2 rounded-button transition-colors ${
+      className={` rounded-button transition-colors ${
         isWishlisted
-          ? 'bg-error-light text-error hover:bg-error-light/80'
-          : 'hover:bg-surface-raised text-text-secondary'
+          ? ' text-error '
+          : ' text-text-secondary'
       } ${isPending ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
       aria-label={isWishlisted ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
     >
-      {isWishlisted ? <MdiHeart width={size}/> : <MdiHeartOutline width={size}/>}
+      {isWishlisted ? <SolarHeartAngleBold width={size}/> : <SolarHeartAngleOutline width={size}/>}
     </button>
   );
 }

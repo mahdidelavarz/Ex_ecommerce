@@ -32,6 +32,16 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
       ? 'ناموجود'
       : `${isRange ? 'از ' : ''}${formatPrice(minPrice)}`;
 
+  const hasDiscount =
+    product.discount_percent > 0 &&
+    product.discount_percent < 100 &&
+    !!product.default_variant_id &&
+    !outOfStock &&
+    minPrice > 0;
+  const beforeDiscountLabel = hasDiscount
+    ? formatPrice(Math.round(minPrice / (1 - product.discount_percent / 100)))
+    : null;
+
   const canQuickAdd = !!product.default_variant_id && product.default_variant_stock > 0;
 
   const handleAddToCart = () => {
@@ -42,10 +52,10 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
   return (
     <>
       {mobileLayout === 'list' && (
-        <article className="group relative grid min-h-32 grid-cols-[5rem_minmax(0,1fr)_5.25rem] gap-2.5 border-b border-border bg-surface py-4 md:hidden">
+        <article className="group relative grid min-h-32 grid-cols-[5rem_minmax(0,1fr)_5.25rem] gap-2.5 border-b border-border py-2 md:hidden">
           <Link
             href={href}
-            className="relative block aspect-square overflow-hidden rounded-card bg-surface-raised"
+            className="relative block overflow-hidden rounded-card min-w-20"
             aria-label={product.title}
           >
             {product.thumbnail ? (
@@ -53,7 +63,7 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
                 src={product.thumbnail}
                 alt={product.title}
                 fill
-                className="object-contain p-1.5 transition-transform duration-500 ease-out group-hover:scale-105"
+                className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 sizes="80px"
               />
             ) : (
@@ -61,11 +71,7 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
                 <MdiImageOff className="h-9 w-9 text-text-muted" />
               </div>
             )}
-            {product.discount_percent > 0 && !outOfStock && (
-              <span className="absolute bottom-1.5 left-1.5 rounded-full bg-error px-2 py-0.5 text-[10px] font-bold text-white shadow-card">
-                {toPersianDigits(product.discount_percent)}٪
-              </span>
-            )}
+            
           </Link>
 
           <Link href={href} className="min-w-0 pt-1" aria-label={product.title}>
@@ -91,9 +97,23 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
                 {toPersianDigits(product.avg_rating ? product.avg_rating.toFixed(1) : '0')}
               </span>
             </div>
-            <p className={`whitespace-nowrap text-left text-sm font-extrabold leading-6 ${outOfStock ? 'text-text-muted' : 'text-text-primary'}`}>
+            <div className="flex flex-col items-end gap-0.5">
+             <p className={`whitespace-nowrap text-left text-sm font-extrabold leading-6 ${outOfStock ? 'text-text-muted' : 'text-text-primary'}`}>
               {priceLabel}
             </p>
+              <div className="flex items-center gap-2">
+              {product.discount_percent > 0 && !outOfStock && (
+                <span className="rounded-full bg-error px-2 py-0.5 text-[10px] font-bold text-white shadow-card">
+                {toPersianDigits(product.discount_percent)}٪
+              </span>
+            )}
+              {beforeDiscountLabel && (
+                <p className="whitespace-nowrap text-left text-[11px] font-medium leading-4 text-text-muted line-through decoration-error/70 decoration-1">
+                  {beforeDiscountLabel}
+                </p>
+              )}
+              </div>
+            </div>
           </div>
         </article>
       )}
@@ -108,8 +128,7 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
         <div className="absolute top-3 left-3 z-10">
           <WishlistButton
             variantId={product.default_variant_id}
-            size={18}
-            className="bg-surface/90 backdrop-blur-sm shadow-card !rounded-full"
+            size={24}
           />
         </div>
       )}
@@ -153,13 +172,11 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
 
       {/* Body */}
       <div className="flex flex-1 flex-col p-4">
-        <p className="mb-1 min-h-4 text-[11px] font-medium uppercase tracking-[0.12em] text-text-muted">
+        <div className='w-full flex justify-between'>
+          <p className="mb-1 min-h-4 text-[11px] font-medium uppercase tracking-[0.12em] text-text-muted">
           {product.brand?.name}
         </p>
-
-        {/* Title */}
-        <div className="mb-3 flex min-h-14 items-start justify-between gap-3" dir="ltr">
-          {product.reviews_count > 0 ? (
+        {product.reviews_count > 0 ? (
             <div className="flex shrink-0 items-center gap-1 pt-1 text-xs text-text-muted" dir="ltr">
               <LucideStar className="h-3.5 w-3.5 text-secondary" />
               <span className="font-medium text-text-secondary">
@@ -167,9 +184,12 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
               </span>
             </div>
           ) : (
-            <span className="w-9 shrink-0" aria-hidden />
+            <span className=" shrink-0" aria-hidden />
           )}
+        </div>
 
+        {/* Title */}
+        <div className="mb-3 flex min-h-10 items-start justify-between gap-3" dir="ltr">
           <Link href={href} className="min-w-0 flex-1 text-right" dir="rtl">
             <h3 className="line-clamp-2 font-medium leading-relaxed text-text-primary transition-colors group-hover:text-primary">
               {product.title}

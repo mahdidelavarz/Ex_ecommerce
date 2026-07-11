@@ -69,8 +69,11 @@ services:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
       - ./frontend/next.config.ts:/app/next.config.ts
+      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs
     environment:
       - WATCHPACK_POLLING=true
+      - WATCHPACK_POLLING_INTERVAL=1000
+      - CHOKIDAR_USEPOLLING=true
       - NEXT_TELEMETRY_DISABLED=1
       - API_PROXY_TARGET=http://backend:5000
       # Server-side (SSR) fetches run inside the container and can't use the

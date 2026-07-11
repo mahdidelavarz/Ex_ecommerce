@@ -240,27 +240,29 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
         {/* Main Content */}
         <div className="flex-1 min-w-0">
           {/* Sort Bar */}
-          <div className="flex items-center justify-between mb-4 bg-surface rounded-card shadow-card px-4 py-2.5">
-            <div className="flex items-center gap-3">
+          <div className="mb-4 md:hidden flex items-center justify-between gap-3 rounded-card border border-border bg-surface px-2.5 py-2 shadow-card sm:px-4 sm:py-3">
+            <div className="flex w-1/2 items-center gap-2 sm:gap-3">
               {/* Mobile filter toggle */}
               <button
                 onClick={() => setMobileFiltersOpen(true)}
-                className="lg:hidden flex items-center gap-1 text-sm text-text-secondary border border-border rounded-button px-3 py-1.5 cursor-pointer hover:border-primary"
+                className="w-full lg:hidden flex h-9 items-center gap-1.5 rounded-button border border-border px-2.5 text-xs font-medium text-text-secondary transition-colors hover:border-primary hover:text-primary cursor-pointer sm:h-10 sm:px-3 sm:text-sm"
               >
                 <MdiMenu className="w-4 h-4" />
                 فیلترها
               </button>
-              <p className="text-sm text-text-secondary">
-                <span className="font-bold text-text-primary">{productsData?.meta?.total || 0}</span> محصول
-              </p>
+             
             </div>
-            <Select
+            <div className="w-1/2 flex shrink-0 items-center gap-2">
+              <span className="hidden text-xs text-text-muted md:inline">نمایش بر اساس</span>
+              <Select
+                aria-label="مرتب‌سازی محصولات"
               value={`${sortBy}-${sortOrder}`}
               onChange={(e) => {
                 const [by, order] = e.target.value.split('-');
                 updateParams({ sort_by: by, sort_order: order }, false);
               }}
-              wrapperClassName="w-44"
+              wrapperClassName="w-full sm:w-44"
+              className="w-full !h-9 !rounded-button !px-3 !py-1.5 !pe-8 !text-xs sm:!h-10 sm:!px-4 sm:!py-2 sm:!pe-10 sm:!text-sm"
               options={[
                 { value: 'created_at-DESC', label: 'جدیدترین' },
                 { value: 'created_at-ASC', label: 'قدیمی‌ترین' },
@@ -270,7 +272,8 @@ export default function ProductsClient({ initialData }: ProductsClientProps) {
                 { value: 'price-DESC', label: 'گران‌ترین' },
                 { value: 'title-ASC', label: 'الفبا (الف-ی)' },
               ]}
-            />
+              />
+            </div>
           </div>
 
           {/* Active filter chips */}
