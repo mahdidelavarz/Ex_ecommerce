@@ -4,6 +4,7 @@ import {
   CATEGORY_REVALIDATE_PATHS,
   revalidateStorefront,
 } from '@/lib/cache-revalidation';
+import { normalizeUploadUrl } from '@/utils/imageUrl';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type {
   Category,
@@ -23,7 +24,8 @@ type CategoryListParams = {
 
 export const categoryService = {
   /**
-   * Upload an image file (admin). Returns the absolute URL to store.
+   * Upload an image file (admin). Store local uploads as same-origin paths so
+   * previews work from localhost, LAN devices, and Docker-backed environments.
    */
   uploadImage: async (file: File): Promise<string> => {
     const formData = new FormData();
@@ -33,7 +35,7 @@ export const categoryService = {
       formData,
       { headers: { 'Content-Type': 'multipart/form-data' } },
     );
-    return response.data.data.url;
+    return normalizeUploadUrl(response.data.data.url) ?? response.data.data.url;
   },
 
   /**

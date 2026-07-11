@@ -15,6 +15,7 @@ import {
   useUpdateCategory,
 } from '@/modules/categories/hooks/useCategories';
 import { numberField } from '@/lib/forms';
+import { getImageSrc } from '@/utils/imageUrl';
 import type { CategoryTreeNode } from '@/modules/categories/types/category.types';
 import AdminFormLayout from '@/components/layout/AdminFormLayout';
 import { FormSection, Input, Select, Textarea, Toggle } from '@/components/ui';
@@ -32,6 +33,12 @@ import {
 import { Icon } from '@iconify/react';
 
 const iconifyPattern = /^[a-z0-9-]+:[a-z0-9-]+$/;
+const imagePathPattern = /^\/uploads\/[^?#]+\.(jpe?g|png|webp|gif)(\?.*)?$/i;
+const imageValueSchema = z.string().refine(
+  (val) =>
+    !val || z.string().url().safeParse(val).success || imagePathPattern.test(val),
+  'ط¢ط¯ط±ط³ طھطµظˆغŒط± ظ†ط§ظ…ط¹طھط¨ط± ط§ط³طھ',
+);
 
 function flattenTree(
   nodes: CategoryTreeNode[],
@@ -66,8 +73,7 @@ const categoryFormSchema = z
       .max(100, 'نام دسته‌بندی نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد'),
     description: z.string().nullable(),
     image: z
-      .string()
-      .refine((val) => !val || z.string().url().safeParse(val).success, 'آدرس تصویر نامعتبر است')
+      .union([imageValueSchema, z.literal('')])
       .nullable(),
     icon: z
       .string()
@@ -152,6 +158,7 @@ export default function AdminCategoryFormPage() {
   const selectedColor = watch('color');
   const selectedIcon = watch('icon');
   const selectedImage = watch('image');
+  const selectedImageSrc = getImageSrc(selectedImage);
   const isActive = watch('is_active');
   const watchedName = watch('name');
 
@@ -283,9 +290,9 @@ export default function AdminCategoryFormPage() {
             className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden shrink-0"
             style={{ backgroundColor: selectedColor || '#ccc' }}
           >
-            {mediaType === 'image' && selectedImage ? (
+            {mediaType === 'image' && selectedImageSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={selectedImage} alt="" className="w-full h-full object-cover" />
+              <img src={selectedImageSrc} alt="" className="w-full h-full object-cover" />
             ) : selectedIcon ? (
               <Icon icon={selectedIcon} className="w-6 h-6 text-white" />
             ) : (
@@ -416,11 +423,11 @@ export default function AdminCategoryFormPage() {
         {mediaType === 'image' && (
           <div className="space-y-3 md:col-span-2">
             <div className="relative aspect-[16/9] overflow-hidden rounded-card bg-surface-raised">
-              {selectedImage ? (
+              {selectedImageSrc ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={selectedImage}
+                    src={selectedImageSrc}
                     alt="پیش‌نمایش دسته‌بندی"
                     className="h-full w-full object-cover"
                   />

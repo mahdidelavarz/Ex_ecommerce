@@ -1,10 +1,14 @@
-// src/modules/categories/category.validator.ts
 import { z } from 'zod';
 
 const iconifyPattern = /^[a-z0-9-]+:[a-z0-9-]+$/;
+const uploadPathPattern = /^\/uploads\/[^?#]+\.(jpe?g|png|webp|gif)(\?.*)?$/i;
+const imageSchema = z.string().refine(
+  (val) => z.string().url().safeParse(val).success || uploadPathPattern.test(val),
+  'آدرس تصویر نامعتبر است',
+);
 const nullableUuidQuery = z.preprocess(
   (val) => (val === 'null' ? null : val),
-  z.string().uuid().nullable().optional()
+  z.string().uuid().nullable().optional(),
 );
 
 export const createCategorySchema = z.object({
@@ -14,7 +18,7 @@ export const createCategorySchema = z.object({
     .min(2, 'نام دسته‌بندی باید حداقل ۲ کاراکتر باشد')
     .max(100, 'نام دسته‌بندی نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد'),
   description: z.string().nullable().optional(),
-  image: z.string().url('آدرس تصویر نامعتبر است').nullable().optional(),
+  image: imageSchema.nullable().optional(),
   icon: z.string()
     .refine((val) => !val || iconifyPattern.test(val), 'فرمت آیکون نامعتبر است (مثال: mdi:folder)')
     .nullable()
@@ -41,7 +45,7 @@ export const updateCategorySchema = z.object({
     .max(100, 'نام دسته‌بندی نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد')
     .optional(),
   description: z.string().nullable().optional(),
-  image: z.string().url('آدرس تصویر نامعتبر است').nullable().optional(),
+  image: imageSchema.nullable().optional(),
   icon: z.string()
     .refine((val) => !val || iconifyPattern.test(val), 'فرمت آیکون نامعتبر است (مثال: mdi:folder)')
     .nullable()
@@ -65,7 +69,7 @@ export const bulkSortSchema = z.object({
     z.object({
       id: z.string().uuid(),
       sort_order: z.number().int().min(0),
-    })
+    }),
   ),
 });
 

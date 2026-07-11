@@ -41,7 +41,7 @@ export default async function HomePage() {
     fetchProducts({ ...PUBLIC, has_discount: true, has_stock: true, limit: 10 }, 600),
     fetchProducts({ ...PUBLIC, sort_by: "sales", sort_order: "DESC", has_stock: true, limit: 10 }),
     fetchProducts({ ...PUBLIC, sort_by: "created_at", sort_order: "DESC", limit: 10 }),
-    fetchCategories({ is_active: true, parent_id: "null", has_image: true, limit: 7 }),
+    fetchCategories({ is_active: true, parent_id: "null", limit: 5 }),
     fetchBrands({ is_active: true, limit: 20 }),
     fetchBlogPosts({ is_published: true, limit: 8, sort_by: "published_at", sort_order: "DESC" }),
   ]);
@@ -49,7 +49,7 @@ export default async function HomePage() {
   return (
     <div className="bg-background">
       {/* Hero (client island) */}
-      <div className="flex h-[93dvh] w-full items-center justify-center md:h-dvh">
+      <div className="flex h-[93svh] w-full items-center justify-center md:h-screen">
         <HeroSlider />
       </div>
 

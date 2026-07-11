@@ -28,6 +28,7 @@ import {
   TRow,
 } from "@/components/ui";
 import type { Category } from "@/modules/categories/types/category.types";
+import { getImageSrc } from "@/utils/imageUrl";
 import {
   LucidePencil,
   LucidePlus,
@@ -38,6 +39,31 @@ import {
   MdiTrashCan,
   SolarFolderWithFilesBold,
 } from "@/components/icons/Icons";
+
+function CategoryThumbnail({ category }: { category: Category }) {
+  const imageSrc = getImageSrc(category.image);
+
+  if (imageSrc) {
+    return (
+      <img
+        src={imageSrc}
+        alt={category.name}
+        className="w-10 h-10 rounded-lg object-cover"
+      />
+    );
+  }
+
+  return (
+    <div
+      className="w-10 h-10 rounded-lg flex items-center justify-center"
+      style={{
+        backgroundColor: category.color || "var(--color-primary-light)",
+      }}
+    >
+      <SolarFolderWithFilesBold className="w-5 h-5 text-white" />
+    </div>
+  );
+}
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
@@ -148,23 +174,7 @@ export default function AdminCategoriesPage() {
                   <TRow key={category.id} hover>
                     <TD align="right" cardSlot="header">
                       <div className="flex items-center gap-3">
-                        {category.image ? (
-                          <img
-                            src={category.image}
-                            alt={category.name}
-                            className="w-10 h-10 rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center"
-                            style={{
-                              backgroundColor:
-                                category.color || "var(--color-primary-light)",
-                            }}
-                          >
-                            <SolarFolderWithFilesBold className="w-5 h-5 text-white" />
-                          </div>
-                        )}
+                        <CategoryThumbnail category={category} />
                         <div>
                           <p className="font-medium text-text-primary">{category.name}</p>
                           <p className="text-xs text-text-muted">ترتیب: {category.sort_order}</p>

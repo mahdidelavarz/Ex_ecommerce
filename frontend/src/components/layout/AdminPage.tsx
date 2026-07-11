@@ -9,6 +9,7 @@
 import { ReactNode } from "react";
 import AdminSidebar from "./AdminSidebar";
 import { SvgSpinnersRingResize } from "../icons/Icons";
+import { useAdminMenuStore } from "./adminMenu.store";
 
 type MaxWidth = "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl";
 
@@ -45,6 +46,8 @@ export default function AdminPage({
   footer,
   children,
 }: AdminPageProps) {
+  const isCollapsed = useAdminMenuStore((s) => s.isCollapsed);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100dvh-var(--header-h)-1px)]">
@@ -57,9 +60,13 @@ export default function AdminPage({
     <div className="flex h-[calc(100dvh-var(--header-h)-1px)] overflow-hidden">
       <AdminSidebar />
 
-      <main className="flex-1 lg:mr-70 flex flex-col min-h-0">
+      <main
+        className={`flex-1 flex flex-col min-h-0 transition-[margin] duration-300 ease-out ${
+          isCollapsed ? "lg:mr-24" : "lg:mr-70"
+        }`}
+      >
         <div
-          className={`${maxWidthClass[maxWidth]} mx-auto w-full flex flex-col flex-1 min-h-0 p-3 sm:p-4 lg:p-8`}
+          className={`${maxWidthClass[maxWidth]} mx-auto w-full flex flex-col flex-1 min-h-0 p-3 sm:p-4 lg:p-6 xl:p-8`}
         >
           {header}
           {filters}

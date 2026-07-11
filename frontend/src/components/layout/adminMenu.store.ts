@@ -5,14 +5,18 @@ import { create } from 'zustand';
 
 interface AdminMenuState {
   isOpen: boolean;
+  isCollapsed: boolean;
   open: () => void;
   close: () => void;
   toggle: () => void;
+  toggleCollapsed: () => void;
 }
 
 export const useAdminMenuStore = create<AdminMenuState>((set) => ({
   isOpen: false,
+  isCollapsed: false,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
   toggle: () => set((s) => ({ isOpen: !s.isOpen })),
+  toggleCollapsed: () => set((s) => ({ isCollapsed: !s.isCollapsed })),
 }));

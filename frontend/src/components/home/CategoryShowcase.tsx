@@ -4,8 +4,9 @@ import Image from "next/image";
 // Direct import (not the ui barrel): this is a Server Component and the
 // barrel pulls in client-only hooks.
 import SectionHeading from "@/components/ui/SectionHeading";
-import { MdiArrowRight } from "@/components/icons/Icons";
+import { MdiArrowRight, SolarFolderWithFilesBold } from "@/components/icons/Icons";
 import { toPersianDigits } from "@/utils/toPersianDigits";
+import { getImageSrc } from "@/utils/imageUrl";
 import type { Category } from "@/modules/categories/types/category.types";
 
 interface CategoryShowcaseProps {
@@ -13,14 +14,15 @@ interface CategoryShowcaseProps {
 }
 
 /**
- * Editorial category grid: only image-backed top-level categories are shown.
- * The first category gets a large 2x2 hero tile; the rest fill single cells.
+ * Editorial category grid: top-level categories are shown with image-backed
+ * tiles when available and a styled color fallback otherwise.
  */
-export default function CategoryShowcase({ categories }: CategoryShowcaseProps) {
-  const items = categories
-    .filter((c): c is Category & { image: string } => !c.parent_id && Boolean(c.image))
-    .slice(0, 7);
+export default function CategoryShowcase({
+  categories,
+}: CategoryShowcaseProps) {
+  const items = categories.filter((c) => !c.parent_id).slice(0, 5);
   if (items.length === 0) return null;
+
 
   return (
     <section className="py-14 md:py-16">
@@ -33,6 +35,7 @@ export default function CategoryShowcase({ categories }: CategoryShowcaseProps) 
         <div className="grid auto-rows-[150px] grid-cols-2 gap-4 md:auto-rows-[190px] md:grid-cols-4">
           {items.map((category, index) => {
             const isHero = index === 0;
+            const imageSrc = getImageSrc(category.image);
             return (
               <Link
                 key={category.id}
@@ -41,18 +44,35 @@ export default function CategoryShowcase({ categories }: CategoryShowcaseProps) 
                   isHero ? "col-span-2 row-span-2" : ""
                 }`}
               >
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  fill
-                  sizes={isHero ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 50vw, 25vw"}
-                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
+                {imageSrc ? (
+                  <Image
+                    src={imageSrc}
+                    alt={category.name}
+                    fill
+                    sizes={
+                      isHero
+                        ? "(max-width: 768px) 100vw, 50vw"
+                        : "(max-width: 768px) 50vw, 25vw"
+                    }
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0 grid place-items-center transition-transform duration-700 ease-out group-hover:scale-105"
+                    style={{
+                      backgroundColor: category.color || "var(--color-primary)",
+                    }}
+                  >
+                    <SolarFolderWithFilesBold className="h-14 w-14 text-white/70 md:h-20 md:w-20" />
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#2A1726]/80 via-[#2A1726]/20 to-transparent" />
 
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-4 md:p-5">
                   <div>
-                    <h3 className={`font-bold text-white ${isHero ? "text-xl md:text-2xl" : "text-sm md:text-base"}`}>
+                    <h3
+                      className={`font-bold text-white ${isHero ? "text-xl md:text-2xl" : "text-sm md:text-base"}`}
+                    >
                       {category.name}
                     </h3>
                     {category.products_count > 0 && (
