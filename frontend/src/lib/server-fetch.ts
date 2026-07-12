@@ -34,6 +34,14 @@ export interface PageMeta {
 }
 
 type QueryValue = string | number | boolean | null | undefined;
+type FetchCacheOptions = number | { revalidate?: number; tags?: string[] };
+
+export const SERVER_CACHE_TAGS = {
+  products: "products",
+  categories: "categories",
+  brands: "brands",
+  blogPosts: "blog-posts",
+} as const;
 
 function buildQuery(params?: Record<string, QueryValue>): string {
   if (!params) return "";
@@ -47,6 +55,20 @@ function buildQuery(params?: Record<string, QueryValue>): string {
   return qs ? `?${qs}` : "";
 }
 
+function resolveCacheOptions(options: FetchCacheOptions = 3600): {
+  revalidate: number;
+  tags?: string[];
+} {
+  if (typeof options === "number") {
+    return { revalidate: options };
+  }
+
+  return {
+    revalidate: options.revalidate ?? 3600,
+    tags: options.tags,
+  };
+}
+
 /**
  * Fetch a list endpoint that returns `{ data, meta }`. Cached for `revalidate`
  * seconds; on any failure returns empty data so pages render (and build) safely.
@@ -54,15 +76,17 @@ function buildQuery(params?: Record<string, QueryValue>): string {
 async function fetchList<T>(
   path: string,
   params?: Record<string, QueryValue>,
-  revalidate = 3600,
+  options?: FetchCacheOptions,
 ): Promise<{ data: T[]; meta: PageMeta | null }> {
   if (!canFetchFromServer(API_BASE)) {
     return { data: [], meta: null };
   }
 
+  const cache = resolveCacheOptions(options);
+
   try {
     const res = await fetch(`${API_BASE}${path}${buildQuery(params)}`, {
-      next: { revalidate },
+      next: { revalidate: cache.revalidate, tags: cache.tags },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return { data: [], meta: null };
@@ -76,15 +100,17 @@ async function fetchList<T>(
 /** Fetch a single resource by slug; null on failure. */
 async function fetchOne<T>(
   path: string,
-  revalidate = 3600,
+  options?: FetchCacheOptions,
 ): Promise<T | null> {
   if (!canFetchFromServer(API_BASE)) {
     return null;
   }
 
+  const cache = resolveCacheOptions(options);
+
   try {
     const res = await fetch(`${API_BASE}${path}`, {
-      next: { revalidate },
+      next: { revalidate: cache.revalidate, tags: cache.tags },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;
@@ -99,23 +125,46 @@ export function fetchProducts(
   params?: Record<string, QueryValue>,
   revalidate?: number,
 ) {
-  return fetchList<ProductListResponse>("/products", params, revalidate);
+  return fetchList<ProductListResponse>("/products", params, {
+    revalidate,
+    tags: [SERVER_CACHE_TAGS.products],
+  });
 }
 
-export function fetchCategories(params?: Record<string, QueryValue>) {
-  return fetchList<Category>("/categories", params);
+export function fetchCategories(
+  params?: Record<string, QueryValue>,
+  revalidate?: number,
+) {
+  return fetchList<Category>("/categories", params, {
+    revalidate,
+    tags: [SERVER_CACHE_TAGS.categories],
+  });
 }
 
-export function fetchBrands(params?: Record<string, QueryValue>) {
-  return fetchList<Brand>("/brands", params);
+export function fetchBrands(
+  params?: Record<string, QueryValue>,
+  revalidate?: number,
+) {
+  return fetchList<Brand>("/brands", params, {
+    revalidate,
+    tags: [SERVER_CACHE_TAGS.brands],
+  });
 }
 
-export function fetchBlogPosts(params?: Record<string, QueryValue>) {
-  return fetchList<BlogPostListItem>("/blog-posts", params);
+export function fetchBlogPosts(
+  params?: Record<string, QueryValue>,
+  revalidate?: number,
+) {
+  return fetchList<BlogPostListItem>("/blog-posts", params, {
+    revalidate,
+    tags: [SERVER_CACHE_TAGS.blogPosts],
+  });
 }
 
 export function fetchBlogPost(slug: string) {
-  return fetchOne<BlogPostDetail>(`/blog-posts/${slug}`);
+  return fetchOne<BlogPostDetail>(`/blog-posts/${slug}`, {
+    tags: [SERVER_CACHE_TAGS.blogPosts],
+  });
 }
 
 export { fetchList, fetchOne };

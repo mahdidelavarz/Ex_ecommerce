@@ -32,7 +32,9 @@ export default function RouteChrome({
             ? "h-dvh overflow-hidden"
             : isAdminPage
               ? "flex-1 min-h-0 overflow-hidden"
-            : "flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0"
+              : `flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0 ${
+                  isLandingPage ? "" : "pt-[var(--header-h)] md:pt-0"
+                }`
         }
       >
         {children}

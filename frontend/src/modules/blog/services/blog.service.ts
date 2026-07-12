@@ -2,6 +2,7 @@
 import { apiClient } from '@/lib/api-client';
 import {
   BLOG_REVALIDATE_PATHS,
+  BLOG_REVALIDATE_TAGS,
   revalidateStorefront,
 } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
@@ -16,6 +17,10 @@ type PageMeta = {
 type QueryParams = Record<string, string | number | boolean | null | undefined>;
 type BlogPostPayload = Record<string, unknown>;
 type ListResult = { data: BlogPostListItem[]; meta: PageMeta };
+
+async function revalidateBlogData() {
+  await revalidateStorefront(BLOG_REVALIDATE_PATHS, BLOG_REVALIDATE_TAGS);
+}
 
 export const blogService = {
   /** Upload a cover image (admin). Returns the absolute URL to store. */
@@ -63,20 +68,20 @@ export const blogService = {
   /** Create (admin). */
   create: async (data: BlogPostPayload): Promise<BlogPostDetail> => {
     const response = await apiClient.post<ApiResponse<BlogPostDetail>>('/blog-posts', data);
-    await revalidateStorefront(BLOG_REVALIDATE_PATHS);
+    await revalidateBlogData();
     return response.data.data;
   },
 
   /** Update (admin). */
   update: async (id: string, data: BlogPostPayload): Promise<BlogPostDetail> => {
     const response = await apiClient.patch<ApiResponse<BlogPostDetail>>(`/blog-posts/${id}`, data);
-    await revalidateStorefront(BLOG_REVALIDATE_PATHS);
+    await revalidateBlogData();
     return response.data.data;
   },
 
   /** Soft delete (admin). */
   remove: async (id: string): Promise<void> => {
     await apiClient.delete(`/blog-posts/${id}`);
-    await revalidateStorefront(BLOG_REVALIDATE_PATHS);
+    await revalidateBlogData();
   },
 };

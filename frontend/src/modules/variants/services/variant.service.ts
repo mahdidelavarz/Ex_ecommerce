@@ -2,12 +2,17 @@
 import { apiClient } from '@/lib/api-client';
 import {
   PRODUCT_REVALIDATE_PATHS,
+  PRODUCT_REVALIDATE_TAGS,
   revalidateStorefront,
 } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type { ProductVariant, VariantImage } from '../types/variant.types';
 
 type VariantMutationPayload = Record<string, unknown>;
+
+async function revalidateProductData() {
+  await revalidateStorefront(PRODUCT_REVALIDATE_PATHS, PRODUCT_REVALIDATE_TAGS);
+}
 
 export const variantService = {
   /**
@@ -41,7 +46,7 @@ export const variantService = {
       `/products/${productId}/variants`,
       data
     );
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
     return response.data.data;
   },
 
@@ -56,7 +61,7 @@ export const variantService = {
       `/products/variants/${variantId}`,
       data
     );
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
     return response.data.data;
   },
 
@@ -65,7 +70,7 @@ export const variantService = {
    */
   delete: async (variantId: string): Promise<void> => {
     await apiClient.delete(`/products/variants/${variantId}`);
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
   },
 
   /**
@@ -73,7 +78,7 @@ export const variantService = {
    */
   bulkStock: async (items: { id: string; stock_quantity: number }[]): Promise<void> => {
     await apiClient.patch('/products/variants/stock', { items });
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
   },
 
   /**
@@ -87,7 +92,7 @@ export const variantService = {
       `/products/variants/${variantId}/images`,
       data,
     );
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
     return response.data.data;
   },
 
@@ -96,6 +101,6 @@ export const variantService = {
    */
   deleteImage: async (imageId: string): Promise<void> => {
     await apiClient.delete(`/products/variants/images/${imageId}`);
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
   },
 };

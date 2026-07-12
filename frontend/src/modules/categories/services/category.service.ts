@@ -2,6 +2,7 @@
 import { apiClient } from '@/lib/api-client';
 import {
   CATEGORY_REVALIDATE_PATHS,
+  CATEGORY_REVALIDATE_TAGS,
   revalidateStorefront,
 } from '@/lib/cache-revalidation';
 import { normalizeUploadUrl } from '@/utils/imageUrl';
@@ -21,6 +22,10 @@ type CategoryListParams = {
   page?: number;
   limit?: number;
 };
+
+async function revalidateCategoryData() {
+  await revalidateStorefront(CATEGORY_REVALIDATE_PATHS, CATEGORY_REVALIDATE_TAGS);
+}
 
 export const categoryService = {
   /**
@@ -115,7 +120,7 @@ export const categoryService = {
    */
   create: async (data: Partial<Category>): Promise<Category> => {
     const response = await apiClient.post<ApiResponse<Category>>('/categories', data);
-    await revalidateStorefront(CATEGORY_REVALIDATE_PATHS);
+    await revalidateCategoryData();
     return response.data.data;
   },
 
@@ -127,7 +132,7 @@ export const categoryService = {
       `/categories/${id}`,
       data
     );
-    await revalidateStorefront(CATEGORY_REVALIDATE_PATHS);
+    await revalidateCategoryData();
     return response.data.data;
   },
 
@@ -138,7 +143,7 @@ export const categoryService = {
     await apiClient.delete(`/categories/${id}`, {
       params: { force: force ? 'true' : 'false' },
     });
-    await revalidateStorefront(CATEGORY_REVALIDATE_PATHS);
+    await revalidateCategoryData();
   },
 
   /**
@@ -146,6 +151,6 @@ export const categoryService = {
    */
   bulkSort: async (items: Array<{ id: string; sort_order: number }>): Promise<void> => {
     await apiClient.patch('/categories/sort', { items });
-    await revalidateStorefront(CATEGORY_REVALIDATE_PATHS);
+    await revalidateCategoryData();
   },
 };

@@ -2,6 +2,7 @@
 import { apiClient } from '@/lib/api-client';
 import {
   REVIEW_REVALIDATE_PATHS,
+  REVIEW_REVALIDATE_TAGS,
   revalidateStorefront,
 } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
@@ -31,7 +32,7 @@ type UpdateReviewPayload = {
 };
 
 async function revalidateProductReviewData() {
-  await revalidateStorefront(REVIEW_REVALIDATE_PATHS);
+  await revalidateStorefront(REVIEW_REVALIDATE_PATHS, REVIEW_REVALIDATE_TAGS);
 }
 
 export const reviewService = {

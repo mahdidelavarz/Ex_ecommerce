@@ -162,10 +162,10 @@ export default function MobileCategoryMenu({ isOpen, onClose }: MobileCategoryMe
 
       <aside
         className={`
-          fixed inset-y-0 right-0 z-[100] flex h-dvh w-[min(24rem,92vw)]
+          fixed inset-y-0 right-0 z-[100] flex h-[100svh] w-[min(24rem,92vw)]
           flex-col overflow-hidden border-l border-white/45 bg-surface shadow-modal lg:hidden
           transform transition-transform duration-300 ease-out
-          ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+          ${isOpen ? 'translate-x-0 visible' : 'translate-x-full invisible pointer-events-none'}
         `}
         aria-hidden={!isOpen}
       >

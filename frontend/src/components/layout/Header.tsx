@@ -66,9 +66,9 @@ export default function Header({isOnLanding} : {isOnLanding ?: boolean}) {
       className={`${
         isAdmin
           ? "sticky top-0"
-          : isOnLanding
+        : isOnLanding
             ? "fixed left-0 right-0 top-0"
-            : "sticky top-0"
+            : "fixed left-0 right-0 top-0 md:sticky"
       } z-50 shadow-[0_14px_40px_-24px_rgb(42_23_38/0.55)] backdrop-blur-md backdrop-saturate-150 supports-[backdrop-filter]:bg-surface/55`}
     >
       {/* Tier 1 — utility bar (scrolls away). Hidden on admin pages. */}

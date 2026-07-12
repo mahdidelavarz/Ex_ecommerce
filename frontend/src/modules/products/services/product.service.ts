@@ -2,6 +2,7 @@
 import { apiClient } from '@/lib/api-client';
 import {
   PRODUCT_REVALIDATE_PATHS,
+  PRODUCT_REVALIDATE_TAGS,
   revalidateStorefront,
 } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
@@ -29,6 +30,10 @@ export type ProductListResult = {
   data: ProductListResponse[];
   meta: PageMeta | null;
 };
+
+async function revalidateProductData() {
+  await revalidateStorefront(PRODUCT_REVALIDATE_PATHS, PRODUCT_REVALIDATE_TAGS);
+}
 
 export const productService = {
   /**
@@ -104,7 +109,7 @@ export const productService = {
    */
   create: async (data: ProductMutationPayload): Promise<ProductDetail> => {
     const response = await apiClient.post<ApiResponse<ProductDetail>>('/products', data);
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
     return response.data.data;
   },
 
@@ -113,7 +118,7 @@ export const productService = {
    */
   update: async (id: string, data: ProductMutationPayload): Promise<ProductDetail> => {
     const response = await apiClient.patch<ApiResponse<ProductDetail>>(`/products/${id}`, data);
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
     return response.data.data;
   },
 
@@ -122,7 +127,7 @@ export const productService = {
    */
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/products/${id}`);
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
   },
 
   /**
@@ -130,7 +135,7 @@ export const productService = {
    */
   bulkStatus: async (ids: string[], is_active: boolean): Promise<void> => {
     await apiClient.patch('/products/bulk-status', { ids, is_active });
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
   },
 
   /**
@@ -141,7 +146,7 @@ export const productService = {
     data: ProductMutationPayload,
   ): Promise<unknown> => {
     const response = await apiClient.post(`/products/${productId}/images`, data);
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
     return response.data.data;
   },
 
@@ -150,7 +155,7 @@ export const productService = {
    */
   deleteImage: async (productId: string, imageId: string): Promise<void> => {
     await apiClient.delete(`/products/${productId}/images/${imageId}`);
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
   },
 
   /**
@@ -158,6 +163,6 @@ export const productService = {
    */
   syncTags: async (productId: string, tag_ids: string[]): Promise<void> => {
     await apiClient.post(`/products/${productId}/tags`, { tag_ids });
-    await revalidateStorefront(PRODUCT_REVALIDATE_PATHS);
+    await revalidateProductData();
   },
 };

@@ -10,9 +10,8 @@ import ActionBar from './ActionBar';
 
 /**
  * Globally-mounted mobile bottom bar. Hidden on admin/auth routes and on
- * screens ≥ md. Renders the variant registered by the current page (or the
- * default quick-nav). In `nav` mode it hides on scroll-down and reveals on
- * scroll-up; the contextual bars stay pinned.
+ * screens >= md. The default nav hides on scroll-down and reveals on scroll-up;
+ * contextual bars stay pinned.
  */
 export default function BottomNav() {
   const pathname = usePathname();
@@ -21,14 +20,16 @@ export default function BottomNav() {
 
   const isNav = config.mode === 'nav';
 
-  // Hide-on-scroll-down / reveal-on-scroll-up — only for the default nav.
   useEffect(() => {
-    if (!isNav) return;
+    if (!isNav) {
+      const reset = requestAnimationFrame(() => setHidden(false));
+      return () => cancelAnimationFrame(reset);
+    }
+
     let lastY = window.scrollY;
     let ticking = false;
-    // Ensure the bar is visible when (re)entering nav mode (async — not a
-    // synchronous setState in the effect body).
     const initial = requestAnimationFrame(() => setHidden(false));
+
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
@@ -40,6 +41,7 @@ export default function BottomNav() {
         ticking = false;
       });
     };
+
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       cancelAnimationFrame(initial);
@@ -47,7 +49,6 @@ export default function BottomNav() {
     };
   }, [isNav]);
 
-  // Route-level exclusions (mirror ConditionalFooter).
   if (
     pathname?.startsWith('/admin') ||
     pathname?.startsWith('/login') ||
@@ -58,12 +59,9 @@ export default function BottomNav() {
 
   return (
     <div
-      className={`md:hidden fixed inset-x-0 bottom-0 z-40 animate-slide-up
-        border-t border-border bg-surface/95 backdrop-blur-md
-        shadow-[0_-6px_24px_-8px_rgb(142_74_123/0.25)]
-        pb-[env(safe-area-inset-bottom)]
-        transition-transform duration-300
-        ${isNav && hidden ? 'translate-y-full' : 'translate-y-0'}`}
+      className={`fixed inset-x-0 bottom-0 z-50 animate-slide-up border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_24px_-8px_rgb(142_74_123/0.25)] backdrop-blur-md transition-transform duration-300 md:hidden ${
+        isNav && hidden ? 'translate-y-full' : 'translate-y-0'
+      }`}
     >
       {config.mode === 'product' ? (
         <ProductBar

@@ -8,6 +8,7 @@ const API_BASE_URL =
   'http://localhost:5000/api/v1';
 
 const FETCH_TIMEOUT_MS = 1500;
+const SETTINGS_CACHE_TAG = 'settings';
 
 function canFetchFromServer(url: string): boolean {
   return /^https?:\/\//.test(url);
@@ -59,7 +60,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 
   try {
     const res = await fetch(`${API_BASE_URL}/settings/public`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 3600, tags: [SETTINGS_CACHE_TAG] },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return EMPTY_SETTINGS;

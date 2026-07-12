@@ -2,6 +2,21 @@ export type RevalidatePathEntry =
   | string
   | { path: string; type?: 'page' | 'layout' };
 
+export type RevalidateTagEntry = string;
+
+export const PRODUCT_REVALIDATE_TAGS: RevalidateTagEntry[] = ['products'];
+export const CATEGORY_REVALIDATE_TAGS: RevalidateTagEntry[] = [
+  'categories',
+  'products',
+];
+export const BRAND_REVALIDATE_TAGS: RevalidateTagEntry[] = [
+  'brands',
+  'products',
+];
+export const SETTINGS_REVALIDATE_TAGS: RevalidateTagEntry[] = ['settings'];
+export const BLOG_REVALIDATE_TAGS: RevalidateTagEntry[] = ['blog-posts'];
+export const REVIEW_REVALIDATE_TAGS: RevalidateTagEntry[] = ['products'];
+
 export const CATEGORY_REVALIDATE_PATHS: RevalidatePathEntry[] = [
   '/',
   '/products',
@@ -46,12 +61,13 @@ export const REVIEW_REVALIDATE_PATHS: RevalidatePathEntry[] = [
 
 export async function revalidateStorefront(
   paths: RevalidatePathEntry[],
+  tags: RevalidateTagEntry[] = [],
 ): Promise<void> {
   try {
     await fetch('/api/revalidate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paths }),
+      body: JSON.stringify({ paths, tags }),
     });
   } catch {
     /* Revalidation must not block the admin mutation result. */

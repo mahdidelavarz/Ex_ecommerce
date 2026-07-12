@@ -2,6 +2,7 @@
 import { apiClient } from '@/lib/api-client';
 import {
   BRAND_REVALIDATE_PATHS,
+  BRAND_REVALIDATE_TAGS,
   revalidateStorefront,
 } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
@@ -13,6 +14,10 @@ export type CreateBrandInput = {
   description?: string | null;
   is_active?: boolean;
 };
+
+async function revalidateBrandData() {
+  await revalidateStorefront(BRAND_REVALIDATE_PATHS, BRAND_REVALIDATE_TAGS);
+}
 
 export const brandService = {
   /**
@@ -54,7 +59,7 @@ export const brandService = {
    */
   create: async (data: CreateBrandInput): Promise<Brand> => {
     const response = await apiClient.post<ApiResponse<Brand>>('/brands', data);
-    await revalidateStorefront(BRAND_REVALIDATE_PATHS);
+    await revalidateBrandData();
     return response.data.data;
   },
 
@@ -63,7 +68,7 @@ export const brandService = {
    */
   update: async (id: string, data: Partial<Brand>): Promise<Brand> => {
     const response = await apiClient.patch<ApiResponse<Brand>>(`/brands/${id}`, data);
-    await revalidateStorefront(BRAND_REVALIDATE_PATHS);
+    await revalidateBrandData();
     return response.data.data;
   },
 
@@ -72,6 +77,6 @@ export const brandService = {
    */
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/brands/${id}`);
-    await revalidateStorefront(BRAND_REVALIDATE_PATHS);
+    await revalidateBrandData();
   },
 };
