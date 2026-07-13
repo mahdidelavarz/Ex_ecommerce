@@ -1,6 +1,7 @@
 // src/app/brands/[slug]/page.tsx
 import type { Metadata } from 'next';
 import type { Brand } from '@/modules/brands/types/brand.types';
+import { SERVER_CACHE_TAGS } from '@/lib/server-fetch';
 import BrandPageClient from './BrandPageClient';
 
 const API_BASE =
@@ -19,7 +20,7 @@ async function fetchBrand(slug: string): Promise<Brand | null> {
 
   try {
     const res = await fetch(`${API_BASE}/brands/${slug}`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 3600, tags: [SERVER_CACHE_TAGS.brands] },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;

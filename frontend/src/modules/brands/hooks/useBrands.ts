@@ -24,7 +24,7 @@ type ApiError = {
 function refreshBrandQueries(queryClient: QueryClient) {
   return queryClient.invalidateQueries({
     queryKey: ['brands'],
-    refetchType: 'all',
+    refetchType: 'active',
   });
 }
 

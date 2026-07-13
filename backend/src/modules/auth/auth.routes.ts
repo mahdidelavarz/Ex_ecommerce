@@ -4,7 +4,12 @@ import { AuthController } from './auth.controller';
 import { AddressController } from './address.controller';
 import { validate } from '../../middleware/validate';
 import { authenticate } from '../../middleware/auth';
-import { sendOtpLimiter, verifyOtpLimiter } from '../../middleware/rateLimiter';
+import {
+  sendOtpIpLimiter,
+  sendOtpPhoneLimiter,
+  verifyOtpIpLimiter,
+  verifyOtpPhoneLimiter,
+} from '../../middleware/rateLimiter';
 import {
   sendOtpSchema,
   verifyOtpSchema,
@@ -17,8 +22,20 @@ const authController = new AuthController();
 const addressController = new AddressController();
 
 // Public routes (with rate limiting)
-router.post('/send-otp', sendOtpLimiter, validate({ body: sendOtpSchema }), authController.sendOTP);
-router.post('/verify-otp', verifyOtpLimiter, validate({ body: verifyOtpSchema }), authController.verifyOTP);
+router.post(
+  '/send-otp',
+  sendOtpIpLimiter,
+  validate({ body: sendOtpSchema }),
+  sendOtpPhoneLimiter,
+  authController.sendOTP,
+);
+router.post(
+  '/verify-otp',
+  verifyOtpIpLimiter,
+  validate({ body: verifyOtpSchema }),
+  verifyOtpPhoneLimiter,
+  authController.verifyOTP,
+);
 router.post('/refresh', authController.refreshToken);
 
 // Protected routes

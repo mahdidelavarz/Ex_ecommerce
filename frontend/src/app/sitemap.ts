@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL as BASE } from '@/lib/seo';
+import { SERVER_CACHE_TAGS } from '@/lib/server-fetch';
 
 export const revalidate = 3600;
 
@@ -14,12 +15,12 @@ function canFetchFromServer(url: string): boolean {
   return /^https?:\/\//.test(url);
 }
 
-async function fetchJson<T>(url: string): Promise<T | null> {
+async function fetchJson<T>(url: string, tags: string[]): Promise<T | null> {
   if (!canFetchFromServer(API_BASE)) return null;
 
   try {
     const res = await fetch(url, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 3600, tags },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;
@@ -32,16 +33,20 @@ async function fetchJson<T>(url: string): Promise<T | null> {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [productsRes, categoriesRes, brandsRes, blogRes] = await Promise.all([
     fetchJson<{ data: Array<{ slug: string; created_at: string }> }>(
-      `${API_BASE}/products?limit=5000&is_active=true&is_public=true`
+      `${API_BASE}/products?limit=5000&is_active=true&is_public=true`,
+      [SERVER_CACHE_TAGS.products],
     ),
     fetchJson<{ data: Array<{ slug: string; updated_at: string }> }>(
-      `${API_BASE}/categories?limit=1000&is_active=true`
+      `${API_BASE}/categories?limit=1000&is_active=true`,
+      [SERVER_CACHE_TAGS.categories],
     ),
     fetchJson<{ data: Array<{ slug: string; updated_at: string }> }>(
-      `${API_BASE}/brands?limit=1000&is_active=true`
+      `${API_BASE}/brands?limit=1000&is_active=true`,
+      [SERVER_CACHE_TAGS.brands],
     ),
     fetchJson<{ data: Array<{ slug: string; updated_at: string }> }>(
-      `${API_BASE}/blog-posts?limit=5000&is_published=true`
+      `${API_BASE}/blog-posts?limit=5000&is_published=true`,
+      [SERVER_CACHE_TAGS.blogPosts],
     ),
   ]);
 

@@ -1,10 +1,6 @@
 // src/modules/brands/services/brand.service.ts
 import { apiClient } from '@/lib/api-client';
-import {
-  BRAND_REVALIDATE_PATHS,
-  BRAND_REVALIDATE_TAGS,
-  revalidateStorefront,
-} from '@/lib/cache-revalidation';
+import { revalidateStorefront } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type { Brand, BrandMinimal, BrandsResponse } from '../types/brand.types';
 
@@ -16,7 +12,7 @@ export type CreateBrandInput = {
 };
 
 async function revalidateBrandData() {
-  await revalidateStorefront(BRAND_REVALIDATE_PATHS, BRAND_REVALIDATE_TAGS);
+  await revalidateStorefront('brands');
 }
 
 export const brandService = {

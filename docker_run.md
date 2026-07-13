@@ -37,6 +37,9 @@ Source code is volume-mounted so changes reload automatically.
 # Build and start all services
 docker compose up -d --build
 
+# Then purge the WCDN site cache so old HTML/RSC is not served after deployment.
+# Hashed /_next/static assets do not require preservation during a full purge.
+
 # Start in order (if needed)
 docker compose up -d postgres
 docker compose up -d --build backend

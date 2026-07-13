@@ -56,6 +56,8 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOSTNAME: 0.0.0.0
+      # Route handlers and runtime SSR must use the private backend directly.
+      INTERNAL_API_URL: http://backend:5000/api/v1
     depends_on:
       - backend
     networks:

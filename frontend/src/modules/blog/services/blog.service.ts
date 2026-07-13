@@ -1,10 +1,6 @@
 // src/modules/blog/services/blog.service.ts
 import { apiClient } from '@/lib/api-client';
-import {
-  BLOG_REVALIDATE_PATHS,
-  BLOG_REVALIDATE_TAGS,
-  revalidateStorefront,
-} from '@/lib/cache-revalidation';
+import { revalidateStorefront } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type { BlogPostListItem, BlogPostDetail } from '../types/blog.types';
 
@@ -19,7 +15,7 @@ type BlogPostPayload = Record<string, unknown>;
 type ListResult = { data: BlogPostListItem[]; meta: PageMeta };
 
 async function revalidateBlogData() {
-  await revalidateStorefront(BLOG_REVALIDATE_PATHS, BLOG_REVALIDATE_TAGS);
+  await revalidateStorefront('blog');
 }
 
 export const blogService = {

@@ -1,10 +1,6 @@
 // src/modules/categories/services/category.service.ts
 import { apiClient } from '@/lib/api-client';
-import {
-  CATEGORY_REVALIDATE_PATHS,
-  CATEGORY_REVALIDATE_TAGS,
-  revalidateStorefront,
-} from '@/lib/cache-revalidation';
+import { revalidateStorefront } from '@/lib/cache-revalidation';
 import { normalizeUploadUrl } from '@/utils/imageUrl';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type {
@@ -24,7 +20,7 @@ type CategoryListParams = {
 };
 
 async function revalidateCategoryData() {
-  await revalidateStorefront(CATEGORY_REVALIDATE_PATHS, CATEGORY_REVALIDATE_TAGS);
+  await revalidateStorefront('categories');
 }
 
 export const categoryService = {

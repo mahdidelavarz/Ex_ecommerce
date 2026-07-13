@@ -45,7 +45,7 @@ export function useUpdateSetting() {
       queryClient.setQueryData(['settings', data.key], data);
       await queryClient.invalidateQueries({
         queryKey: ['settings'],
-        refetchType: 'all',
+        refetchType: 'active',
       });
       toast.success('تنظیمات ذخیره شد');
     },

@@ -22,7 +22,7 @@ type ApiError = {
 function refreshCategoryQueries(queryClient: QueryClient) {
   return queryClient.invalidateQueries({
     queryKey: ['categories'],
-    refetchType: 'all',
+    refetchType: 'active',
   });
 }
 

@@ -1,6 +1,7 @@
 // src/app/categories/[slug]/page.tsx
 import type { Metadata } from 'next';
 import type { CategoryDetail } from '@/modules/categories/types/category.types';
+import { SERVER_CACHE_TAGS } from '@/lib/server-fetch';
 import CategoryPageClient from './CategoryPageClient';
 
 const API_BASE =
@@ -19,7 +20,7 @@ async function fetchCategory(slug: string): Promise<CategoryDetail | null> {
 
   try {
     const res = await fetch(`${API_BASE}/categories/${slug}`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 3600, tags: [SERVER_CACHE_TAGS.categories] },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;

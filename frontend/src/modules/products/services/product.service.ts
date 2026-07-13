@@ -1,10 +1,6 @@
 // src/modules/products/services/product.service.ts
 import { apiClient } from '@/lib/api-client';
-import {
-  PRODUCT_REVALIDATE_PATHS,
-  PRODUCT_REVALIDATE_TAGS,
-  revalidateStorefront,
-} from '@/lib/cache-revalidation';
+import { revalidateStorefront } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type {
   ProductListResponse,
@@ -32,7 +28,7 @@ export type ProductListResult = {
 };
 
 async function revalidateProductData() {
-  await revalidateStorefront(PRODUCT_REVALIDATE_PATHS, PRODUCT_REVALIDATE_TAGS);
+  await revalidateStorefront('products');
 }
 
 export const productService = {

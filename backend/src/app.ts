@@ -6,7 +6,7 @@ import morgan from 'morgan';
 import path from 'path';
 import { env } from './config/env';
 import { corsConfig } from './config/cors';
-import { generalLimiter, apiLimiter } from './middleware/rateLimiter';
+import { apiMutationLimiter } from './middleware/rateLimiter';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { csrfProtection } from './middleware/csrf';
@@ -36,10 +36,10 @@ import blogRoutes from './modules/blog/blog.routes';
 
 const app = express();
 
-// The production backend runs behind the shared nginx reverse proxy. Trust the
-// single proxy hop so req.ip, secure cookies, and express-rate-limit handle
-// X-Forwarded-* headers correctly.
-app.set('trust proxy', 1);
+// This must match the number of trusted hops in production (for example CDN ->
+// nginx -> backend). A wrong value groups shoppers under one proxy IP or trusts
+// user-supplied forwarding headers, so keep it explicit and configurable.
+app.set('trust proxy', env.trustProxyHops);
 
 // Security middleware
 // HSTS forces browsers to upgrade http→https. On localhost (plain HTTP) this
@@ -59,9 +59,6 @@ if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
 }
 app.use(requestLogger);
-
-// Rate limiting
-app.use(generalLimiter);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -89,7 +86,7 @@ if (!env.s3.enabled) {
 
 // API routes
 const apiPrefix = env.apiPrefix;
-app.use(apiPrefix, apiLimiter);
+app.use(apiPrefix, apiMutationLimiter);
 app.use(apiPrefix, (_req, res, next) => {
   res.setHeader(
     'Cache-Control',

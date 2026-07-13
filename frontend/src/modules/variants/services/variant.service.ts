@@ -1,17 +1,13 @@
 // src/modules/variants/services/variant.service.ts
 import { apiClient } from '@/lib/api-client';
-import {
-  PRODUCT_REVALIDATE_PATHS,
-  PRODUCT_REVALIDATE_TAGS,
-  revalidateStorefront,
-} from '@/lib/cache-revalidation';
+import { revalidateStorefront } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type { ProductVariant, VariantImage } from '../types/variant.types';
 
 type VariantMutationPayload = Record<string, unknown>;
 
 async function revalidateProductData() {
-  await revalidateStorefront(PRODUCT_REVALIDATE_PATHS, PRODUCT_REVALIDATE_TAGS);
+  await revalidateStorefront('products');
 }
 
 export const variantService = {

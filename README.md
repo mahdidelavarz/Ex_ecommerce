@@ -288,10 +288,16 @@ OTP_MAX_ATTEMPTS=3
 
 # CORS
 CORS_ORIGIN=http://localhost:3000
+TRUST_PROXY_HOPS=1
 
 # Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
+API_RATE_LIMIT_WINDOW_MS=60000
+API_RATE_LIMIT_MAX_MUTATIONS=300
+OTP_RATE_LIMIT_WINDOW_MS=900000
+OTP_SEND_IP_MAX=200
+OTP_SEND_PHONE_MAX=3
+OTP_VERIFY_IP_MAX=1000
+OTP_VERIFY_PHONE_MAX=10
 
 # File Upload
 MAX_FILE_SIZE=5242880
@@ -306,6 +312,7 @@ KAVENEGAR_SENDER=10008663
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
+INTERNAL_API_URL=http://localhost:5000/api/v1
 ```
 
 ---
@@ -497,6 +504,38 @@ docker compose up -d --build
 # Frontend: http://localhost:3000
 # API: http://localhost:5000
 ```
+
+After deploying frontend changes, purge the WCDN cache for HTML and RSC
+responses (a full site purge is safe because `/_next/static` assets are
+content-hashed). Next's on-demand revalidation clears the application cache,
+but it cannot clear a copy already stored by an external CDN. Without a manual
+purge, storefront HTML is configured to refresh after about one minute.
+
+`TRUST_PROXY_HOPS` must equal the number of trusted reverse-proxy hops between
+the shopper and Express. Check the backend request logs after deployment: the
+logged `ip` should be the shopper address, not the frontend container, nginx,
+or CDN edge. Do not increase this value without matching the actual topology.
+
+### Cache ownership
+
+- Next's Data Cache owns server-rendered catalog data. Product, category,
+  brand, blog, and setting mutations invalidate named tags and affected paths.
+- React Query owns browser-session data and refetches only queries currently
+  mounted after a mutation.
+- Express API responses are `no-store`; this avoids a second stale API cache
+  and prevents personalized responses from being shared.
+- WCDN may cache rendered HTML briefly. Purge it after UI deployments for an
+  immediate rollout.
+
+### Rate-limit ownership
+
+- Public `GET`, `HEAD`, and `OPTIONS` API traffic is not placed in a shared
+  in-memory application quota. Next, React Query, and WCDN absorb normal reads.
+- State-changing API requests use the configurable mutation limiter.
+- OTP sending and verification each have both per-IP and per-phone budgets.
+  The phone budget remains effective even when users rotate IP addresses.
+- The built-in memory store is suitable for one backend container. Use a
+  shared store such as Redis before running multiple backend replicas.
 
 ### Manual Deployment
 

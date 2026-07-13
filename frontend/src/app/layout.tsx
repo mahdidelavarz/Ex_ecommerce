@@ -16,6 +16,10 @@ import {
   DEFAULT_OG_IMAGE,
 } from "@/lib/seo";
 
+// Keep edge-cached HTML fast while bounding stale deployments to roughly one
+// minute. Catalog data has its own longer, tag-invalidated fetch cache.
+export const revalidate = 60;
+
 const vazirmatn = localFont({
   src: [
     {

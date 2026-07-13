@@ -1,10 +1,6 @@
 // src/modules/reviews/services/review.service.ts
 import { apiClient } from '@/lib/api-client';
-import {
-  REVIEW_REVALIDATE_PATHS,
-  REVIEW_REVALIDATE_TAGS,
-  revalidateStorefront,
-} from '@/lib/cache-revalidation';
+import { revalidateStorefront } from '@/lib/cache-revalidation';
 import type { ApiResponse } from '@/modules/auth/types/auth.type';
 import type { Review, CanReviewResponse } from '../types/review.types';
 
@@ -32,7 +28,7 @@ type UpdateReviewPayload = {
 };
 
 async function revalidateProductReviewData() {
-  await revalidateStorefront(REVIEW_REVALIDATE_PATHS, REVIEW_REVALIDATE_TAGS);
+  await revalidateStorefront('reviews');
 }
 
 export const reviewService = {
@@ -56,19 +52,16 @@ export const reviewService = {
 
   create: async (data: CreateReviewPayload): Promise<Review> => {
     const r = await apiClient.post<ApiResponse<Review>>('/reviews', data);
-    await revalidateProductReviewData();
     return r.data.data;
   },
 
   update: async (id: string, data: UpdateReviewPayload): Promise<Review> => {
     const r = await apiClient.patch<ApiResponse<Review>>(`/reviews/${id}`, data);
-    await revalidateProductReviewData();
     return r.data.data;
   },
 
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/reviews/${id}`);
-    await revalidateProductReviewData();
   },
 
   adminDelete: async (id: string): Promise<void> => {
@@ -80,7 +73,6 @@ export const reviewService = {
     const r = await apiClient.post<ApiResponse<{ helpful_count: number; voted: boolean }>>(
       `/reviews/${id}/helpful`,
     );
-    await revalidateProductReviewData();
     return r.data.data;
   },
 

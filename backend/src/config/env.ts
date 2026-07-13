@@ -34,9 +34,15 @@ const envSchema = z.object({
   KAVENEGAR_VERIFY_TEMPLATE: z.string().optional(),
   
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  TRUST_PROXY_HOPS: z.string().regex(/^\d+$/).default('1'),
   
-  RATE_LIMIT_WINDOW_MS: z.string().default('900000'),
-  RATE_LIMIT_MAX_REQUESTS: z.string().default('100'),
+  API_RATE_LIMIT_WINDOW_MS: z.string().default('60000'),
+  API_RATE_LIMIT_MAX_MUTATIONS: z.string().default('300'),
+  OTP_RATE_LIMIT_WINDOW_MS: z.string().default('900000'),
+  OTP_SEND_IP_MAX: z.string().default('200'),
+  OTP_SEND_PHONE_MAX: z.string().default('3'),
+  OTP_VERIFY_IP_MAX: z.string().default('1000'),
+  OTP_VERIFY_PHONE_MAX: z.string().default('10'),
   
   MAX_FILE_SIZE: z.string().default('5242880'),
   UPLOAD_PATH: z.string().default('./uploads'),
@@ -117,10 +123,17 @@ export const env = {
   cors: {
     origin: parsed.data.CORS_ORIGIN,
   },
+
+  trustProxyHops: parseInt(parsed.data.TRUST_PROXY_HOPS),
   
   rateLimit: {
-    windowMs: parseInt(parsed.data.RATE_LIMIT_WINDOW_MS),
-    maxRequests: parseInt(parsed.data.RATE_LIMIT_MAX_REQUESTS),
+    apiWindowMs: parseInt(parsed.data.API_RATE_LIMIT_WINDOW_MS),
+    apiMaxMutations: parseInt(parsed.data.API_RATE_LIMIT_MAX_MUTATIONS),
+    otpWindowMs: parseInt(parsed.data.OTP_RATE_LIMIT_WINDOW_MS),
+    otpSendIpMax: parseInt(parsed.data.OTP_SEND_IP_MAX),
+    otpSendPhoneMax: parseInt(parsed.data.OTP_SEND_PHONE_MAX),
+    otpVerifyIpMax: parseInt(parsed.data.OTP_VERIFY_IP_MAX),
+    otpVerifyPhoneMax: parseInt(parsed.data.OTP_VERIFY_PHONE_MAX),
   },
   
   upload: {

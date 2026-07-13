@@ -1,6 +1,7 @@
 // src/app/products/[slug]/page.tsx
 import type { Metadata } from 'next';
 import type { ProductDetail } from '@/modules/products/types/product.types';
+import { SERVER_CACHE_TAGS } from '@/lib/server-fetch';
 import ProductPageClient from './ProductPageClient';
 
 const API_BASE =
@@ -19,7 +20,7 @@ async function fetchProduct(slug: string): Promise<ProductDetail | null> {
 
   try {
     const res = await fetch(`${API_BASE}/products/${slug}`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 3600, tags: [SERVER_CACHE_TAGS.products] },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;
