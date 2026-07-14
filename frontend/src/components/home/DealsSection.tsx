@@ -1,20 +1,18 @@
 import ProductCarousel from "@/modules/products/components/ProductCarousel";
-// import CountdownTimer from "./CountdownTimer";
+import CountdownTimer from "./CountdownTimer";
 import type { ProductListResponse } from "@/modules/products/types/product.types";
 
 interface DealsSectionProps {
   products: ProductListResponse[];
 }
 
-/**
- * Flash-sale band: discounted products carousel with a rolling weekly countdown.
- */
 export default function DealsSection({ products }: DealsSectionProps) {
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="border-y border-white/10 bg-[linear-gradient(135deg,#2A1726_0%,#4F2746_52%,#2A1726_100%)] py-10 md:py-12">
-      <div className="container mx-auto px-4">
+    <section className="relative overflow-hidden border-y border-white/10 bg-[radial-gradient(circle_at_85%_0%,rgba(194,168,120,.2),transparent_30%),linear-gradient(135deg,#24131F_0%,#4F2746_55%,#281521_100%)] py-7 md:py-9">
+      <div className="pointer-events-none absolute -left-24 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-primary/20 blur-3xl" />
+      <div className="container relative mx-auto px-4">
         <ProductCarousel
           products={products}
           eyebrow="پیشنهاد ویژه"
@@ -23,24 +21,8 @@ export default function DealsSection({ products }: DealsSectionProps) {
           linkLabel="مشاهده همه تخفیف‌ها"
           onDark
           size="compact"
-          // headerExtra={
-          //   <div className="flex flex-col gap-4 border-y border-white/10 py-4 sm:flex-row sm:items-center sm:justify-between">
-          //     <div>
-          //       <p className="text-sm font-semibold text-white">
-          //         تخفیف‌های محدود با موجودی ویژه
-          //       </p>
-          //       <p className="mt-1 text-xs text-white/65">
-          //         محصولات برگزیده با قیمت‌های به‌صرفه
-          //       </p>
-          //     </div>
-          //     <div className="flex flex-wrap items-center gap-3">
-          //       <span className="text-xs font-medium text-white/70">
-          //         تا پایان پیشنهاد
-          //       </span>
-               
-          //     </div>
-          //   </div>
-          // }
+          cardStyle="deal"
+          inlineHeaderContent={<CountdownTimer compactOnMobile />}
         />
       </div>
     </section>

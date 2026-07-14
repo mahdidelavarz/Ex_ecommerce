@@ -55,7 +55,7 @@ export default function ProductCard({ product, mobileLayout = 'grid' }: ProductC
         <article className="group relative grid min-h-32 grid-cols-[5rem_minmax(0,1fr)_5.25rem] gap-2.5 border-b border-border py-2 md:hidden">
           <Link
             href={href}
-            className="relative block overflow-hidden rounded-card min-w-20"
+            className="relative block aspect-[4/5] self-center overflow-hidden rounded-card min-w-20"
             aria-label={product.title}
           >
             {product.thumbnail ? (

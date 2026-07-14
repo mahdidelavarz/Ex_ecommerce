@@ -8,6 +8,7 @@ interface CountdownTimerProps {
   /** ISO date string the countdown runs to; defaults to the rolling weekly deadline */
   target?: string;
   className?: string;
+  compactOnMobile?: boolean;
 }
 
 /**
@@ -37,7 +38,7 @@ function diffParts(target: string) {
 
 const UNIT_LABELS = ["روز", "ساعت", "دقیقه", "ثانیه"] as const;
 
-export default function CountdownTimer({ target, className = "" }: CountdownTimerProps) {
+export default function CountdownTimer({ target, className = "", compactOnMobile = false }: CountdownTimerProps) {
   // null until mounted → SSR and first client render match (no hydration mismatch)
   const [parts, setParts] = useState<ReturnType<typeof diffParts> | null>(null);
 
@@ -58,16 +59,16 @@ export default function CountdownTimer({ target, className = "" }: CountdownTime
     : [null, null, null, null];
 
   return (
-    <div className={`flex items-center gap-2 ${className}`} dir="rtl" role="timer" aria-label="زمان باقی‌مانده">
+    <div className={`flex items-center ${compactOnMobile ? "gap-1 sm:gap-2" : "gap-2"} ${className}`} dir="rtl" role="timer" aria-label="زمان باقی‌مانده">
       {values.map((value, i) => (
-        <div key={UNIT_LABELS[i]} className="flex flex-col items-center gap-1">
+        <div key={UNIT_LABELS[i]} className={`flex flex-col items-center ${compactOnMobile ? "gap-0.5 sm:gap-1" : "gap-1"}`}>
           <span
             suppressHydrationWarning
-            className="grid h-11 w-11 place-items-center rounded-xl bg-white/15 text-lg font-bold tabular-nums text-white backdrop-blur-sm md:h-13 md:w-13 md:text-xl"
+            className={`grid place-items-center bg-white/15 font-bold tabular-nums text-white backdrop-blur-sm ${compactOnMobile ? "h-8 w-8 rounded-lg text-xs sm:h-11 sm:w-11 sm:rounded-xl sm:text-lg md:h-13 md:w-13 md:text-xl" : "h-11 w-11 rounded-xl text-lg md:h-13 md:w-13 md:text-xl"}`}
           >
             {value === null ? "--" : toPersianDigits(String(value).padStart(2, "0"))}
           </span>
-          <span className="text-[10px] text-white/70">{UNIT_LABELS[i]}</span>
+          <span className={`${compactOnMobile ? "text-[8px] sm:text-[10px]" : "text-[10px]"} text-white/70`}>{UNIT_LABELS[i]}</span>
         </div>
       ))}
     </div>

@@ -28,7 +28,7 @@ export default function ProductGrid({
         {[...Array(8)].map((_, i) => (
           mobileLayout === 'list' ? (
             <Card key={i} className="grid grid-cols-[5rem_minmax(0,1fr)_5.25rem] gap-2.5 rounded-none border-x-0 border-t-0 p-3 shadow-none md:block md:rounded-card md:border-0 md:p-0 md:shadow-card">
-              <Skeleton className="aspect-square rounded-card md:aspect-[4/5] md:rounded-t-card md:rounded-b-none" />
+              <Skeleton className="aspect-[4/5] rounded-card md:rounded-t-card md:rounded-b-none" />
               <div className="space-y-2 md:p-4">
                 <Skeleton className="h-4 w-4/5" />
                 <Skeleton className="h-3 w-full" />

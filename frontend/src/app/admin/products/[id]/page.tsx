@@ -550,6 +550,9 @@ export default function AdminProductFormPage() {
       {/* TAB: Images */}
       {activeTab === "images" && (
         <FormSection title="تصاویر محصول" icon={MdiImageMultiple}>
+          <p className="rounded-card border border-primary/20 bg-primary-light p-3 text-sm leading-7 text-text-secondary">
+            اندازه استاندارد تصاویر محصول <strong className="text-text-primary">۱۲۰۰ × ۱۵۰۰ پیکسل</strong> با نسبت عمودی <strong className="text-text-primary">۴:۵</strong> است. فرمت WebP پیشنهاد می‌شود؛ محصول را وسط کادر و با کمی فضای خالی در اطراف قرار دهید.
+          </p>
           <div className="flex justify-end">
             <Button
               type="button"
@@ -574,7 +577,7 @@ export default function AdminProductFormPage() {
                 className="grid grid-cols-1 gap-4 rounded-card border border-border bg-surface-raised p-3 sm:grid-cols-[6rem_minmax(0,1fr)_auto_auto] sm:items-start sm:p-4"
               >
                 {/* Preview */}
-                <div className="h-28 w-28 shrink-0 rounded-card border border-border bg-surface overflow-hidden flex items-center justify-center justify-self-start sm:h-24 sm:w-24">
+                <div className="aspect-[4/5] w-28 shrink-0 rounded-card border border-border bg-surface overflow-hidden flex items-center justify-center justify-self-start sm:w-24">
                   {watchedImages?.[index]?.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img

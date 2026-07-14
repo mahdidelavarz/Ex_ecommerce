@@ -252,7 +252,7 @@ export default function AdminVariantFormPage() {
         <FormSection title="تصاویر واریانت" icon={MdiImageMultiple}>
           <div className="flex flex-wrap gap-3">
             {variantImages.map((img) => (
-              <div key={img.id} className="relative w-24 h-24 rounded-card overflow-hidden border border-border group">
+              <div key={img.id} className="relative aspect-[4/5] w-24 rounded-card overflow-hidden border border-border group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.image_url} alt="variant" className="w-full h-full object-cover" />
                 <button
@@ -267,7 +267,7 @@ export default function AdminVariantFormPage() {
             ))}
 
             {/* Upload tile */}
-            <label className="w-24 h-24 rounded-card border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary text-text-muted hover:text-primary transition-colors">
+            <label className="aspect-[4/5] w-24 rounded-card border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary text-text-muted hover:text-primary transition-colors">
               {isUploadingImage ? (
                 <SvgSpinnersRingResize className="w-6 h-6" />
               ) : (

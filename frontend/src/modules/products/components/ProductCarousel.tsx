@@ -2,9 +2,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import ProductCard from "./ProductCard";
 import { SectionHeading } from "@/components/ui";
-import { MdiChevronLeft, MdiChevronRight } from "@/components/icons/Icons";
+import { MdiArrowRight, MdiChevronLeft, MdiChevronRight, MdiImageOff } from "@/components/icons/Icons";
+import { formatPrice } from "@/utils/formatPrice";
+import { toPersianDigits } from "@/utils/toPersianDigits";
 import {
   getCarouselState,
   getDragScrollDelta,
@@ -24,7 +28,44 @@ interface ProductCarouselProps {
   /** Extra full-width row between the heading and the track (e.g. countdown) */
   headerExtra?: ReactNode;
   size?: "default" | "compact";
+  cardStyle?: "default" | "deal";
+  inlineHeaderContent?: ReactNode;
   className?: string;
+}
+
+function DealProductCard({ product }: { product: ProductListResponse }) {
+  const minPrice = Number(product.price_range.min);
+  const outOfStock = product.total_stock === 0 || minPrice <= 0;
+  const hasDiscount = !outOfStock && product.discount_percent > 0 && product.discount_percent < 100;
+  const originalPrice = hasDiscount ? Math.round(minPrice / (1 - product.discount_percent / 100)) : null;
+
+  return (
+    <Link href={`/products/${product.slug}`} aria-label={`مشاهده ${product.title}`} className="group/card flex h-full flex-col overflow-hidden rounded-2xl bg-white text-text-primary shadow-[0_16px_40px_-24px_rgba(0,0,0,.65)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_48px_-22px_rgba(0,0,0,.75)] focus-visible:outline-white">
+      <div className="relative aspect-[4/5] overflow-hidden bg-surface-raised">
+        {product.thumbnail ? (
+          <Image src={product.thumbnail} alt={product.title} fill className="object-cover transition-transform duration-500 group-hover/card:scale-[1.04]" sizes="(max-width: 640px) 58vw, (max-width: 1024px) 29vw, 20vw" />
+        ) : (
+          <div className="grid h-full place-items-center"><MdiImageOff className="h-12 w-12 text-text-muted" /></div>
+        )}
+        {product.variants_count > 1 && (
+          <span className="absolute bottom-2.5 right-2.5 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-text-secondary shadow-sm backdrop-blur">{toPersianDigits(product.variants_count)} تنوع</span>
+        )}
+      </div>
+      <div className="flex min-h-32 flex-1 flex-col p-3.5">
+        {product.brand?.name && <p className="mb-1 truncate text-[10px] font-semibold text-primary">{product.brand.name}</p>}
+        <h3 className="line-clamp-2 text-sm font-bold leading-6 transition-colors group-hover/card:text-primary">{product.title}</h3>
+        <div className="mt-auto pt-3">
+          {outOfStock ? <p className="text-sm font-bold text-text-muted">ناموجود</p> : (
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span className="text-[15px] font-extrabold text-text-primary">{formatPrice(minPrice)}</span>
+              {originalPrice && <span className="text-[11px] text-text-muted line-through decoration-error/70">{formatPrice(originalPrice)}</span>}
+              {hasDiscount && <span className="rounded-full bg-error px-2 py-0.5 text-[10px] font-extrabold text-white">{toPersianDigits(product.discount_percent)}٪</span>}
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
 }
 
 export default function ProductCarousel({
@@ -34,8 +75,10 @@ export default function ProductCarousel({
   href,
   linkLabel,
   onDark = false,
-  // headerExtra,
+  headerExtra,
   size = "default",
+  cardStyle = "default",
+  inlineHeaderContent,
   className = "",
 }: ProductCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -116,12 +159,27 @@ export default function ProductCarousel({
     ? "gap-3 md:gap-4"
     : "gap-4 md:gap-6";
   const slideClass = compact
-    ? "w-[62%] sm:w-[38%] md:w-[27%] lg:w-[20%] xl:w-[18%]"
+    ? "w-[76%] max-w-[18rem] sm:w-[35%] sm:max-w-none md:w-[26%] lg:w-[19%] xl:w-[17%]"
     : "w-[70%] sm:w-[45%] md:w-[31%] lg:w-[23%]";
 
   return (
     <div className={className}>
-      <SectionHeading
+      {inlineHeaderContent ? (
+        <div className="mb-5 flex flex-nowrap items-center justify-between gap-2 border-b border-white/10 pb-4 sm:gap-4 sm:pb-5">
+          <div className="min-w-fit">
+            {eyebrow && <p className="mb-1 hidden text-[11px] font-bold tracking-[0.18em] text-secondary sm:block">{eyebrow}</p>}
+            <h2 className="text-sm font-extrabold text-white sm:text-xl md:text-2xl">{title}</h2>
+          </div>
+          <div className="w-auto shrink-0">{inlineHeaderContent}</div>
+          <div className="hidden items-center gap-2 md:flex">
+            {href && <Link href={href} className="ml-1 hidden items-center gap-1 text-xs font-bold text-secondary transition hover:text-white md:flex"><MdiArrowRight className="h-4 w-4" />{linkLabel ?? "مشاهده همه"}</Link>}
+            <div className="hidden items-center gap-2 sm:flex">
+              <button type="button" onClick={() => scrollByCards(1)} disabled={atEnd} aria-label="بعدی" className={arrowClass}><MdiChevronRight className="h-5 w-5" /></button>
+              <button type="button" onClick={() => scrollByCards(-1)} disabled={atStart} aria-label="قبلی" className={arrowClass}><MdiChevronLeft className="h-5 w-5" /></button>
+            </div>
+          </div>
+        </div>
+      ) : <SectionHeading
         title={title}
         eyebrow={eyebrow}
         href={href}
@@ -149,9 +207,9 @@ export default function ProductCarousel({
             </button>
           </div>
         }
-      />
+      />}
 
-      {/* {headerExtra && <div className={compact ? "mb-5" : "mb-6"}>{headerExtra}</div>} */}
+      {headerExtra && <div className={compact ? "mb-5" : "mb-6"}>{headerExtra}</div>}
 
       <div
         ref={trackRef}
@@ -169,7 +227,7 @@ export default function ProductCarousel({
             data-carousel-card
             className={`${slideClass} shrink-0 snap-start`}
           >
-            <ProductCard product={product} />
+            {cardStyle === "deal" ? <DealProductCard product={product} /> : <ProductCard product={product} />}
           </div>
         ))}
       </div>

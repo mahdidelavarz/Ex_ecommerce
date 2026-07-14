@@ -33,7 +33,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
 
   if (!images || images.length === 0) {
     return (
-      <div className="aspect-square w-full rounded-card bg-surface-raised flex items-center justify-center">
+      <div className="mx-auto aspect-[4/5] w-full max-w-[21rem] rounded-card bg-surface-raised flex items-center justify-center sm:max-w-[24rem] lg:mx-0 lg:max-w-[30rem]">
         <MdiImageOff className="w-24 h-24 text-text-muted" />
       </div>
     );
@@ -55,7 +55,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
   };
 
   return (
-    <div className="lg:flex lg:gap-4">
+    <div className="mx-auto w-full max-w-[21rem] sm:max-w-[24rem] lg:mx-0 lg:flex lg:max-w-[30rem] lg:gap-4">
       {/* Desktop thumbnail rail */}
       {images.length > 1 && (
         <div className="hidden lg:flex flex-col gap-3 shrink-0">
@@ -64,7 +64,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
               key={img.id}
               onClick={() => setActive(idx)}
               aria-label={`نمایش تصویر ${idx + 1}`}
-              className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors duration-200 cursor-pointer ${
+              className={`relative h-25 w-20 rounded-xl overflow-hidden border-2 transition-colors duration-200 cursor-pointer ${
                 idx === safeActive
                   ? 'border-primary'
                   : 'border-border hover:border-primary/50'
@@ -85,7 +85,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
       {/* Desktop main image with hover-zoom */}
       <div className="hidden lg:block flex-1">
         <div
-          className="group relative aspect-square w-full overflow-hidden rounded-card bg-surface shadow-card cursor-zoom-in"
+          className="group relative aspect-[4/5] w-full overflow-hidden rounded-card bg-surface shadow-card cursor-zoom-in"
           onMouseMove={handleMove}
           onMouseLeave={() => setZoom((z) => ({ ...z, on: false }))}
           onClick={() => setLightboxOpen(true)}
@@ -116,7 +116,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
             <button
               key={img.id}
               onClick={() => setLightboxOpen(true)}
-              className="relative aspect-square w-full shrink-0 snap-center bg-surface"
+              className="relative aspect-[4/5] w-full shrink-0 snap-center bg-surface"
               aria-label={`بزرگ‌نمایی تصویر ${idx + 1}`}
             >
               <Image
@@ -280,7 +280,7 @@ function Lightbox({
               key={img.id}
               onClick={() => onIndexChange(idx)}
               aria-label={`تصویر ${idx + 1}`}
-              className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 transition-colors cursor-pointer ${
+              className={`relative h-[70px] w-14 shrink-0 overflow-hidden rounded-lg border-2 transition-colors cursor-pointer ${
                 idx === index ? 'border-primary' : 'border-white/20 hover:border-white/50'
               }`}
             >
